@@ -1,0 +1,24 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * SEOMate plugin for Craft CMS
+ *
+ * SEOMateUtility Utility Content
+ *
+ * @author    Værsågod
+ * @copyright Copyright (c) 2018 Værsågod
+ * @link      https://www.vaersaagod.no/
+ * @package   SEOMate
+ * @since     1.0.0
+ */
+#}
+
+<h1>SEOMateUtility</h1>
+
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@vaersaagod/seomate/assetbundles/seomateutilityutility/dist', true) ~ '/img/SEOMateUtility-icon.svg' %}
+
+<img src="{{ iconUrl }}" height="64" width="64" />
+
+<p>Your Utility content goes here</p>
+
+<p>{{ someVar }}</p>

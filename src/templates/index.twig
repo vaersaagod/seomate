@@ -1,0 +1,46 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * SEOMate plugin for Craft CMS 3.x
+ *
+ * SEOMate index.twig
+ *
+ * @author    Værsågod
+ * @copyright Copyright (c) 2018 Værsågod
+ * @link      https://www.vaersaagod.no/
+ * @package   SEOMate
+ * @since     1.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("vaersaagod\\seomate\\assetbundles\\seomate\\SEOMateAsset") %}
+{% do view.registerAssetBundle("vaersaagod\\seomate\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
+
+{# Link for the ? icon at the bottom of the page #}
+{% set docsUrl = "https://github.com/vaersaagod/seomate/blob/master/README.md" %}
+
+{# The title of this CP section #}
+{% set title = "SEOMate" %}
+
+{# The URL to this plugin's base CP section #}
+{% set pluginCpUrl = url('seomate') %}
+
+{# Get a URL to an image in our AssetBundle #}
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@vaersaagod/seomate/assetbundles/indexcpsection/dist', true) ~ '/img/Index-icon.svg' %}
+
+{# Content that should appear in the page header#}
+{% set extraPageHeaderHtml %}
+    <div class="buttons">
+        <a href="{{ pluginCpUrl }}" class="btn submit add icon">{{ "Click Me!"|t('seomate') }}</a>
+    </div>
+{% endset %}
+
+{# The content of the CP Section#}
+{% set content %}
+    <h2>{{ "Index CP Section body goes here"|t('seomate') }}</h2>
+    <img src="{{ iconUrl }}" height="64" width="64" />
+    <p class="textline"></p>
+{% endset %}

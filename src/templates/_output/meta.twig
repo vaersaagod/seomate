@@ -1,0 +1,36 @@
+<link rel="home" href="{{ siteUrl }}"/>
+<link rel="canonical" href="{{ craft.app.request.absoluteUrl }}">
+<meta property="og:url" content="{{ craft.app.request.absoluteUrl }}"/>
+<meta name="twitter:url" content="{{ craft.app.request.absoluteUrl }}"/>
+
+{% set alternateUrls = seomate.alternateUrls ?? null %}
+
+{% if alternateUrls %}
+    <link rel="alternate" href="{{ craft.app.request.absoluteUrl }}" hreflang="x-default"/>
+    
+    {% for alternateUrl in alternateUrls %}
+        <link rel="alternate" href="{{ alternateUrl.url }}" hreflang="{{ alternateUrl.language }}"/>
+    {% endfor %}
+{% endif %}
+
+{% set meta = seomate.meta %}
+
+{%- for key, data in meta -%}
+    {% if data is iterable %}
+        {%- for dataItem in data -%}
+            {% if 'og:' in key -%}
+                <meta property="{{ key }}" content="{{ dataItem }}"/>
+            {% else -%}
+                <meta name="{{ key }}" content="{{ dataItem }}"/>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% if 'og:' in key -%}
+            <meta property="{{ key }}" content="{{ data }}"/>
+        {% else -%}
+            <meta name="{{ key }}" content="{{ data }}"/>
+        {% endif %}
+    {% endif %}
+{%- endfor %}
+
+<meta property="og:locale" content="{{ craft.app.getSites().getCurrentSite().language }}"/>

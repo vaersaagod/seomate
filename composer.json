@@ -1,0 +1,43 @@
+{
+    "name": "vaersaagod/seomate",
+    "description": "-",
+    "type": "craft-plugin",
+    "version": "0.0.1",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "seomate"
+    ],
+    "support": {
+        "docs": "https://github.com/vaersaagod/seomate/blob/master/README.md",
+        "issues": "https://github.com/vaersaagod/seomate/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Værsågod",
+            "homepage": "https://www.vaersaagod.no/"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0",
+        "spatie/schema-org": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+          "vaersaagod\\seomate\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "SEOMate",
+        "handle": "seomate",
+        "hasCpSettings": true,
+        "hasCpSection": true,
+        "changelogUrl": "https://raw.githubusercontent.com/vaersaagod/seomate/master/CHANGELOG.md",
+        "components": {
+        },
+        "class": "vaersaagod\\seomate\\SEOMate"
+    }
+}
