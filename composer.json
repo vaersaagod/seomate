@@ -2,7 +2,7 @@
     "name": "vaersaagod/seomate",
     "description": "-",
     "type": "craft-plugin",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "keywords": [
         "craft",
         "cms",
@@ -33,8 +33,8 @@
     "extra": {
         "name": "SEOMate",
         "handle": "seomate",
-        "hasCpSettings": true,
-        "hasCpSection": true,
+        "hasCpSettings": false,
+        "hasCpSection": false,
         "changelogUrl": "https://raw.githubusercontent.com/vaersaagod/seomate/master/CHANGELOG.md",
         "components": {
         },
