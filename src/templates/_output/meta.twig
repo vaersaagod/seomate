@@ -25,7 +25,9 @@
             {% endif %}
         {% endfor %}
     {% else %}
-        {% if 'og:' in key -%}
+        {% if key == 'title' -%}
+            <title>{{ data }}</title>
+        {% elseif 'og:' in key -%}
             <meta property="{{ key }}" content="{{ data }}"/>
         {% else -%}
             <meta name="{{ key }}" content="{{ data }}"/>
