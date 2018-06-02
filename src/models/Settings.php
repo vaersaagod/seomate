@@ -99,8 +99,9 @@ class Settings extends Model
     ];
 
     public $tagTemplateMap = [
-        'default' => '<meta name="twitter:site" content="@cinemateket"/>',
-        'og:title, og:description, og:image' => '<meta property="{{ key }}" content="{{ value }}">',
+        'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
+        'title' => '<title>{{ value }}</title>',
+        'og:title,og:description,og:image,og:image:width,og:image:height,,og:image:type,og:type' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
     
     // Public Methods

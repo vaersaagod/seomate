@@ -11,6 +11,7 @@
 namespace vaersaagod\seomate\services;
 
 use aelvan\imager\helpers\ImagerHelpers;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\assetbundles\SEOMate\SEOMateAsset;
 use vaersaagod\seomate\helpers\SEOMateHelper;
@@ -142,6 +143,21 @@ class SEOMateMetaService extends Component
         return $alternateUrls;
     }
 
+    public function renderMetaTag($key, $value)
+    {
+        $craft = Craft::$app;
+        $settings = SEOMate::$plugin->getSettings();
+        
+        $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
+        $template = $tagTemplateMap['default'] ?? '';
+        
+        if (isset($tagTemplateMap[$key])) {
+            $template = $tagTemplateMap[$key];
+        } 
+        
+        return Template::raw(Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $value ]));
+    }
+    
     public function getElementMeta($element, $overrides = null)
     {
         $craft = Craft::$app;

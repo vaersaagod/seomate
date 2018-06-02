@@ -105,6 +105,7 @@ class SEOMate extends Plugin
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('schema', SchemaVariable::class);
+                $variable->set('seomate', SEOMateVariable::class);
             }
         );
 
