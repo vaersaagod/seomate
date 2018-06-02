@@ -194,7 +194,7 @@ class SEOMateMetaService extends Component
         if ($type === 'text') {
             if (is_array($fields)) {
                 foreach ($fields as $fieldName) {
-                    if ($element[$fieldName] !== null && $element[$fieldName] !== '') {
+                    if (isset($element[$fieldName]) && $element[$fieldName] !== null && $element[$fieldName] !== '') {
                         return trim(strip_tags((string)$element[$fieldName]));
                     }
                 }
@@ -204,8 +204,10 @@ class SEOMateMetaService extends Component
         if ($type === 'image') {
             if (is_array($fields)) {
                 foreach ($fields as $fieldName) {
-                    if ($element[$fieldName] !== null) {
-                        foreach ($element[$fieldName] as $asset) {
+                    if (isset($element[$fieldName]) && $element[$fieldName] !== null) {
+                        $assets = $element[$fieldName]->all();
+                        
+                        foreach ($assets as $asset) {
                             return $asset;
                         }
                     }
