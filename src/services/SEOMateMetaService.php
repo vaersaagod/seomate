@@ -224,13 +224,15 @@ class SEOMateMetaService extends Component
 
                 if ($type === 'text') {
                     if ($field !== null && $field !== '') {
-                        return trim(strip_tags((string)$element[$fieldName]));
+                        return trim(strip_tags((string)$field));
                     }
                 }
 
                 if ($type === 'image') {
                     if ($field !== null) {
-                        foreach ($field as $asset) {
+                        $assets = $field->all();
+                        
+                        foreach ($assets as $asset) {
                             return $asset;
                         }
                     }
