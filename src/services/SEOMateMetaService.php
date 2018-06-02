@@ -68,13 +68,14 @@ class SEOMateMetaService extends Component
             $meta = $this->processDefaultMeta($meta, $context, $settings);
         }
 
+        // Autofill missing attributes
+        $meta = $this->autofillMeta($meta, $settings);
+        
         // Parse assets if applicable
         if (!$settings->returnImageAsset) {
             $meta = $this->transformMetaAssets($meta, $settings);
         }
         
-        // Autofill missing attributes
-        $meta = $this->autofillMeta($meta, $settings);
         
         // Apply restrictions
         if ($settings->applyRestrictions) {
