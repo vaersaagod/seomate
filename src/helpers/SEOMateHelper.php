@@ -102,7 +102,7 @@ class SEOMateHelper
                 $currentScope = $scope[$part];
             } else {
                 if ($currentScope !== null) {
-                    $currentScope = $currentScope[$part];
+                    $currentScope = $currentScope[$part] ?? null;
                 }
             }
             
