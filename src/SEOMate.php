@@ -10,7 +10,9 @@
 
 namespace vaersaagod\seomate;
 
+use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
+use craft\services\Elements;
 use craft\utilities\ClearCaches;
 use craft\web\View;
 use vaersaagod\seomate\helpers\CacheHelper;
@@ -129,7 +131,16 @@ class SEOMate extends Plugin
                 ];
             }
         );
-
+        
+        // After save element event handler
+        Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT,
+            function(ElementEvent $event) {
+                $element = $event->element;
+                if (!$event->isNew) {
+                    CacheHelper::deleteMetaCacheForElement($element);
+                }
+            }
+        );
 
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new SEOMateTwigExtension());

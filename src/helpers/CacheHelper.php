@@ -45,10 +45,10 @@ class CacheHelper
         return $cache->get(self::getElementKey($element));
     }
 
-    public static function invalidateMetaCacheForElement($element)
+    public static function deleteMetaCacheForElement($element)
     {
         $cache = Craft::$app->getCache();
-        TagDependency::invalidate($cache, self::getElementKey($element));
+        $cache->delete(self::getElementKey($element));
     }
 
     public static function setMetaCacheForElement($element, $meta)
