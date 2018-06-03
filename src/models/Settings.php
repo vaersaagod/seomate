@@ -37,6 +37,8 @@ class Settings extends Model
     public $siteName = null;
     
     public $metaTemplate = '';
+    public $cacheEnabled = true;
+    public $cacheDuration = 3600;
     public $includeSitenameInTitle = true;
     public $sitenameTitleProperties = ['title'];
     public $sitenamePosition = 'after';

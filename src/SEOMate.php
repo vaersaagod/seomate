@@ -10,7 +10,10 @@
 
 namespace vaersaagod\seomate;
 
+use craft\events\RegisterCacheOptionsEvent;
+use craft\utilities\ClearCaches;
 use craft\web\View;
+use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\services\SEOMateMetaService;
 use vaersaagod\seomate\services\SEOMateService as SEOMateServiceService;
 use vaersaagod\seomate\variables\SchemaVariable;
@@ -114,6 +117,19 @@ class SEOMate extends Plugin
             'seomateMeta',
             [$this, 'onRegisterMetaHook']
         );
+        
+        
+        // Adds SEOMate to the Clear Caches tool
+        Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
+            function(RegisterCacheOptionsEvent $event) {
+                $event->options[] = [
+                    'key' => 'seomate-cache',
+                    'label' => Craft::t('seomate', 'SEOMate cache'),
+                    'action' => [SEOMate::$plugin, 'invalidateCaches'],
+                ];
+            }
+        );
+
 
         /*
         // Add in our Twig extensions
@@ -178,6 +194,11 @@ class SEOMate extends Plugin
         
         */
 
+    }
+    
+    public function invalidateCaches() 
+    {
+        CacheHelper::clearAllCaches();
     }
 
     /**

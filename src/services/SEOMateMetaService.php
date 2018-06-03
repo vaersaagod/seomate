@@ -14,6 +14,7 @@ use aelvan\imager\helpers\ImagerHelpers;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\assetbundles\SEOMate\SEOMateAsset;
+use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\SEOMate;
 
@@ -51,6 +52,10 @@ class SEOMateMetaService extends Component
             $element = $overrideObject['element'];
         } else {
             $element = $craft->urlManager->getMatchedElement();
+        }
+        
+        if ($settings->cacheEnabled && CacheHelper::hasMetaCacheForElement($element)) {
+            return CacheHelper::getMetaCacheForElement($element);
         }
 
         $meta = [];
@@ -93,6 +98,11 @@ class SEOMateMetaService extends Component
         // todo : Maybe not necessary? Should maybe be in defaultMeta instead?
         if (isset($settings->additionalMeta) && is_array($settings->additionalMeta) && count($settings->additionalMeta) > 0) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
+        }
+        
+        // Cache it
+        if ($settings->cacheEnabled) {
+            CacheHelper::setMetaCacheForElement($element, $meta);
         }
 
         return $meta;
@@ -195,12 +205,12 @@ class SEOMateMetaService extends Component
     public function generateElementMetaByProfile($element, $profile)
     {
         $r = [];
-
+        
         foreach ($profile as $key => $value) {
             $keyType = SEOMateHelper::getMetaTypeByKey($key);
             $r[$key] = $this->getElementPropertyDataByFields($element, $keyType, $value);
         }
-
+        
         return $r;
     }
 

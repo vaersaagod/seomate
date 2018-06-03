@@ -23,7 +23,6 @@ use Craft;
 class SEOMateHelper
 {
     
-    
     static public function updateSettings($settings, $overrides)
     {
         foreach ($overrides as $key => $val) {

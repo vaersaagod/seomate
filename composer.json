@@ -1,6 +1,6 @@
 {
     "name": "vaersaagod/seomate",
-    "description": "-",
+    "description": "SEO, mate! It's important.",
     "type": "craft-plugin",
     "version": "0.0.2",
     "keywords": [
@@ -8,7 +8,10 @@
         "cms",
         "craftcms",
         "craft-plugin",
-        "seomate"
+        "seomate",
+        "seo",
+        "json-ld",
+        "meta"
     ],
     "support": {
         "docs": "https://github.com/vaersaagod/seomate/blob/master/README.md",
