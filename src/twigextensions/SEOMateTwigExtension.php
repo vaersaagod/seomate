@@ -50,7 +50,7 @@ class SEOMateTwigExtension extends \Twig_Extension
     public function getFilters()
     {
         return [
-            new \Twig_SimpleFilter('someFilter', [$this, 'someInternalFunction']),
+            //new \Twig_SimpleFilter('someFilter', [$this, 'someInternalFunction']),
         ];
     }
 
@@ -64,7 +64,7 @@ class SEOMateTwigExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('someFunction', [$this, 'someInternalFunction']),
+            new \Twig_SimpleFunction('renderMetaTag', [$this, 'renderMetaTag']),
         ];
     }
 
@@ -75,10 +75,8 @@ class SEOMateTwigExtension extends \Twig_Extension
      *
      * @return string
      */
-    public function someInternalFunction($text = null)
+    public function renderMetaTag($key, $value)
     {
-        $result = $text . " in the way";
-
-        return $result;
+        return SEOMate::$plugin->meta->renderMetaTag($key, $value);
     }
 }

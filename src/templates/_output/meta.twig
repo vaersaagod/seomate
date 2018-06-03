@@ -16,6 +16,6 @@
 {% set meta = seomate.meta %}
 
 {% for key, data in meta %}
-    {{- craft.seomate.renderMetaTag(key, data) }}
+    {{- renderMetaTag(key, data) }}
 {% endfor %}
 

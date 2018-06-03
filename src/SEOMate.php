@@ -131,10 +131,10 @@ class SEOMate extends Plugin
         );
 
 
-        /*
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new SEOMateTwigExtension());
 
+        /*
         // Register our site routes
         Event::on(
             UrlManager::class,
