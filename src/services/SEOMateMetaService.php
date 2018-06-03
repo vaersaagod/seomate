@@ -165,7 +165,17 @@ class SEOMateMetaService extends Component
             $template = $tagTemplateMap[$key];
         } 
         
-        return Template::raw(Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $value ]));
+        $r = '';
+        
+        if (is_array($value)) {
+            foreach ($value as $val) {
+                $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $val ]);
+            }
+        } else {
+            $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $value ]);
+        }
+        
+        return Template::raw($r);
     }
     
     public function getElementMeta($element, $overrides = null)
