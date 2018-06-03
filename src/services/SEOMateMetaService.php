@@ -311,10 +311,16 @@ class SEOMateMetaService extends Component
                 $transform['position'] = $asset['focalPoint'];
             }
             
-            $transformedUrl = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
+            $transformedAsset = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
+            
+            if ($transformedAsset) {
+                $transformedUrl = $transformedAsset->getUrl();
+            }
         } else {
             $transformedUrl = $asset->getUrl($transform);
         }
+        
+        $transformedUrl = SEOMateHelper::ensureAbsoluteUrl($transformedUrl);
         
         return $transformedUrl;
     }

@@ -8,6 +8,7 @@
 
 namespace vaersaagod\seomate\helpers;
 
+use craft\helpers\UrlHelper;
 use vaersaagod\seomate\SEOMate;
 
 use Craft;
@@ -136,6 +137,28 @@ class SEOMateHelper
     static public function renderString($string, $context)
     {
         return Craft::$app->getView()->renderString($string, $context);
+    }
+    
+    static public function ensureAbsoluteUrl($url): string 
+    {
+        if (UrlHelper::isAbsoluteUrl($url)) {
+            return $url;
+        }
+        
+        // Get the base url and assume that that's what we wanna use.
+        $siteUrl = UrlHelper::baseSiteUrl();
+        $siteUrlParts = parse_url($siteUrl);
+        
+        if (UrlHelper::isProtocolRelativeUrl($url)) {
+            return UrlHelper::urlWithScheme($url, $siteUrlParts['scheme']);
+        }
+        
+        if (strpos($url, '/') === 0) {
+            return $siteUrlParts['scheme'] . '://' . $siteUrlParts['host'] . $url;
+        } 
+        
+        // huh, relative url? Seems unlikely, but... If we've come this far.
+        return $siteUrlParts['scheme'] . '://' . $siteUrlParts['host'] . '/' . $url;
     }
     
 }
