@@ -54,7 +54,7 @@ class SEOMateMetaService extends Component
             $element = $craft->urlManager->getMatchedElement();
         }
         
-        if ($settings->cacheEnabled && CacheHelper::hasMetaCacheForElement($element)) {
+        if ($element && $settings->cacheEnabled && CacheHelper::hasMetaCacheForElement($element)) {
             return CacheHelper::getMetaCacheForElement($element);
         }
 
