@@ -103,7 +103,7 @@ class Settings extends Model
     public $tagTemplateMap = [
         'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
         'title' => '<title>{{ value }}</title>',
-        'og:title,og:description,og:image,og:image:width,og:image:height,,og:image:type,og:type' => '<meta property="{{ key }}" content="{{ value }}">',
+        'og:title,og:description,og:image,og:image:width,og:image:height,og:image:type,og:type' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
     
     // Public Methods
