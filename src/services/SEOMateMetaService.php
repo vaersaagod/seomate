@@ -101,7 +101,7 @@ class SEOMateMetaService extends Component
         }
         
         // Cache it
-        if ($settings->cacheEnabled) {
+        if ($element && $settings->cacheEnabled) {
             CacheHelper::setMetaCacheForElement($element, $meta);
         }
 
