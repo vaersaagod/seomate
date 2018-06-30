@@ -269,6 +269,7 @@ class SEOMateMetaService extends Component
                             ->all();
 
                         foreach ($blocks as $block) {
+                            // TODO – should we check if the Asset is an actual, transformable *image* here?
                             if ($asset = $block[$blockFieldHandle][0] ?? null) {
                                 return $asset;
                             }
