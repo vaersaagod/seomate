@@ -228,56 +228,80 @@ class SEOMateMetaService extends Component
 
     public function getElementPropertyDataByFields($element, $type, $fields)
     {
-        if ($type === 'text') {
-            if (is_array($fields)) {
-                foreach ($fields as $fieldName) {
-                    if (isset($element[$fieldName]) && $element[$fieldName] !== null && $element[$fieldName] !== '') {
-                        return trim(strip_tags((string)$element[$fieldName]));
-                    }
-                }
-            }
+
+        if (!\is_array($fields)) {
+            $fields = [$fields];
         }
 
-        if ($type === 'image') {
-            if (is_array($fields)) {
-                foreach ($fields as $fieldName) {
+        foreach ($fields as $fieldName) {
 
-                    if ($element[$fieldName] ?? null) {
-                        $assets = $element[$fieldName]->all();
+            if ($element[$fieldName] ?? null) {
 
-                        foreach ($assets as $asset) {
+                // Root field
+                if ($type === 'text') {
+
+                    if ($value = \trim(\strip_tags((string) $element[$fieldName] ?? ''))) {
+                        return $value;
+                    }
+
+                } else if ($type === 'image') {
+
+                    if ($asset = $element[$fieldName]->one()) {
+                        return $asset;
+                    }
+
+                }
+
+            } else if (!!\strpos($fieldName, ':')) {
+
+                // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
+                // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
+                $matrixFieldPathSegments = \explode(':', $fieldName);
+                $fieldName = \array_shift($matrixFieldPathSegments) ?: null;
+                if (!$fieldName || empty($matrixFieldPathSegments) || !($element[$fieldName] ?? null) || !($element[$fieldName] instanceof MatrixBlockQuery)) {
+                    continue;
+                }
+
+                // Nice one, there's actually a Matrix field for that attribute.
+                // Now get the block type and field handles
+                $blockPathSegments = \explode('.', $matrixFieldPathSegments[0]);
+                if (!($blockTypeHandle = $blockPathSegments[0] ?? null) || !($blockFieldHandle = $blockPathSegments[1] ?? null)) {
+                    continue;
+                }
+
+                // Need to clone the element query before filtering on type, because using + mutating the actual element query would propagate to whatever happens in the actual entry template
+                $blockQuery = clone $element[$fieldName];
+
+                if ($type === 'text') {
+
+                    $blocks = $blockQuery
+                        ->type($blockTypeHandle)
+                        ->all();
+
+                    foreach ($blocks as $block) {
+                        if ($value = \trim(\strip_tags((string) $block[$blockFieldHandle] ?? ''))) {
+                            return $value;
+                        }
+                    }
+
+                } else if ($type === 'image') {
+
+                    $blocks = $blockQuery
+                        ->type($blockTypeHandle)
+                        ->with(["{$blockTypeHandle}:{$blockFieldHandle}"])
+                        ->all();
+
+                    foreach ($blocks as $block) {
+                        // TODO – should we check if the Asset is an actual, transformable *image* here?
+                        if ($asset = $block[$blockFieldHandle][0] ?? null) {
                             return $asset;
                         }
-                    } else if (!!\strpos($fieldName, ':')) {
-
-                        // Assume Matrix field config in the format $fieldHandle:$blockTypeHandle.$fieldHandle
-                        $matrixFieldPathSegments = \explode(':', $fieldName);
-                        $fieldName = \array_shift($matrixFieldPathSegments) ?: null;
-
-                        if (!$fieldName || empty($matrixFieldPathSegments) || !($element[$fieldName] ?? null) || !($element[$fieldName] instanceof MatrixBlockQuery)) {
-                            continue;
-                        }
-
-                        $blockPathSegments = \explode('.', $matrixFieldPathSegments[0]);
-                        if (!($blockTypeHandle = $blockPathSegments[0] ?? null) || !($blockFieldHandle = $blockPathSegments[1] ?? null)) {
-                            continue;
-                        }
-
-                        $blocks = $element[$fieldName]
-                            ->type($blockTypeHandle)
-                            ->with(["{$blockTypeHandle}:{$blockFieldHandle}"])
-                            ->all();
-
-                        foreach ($blocks as $block) {
-                            // TODO – should we check if the Asset is an actual, transformable *image* here?
-                            if ($asset = $block[$blockFieldHandle][0] ?? null) {
-                                return $asset;
-                            }
-                        }
-
                     }
+
                 }
+
             }
+
         }
 
         return '';
