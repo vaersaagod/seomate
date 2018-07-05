@@ -1,8 +1,5 @@
-# SEOMate plugin for Craft CMS 3.x
-
--
-
-![Screenshot](resources/img/plugin-logo.png)
+SEOMate plugin for Craft CMS 3.x
+===
 
 ## Requirements
 
@@ -28,7 +25,89 @@ To install the plugin, follow these instructions.
 
 ## Configuring SEOMate
 
--Insert text here-
+Example configureation file:
+
+```
+<?php
+
+return [
+    '*' => [
+        'siteName' => [
+            'default' => 'Default site',
+            'engelsk' => 'Alternative site',
+        ],
+            
+        'includeSitenameInTitle' => true,
+        'cacheEnabled' => false,
+        'cacheDuration' => 3600,
+        'sitenamePosition' => 'after',
+        'sitenameSeparator' => '|',
+        'defaultProfile' => 'default',
+        'truncateLength' => true,
+        
+        'defaultMeta' => [
+            'title' => ['globalSeo.seoTitle'],
+            'description' => ['globalSeo.seoDescription'],
+            'image' => ['globalSeo.seoImages']
+        ],
+
+        'fieldProfiles' => [
+            'default' => [
+                'title' => ['seoTitle', 'title'],
+                'description' => ['seoDescription', 'summary', 'listText'],
+                'image' => ['seoImage', 'mainImage']
+            ],
+            'portfolio' => [
+                'title' => ['seoTitle','title'],
+                'description' => ['seoDescription', 'summary'],
+                'image' => ['testMatrix:images.images', 'seoImage', 'images'],
+            ],
+        ],
+        
+        'profileMap' => [
+            'portfolio' => 'portfolio',
+        ],
+        
+        'additionalMeta' => [
+            'og:type' => 'website',
+            'twitter:card' => 'summary_large_image',
+            'og:see_also' => ['{{ globalSeo.seoTitle ?? "" }}', '{{ globalSeo.seoTitle ?? "" }}']
+            /*
+            'fb:profile_id' => '{{ settings.facebookProfileId }}',
+            'twitter:site' => '@{{ settings.twitterHandle }}',
+            'twitter:author' => '@{{ settings.twitterHandle }}',
+            'twitter:creator' => '@{{ settings.twitterHandle }}',
+            */
+        ],
+        
+        'sitemapEnabled' => true,
+        'sitemapLimit' => 100,
+        'sitemapConfig' => [
+            'elements' => [
+                'test' => [
+                    'elementType' => \craft\elements\Entry::class,
+                    'criteria' => ['section' => ['lorem', 'testing']],
+                    'params' => ['changefreq' => 'daily', 'priority' => 0.5],
+                ],
+                'loremcategories' => [
+                    'elementType' => \craft\elements\Category::class,
+                    'criteria' => ['group' => 'loremCategories'],
+                    'params' => ['changefreq' => 'weekly', 'priority' => 0.2],
+                ],
+                'portfolio' => ['changefreq' => 'weekly', 'priority' => 0.5],
+                'testing' => ['changefreq' => 'weekly', 'priority' => 0.5],
+            ],
+            'custom' => [
+                '/' => ['changefreq' => 'weekly', 'priority' => 1],
+                '/custom-1' => ['changefreq' => 'weekly', 'priority' => 1],
+                '/custom/2' => ['changefreq' => 'weekly', 'priority' => 1],
+            ]
+        ],
+        
+    ]
+];
+
+```
 
 ## Using SEOMate
 
