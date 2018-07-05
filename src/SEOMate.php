@@ -18,6 +18,7 @@ use craft\web\View;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\services\SEOMateMetaService;
 use vaersaagod\seomate\services\SEOMateService as SEOMateServiceService;
+use vaersaagod\seomate\services\SEOMateSitemapService;
 use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
 use vaersaagod\seomate\twigextensions\SEOMateTwigExtension;
@@ -53,6 +54,7 @@ use yii\base\Event;
  * @since     1.0.0
  *
  * @property  SEOMateMetaService $meta
+ * @property  SEOMateSitemapService $sitemap
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -97,10 +99,12 @@ class SEOMate extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+        $settings = $this->getSettings();
 
         // Register services
         $this->setComponents([
             'meta' => SEOMateMetaService::class,
+            'sitemap' => SEOMateSitemapService::class,
         ]);
 
         Event::on(
@@ -119,7 +123,6 @@ class SEOMate extends Plugin
             'seomateMeta',
             [$this, 'onRegisterMetaHook']
         );
-        
         
         // Adds SEOMate to the Clear Caches tool
         Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
@@ -144,7 +147,18 @@ class SEOMate extends Plugin
 
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new SEOMateTwigExtension());
-
+        
+        // Add routes to sitemap if enabled
+        if ($settings->sitemapEnabled) {
+            Event::on(
+                UrlManager::class,
+                UrlManager::EVENT_REGISTER_SITE_URL_RULES,
+                [$this, 'onRegisterSiteUrlRules']
+            );
+        }
+        
+        
+        
         /*
         // Register our site routes
         Event::on(
@@ -247,6 +261,20 @@ class SEOMate extends Plugin
 
         return $output;
     }
+    
+    public function onRegisterSiteUrlRules (RegisterUrlRulesEvent $event)
+	{
+	    $settings = $this->getSettings();
+	    
+	    if ($settings->sitemapEnabled) {
+            $sitemapName = $settings->sitemapName;
+
+            $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
+            $event->rules[$sitemapName . '_<handle:\w*>_<page:\d*>.xml'] = 'seomate/sitemap/element';
+            $event->rules[$sitemapName . '_custom.xml'] = 'seomate/sitemap/custom';
+            $event->rules['robots.txt'] = 'seo/seo/robots';
+        }
+	}
 
     // Protected Methods
     // =========================================================================

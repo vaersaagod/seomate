@@ -106,6 +106,11 @@ class Settings extends Model
         'og:title,og:description,og:image,og:image:width,og:image:height,og:image:type,og:type' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
     
+    public $sitemapEnabled = false;
+    public $sitemapName = 'sitemap';
+    public $sitemapLimit = 500;
+    public $sitemapConfig = [];
+    
     // Public Methods
     // =========================================================================
 
