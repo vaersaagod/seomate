@@ -11,6 +11,7 @@
 namespace vaersaagod\seomate\services;
 
 use aelvan\imager\helpers\ImagerHelpers;
+use craft\elements\db\MatrixBlockQuery;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\assetbundles\SEOMate\SEOMateAsset;
@@ -53,7 +54,7 @@ class SEOMateMetaService extends Component
         } else {
             $element = $craft->urlManager->getMatchedElement();
         }
-        
+
         if ($element && $settings->cacheEnabled && CacheHelper::hasMetaCacheForElement($element)) {
             return CacheHelper::getMetaCacheForElement($element);
         }
@@ -76,13 +77,13 @@ class SEOMateMetaService extends Component
 
         // Autofill missing attributes
         $meta = $this->autofillMeta($meta, $settings);
-        
+
         // Parse assets if applicable
         if (!$settings->returnImageAsset) {
             $meta = $this->transformMetaAssets($meta, $settings);
         }
-        
-        
+
+
         // Apply restrictions
         if ($settings->applyRestrictions) {
             $meta = $this->applyMetaRestrictions($meta, $settings);
@@ -99,7 +100,7 @@ class SEOMateMetaService extends Component
         if (isset($settings->additionalMeta) && is_array($settings->additionalMeta) && count($settings->additionalMeta) > 0) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
         }
-        
+
         // Cache it
         if ($element && $settings->cacheEnabled) {
             CacheHelper::setMetaCacheForElement($element, $meta);
@@ -157,16 +158,16 @@ class SEOMateMetaService extends Component
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
-        
+
         $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
         $template = $tagTemplateMap['default'] ?? '';
-        
+
         if (isset($tagTemplateMap[$key])) {
             $template = $tagTemplateMap[$key];
-        } 
-        
+        }
+
         $r = '';
-        
+
         if (is_array($value)) {
             foreach ($value as $val) {
                 $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $val ]);
@@ -174,10 +175,10 @@ class SEOMateMetaService extends Component
         } else {
             $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $value ]);
         }
-        
+
         return Template::raw($r);
     }
-    
+
     public function getElementMeta($element, $overrides = null)
     {
         $craft = Craft::$app;
@@ -215,40 +216,92 @@ class SEOMateMetaService extends Component
     public function generateElementMetaByProfile($element, $profile)
     {
         $r = [];
-        
+
         foreach ($profile as $key => $value) {
             $keyType = SEOMateHelper::getMetaTypeByKey($key);
             $r[$key] = $this->getElementPropertyDataByFields($element, $keyType, $value);
         }
-        
+
         return $r;
     }
 
 
     public function getElementPropertyDataByFields($element, $type, $fields)
     {
-        if ($type === 'text') {
-            if (is_array($fields)) {
-                foreach ($fields as $fieldName) {
-                    if (isset($element[$fieldName]) && $element[$fieldName] !== null && $element[$fieldName] !== '') {
-                        return trim(strip_tags((string)$element[$fieldName]));
-                    }
-                }
-            }
+
+        if (!\is_array($fields)) {
+            $fields = [$fields];
         }
 
-        if ($type === 'image') {
-            if (is_array($fields)) {
-                foreach ($fields as $fieldName) {
-                    if (isset($element[$fieldName]) && $element[$fieldName] !== null) {
-                        $assets = $element[$fieldName]->all();
-                        
-                        foreach ($assets as $asset) {
+        foreach ($fields as $fieldName) {
+
+            if ($element[$fieldName] ?? null) {
+
+                // Root field
+                if ($type === 'text') {
+
+                    if ($value = \trim(\strip_tags((string) $element[$fieldName] ?? ''))) {
+                        return $value;
+                    }
+
+                } else if ($type === 'image') {
+
+                    if ($asset = $element[$fieldName]->one()) {
+                        return $asset;
+                    }
+
+                }
+
+            } else if (!!\strpos($fieldName, ':')) {
+
+                // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
+                // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
+                $matrixFieldPathSegments = \explode(':', $fieldName);
+                $fieldName = \array_shift($matrixFieldPathSegments) ?: null;
+                if (!$fieldName || empty($matrixFieldPathSegments) || !($element[$fieldName] ?? null) || !($element[$fieldName] instanceof MatrixBlockQuery)) {
+                    continue;
+                }
+
+                // Nice one, there's actually a Matrix field for that attribute.
+                // Now get the block type and field handles
+                $blockPathSegments = \explode('.', $matrixFieldPathSegments[0]);
+                if (!($blockTypeHandle = $blockPathSegments[0] ?? null) || !($blockFieldHandle = $blockPathSegments[1] ?? null)) {
+                    continue;
+                }
+
+                // Need to clone the element query before filtering on type, because using + mutating the actual element query would propagate to whatever happens in the actual entry template
+                $blockQuery = clone $element[$fieldName];
+
+                if ($type === 'text') {
+
+                    $blocks = $blockQuery
+                        ->type($blockTypeHandle)
+                        ->all();
+
+                    foreach ($blocks as $block) {
+                        if ($value = \trim(\strip_tags((string) $block[$blockFieldHandle] ?? ''))) {
+                            return $value;
+                        }
+                    }
+
+                } else if ($type === 'image') {
+
+                    $blocks = $blockQuery
+                        ->type($blockTypeHandle)
+                        ->with(["{$blockTypeHandle}:{$blockFieldHandle}"])
+                        ->all();
+
+                    foreach ($blocks as $block) {
+                        // TODO – should we check if the Asset is an actual, transformable *image* here?
+                        if ($asset = $block[$blockFieldHandle][0] ?? null) {
                             return $asset;
                         }
                     }
+
                 }
+
             }
+
         }
 
         return '';
@@ -269,7 +322,7 @@ class SEOMateMetaService extends Component
                 if ($type === 'image') {
                     if ($field !== null) {
                         $assets = $field->all();
-                        
+
                         foreach ($assets as $asset) {
                             return $asset;
                         }
@@ -291,7 +344,7 @@ class SEOMateMetaService extends Component
 
         foreach ($imageTransformMap as $key => $value) {
             if (isset($meta[$key]) && $meta[$key] !== null && $meta[$key] !== '') {
-                
+
                 $transform = $imageTransformMap[$key];
                 $asset = $meta[$key] ?? null;
                 if ($asset) {
@@ -321,27 +374,27 @@ class SEOMateMetaService extends Component
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
         }
-        
+
         $imagerPlugin = Craft::$app->plugins->getPlugin('imager');
         $transformedUrl = '';
-        
+
         if ($settings->useImagerIfInstalled && $imagerPlugin) {
             // todo : should we set more defaults?
             if (!isset($transform['position']) && !is_string($asset) && isset($asset['focalPoint'])) {
                 $transform['position'] = $asset['focalPoint'];
             }
-            
+
             $transformedAsset = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
-            
+
             if ($transformedAsset) {
                 $transformedUrl = $transformedAsset->getUrl();
             }
         } else {
             $transformedUrl = $asset->getUrl($transform);
         }
-        
+
         $transformedUrl = SEOMateHelper::ensureAbsoluteUrl($transformedUrl);
-        
+
         return $transformedUrl;
     }
 
