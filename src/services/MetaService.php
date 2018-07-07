@@ -131,23 +131,26 @@ class MetaService extends Component
         foreach ($craft->getSites()->getAllSites() as $site) {
             if ($site->id !== $currentSite->id) {
                 $url = $craft->getElements()->getElementUriForSite($matchedElement->getId(), $site->id);
-                $url = ($url === '__home__') ? '' : $url;
-
-                if (!UrlHelper::isAbsoluteUrl($url)) {
-                    try {
-                        $url = UrlHelper::siteUrl($url, null, null, $site->id);
-                    } catch (Exception $e) {
-                        $url = '';
-                        Craft::error($e->getMessage(), __METHOD__);
+                
+                if ($url !== false) { // if element was not available in the given site, this happens
+                    $url = ($url === '__home__') ? '' : $url;
+    
+                    if (!UrlHelper::isAbsoluteUrl($url)) {
+                        try {
+                            $url = UrlHelper::siteUrl($url, null, null, $site->id);
+                        } catch (Exception $e) {
+                            $url = '';
+                            Craft::error($e->getMessage(), __METHOD__);
+                        }
                     }
-                }
-
-                if ($url && $url !== '') {
-                    $alternateUrls[] = [
-                        'url' => $url,
-                        'language' => strtolower(str_replace('_', '-', $site->language))
-                    ];
-                }
+    
+                    if ($url && $url !== '') {
+                        $alternateUrls[] = [
+                            'url' => $url,
+                            'language' => strtolower(str_replace('_', '-', $site->language))
+                        ];
+                    }
+                    }
             }
         }
 

@@ -111,6 +111,10 @@ class Settings extends Model
     public $sitemapName = 'sitemap';
     public $sitemapLimit = 500;
     public $sitemapConfig = [];
+    public $sitemapSubmitUrlPatterns = [
+        'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
+        'http://www.bing.com/webmaster/ping.aspx?siteMap=',
+    ];
     
     // Public Methods
     // =========================================================================

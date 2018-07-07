@@ -48,14 +48,14 @@ class SitemapService extends Component
         if ($config && is_array($config)) {
             $elements = $config['elements'] ?? null;
             $custom = $config['custom'] ?? null;
-                
+
             if ($elements && is_array($elements) && count($elements) > 0) {
-                foreach ($elements as $key=>$definition) {
+                foreach ($elements as $key => $definition) {
                     $indexSitemapUrls = SitemapHelper::getIndexSitemapUrls($key, $definition);
                     SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', $indexSitemapUrls);
                 }
             }
-            
+
             if ($custom && is_array($custom) && count($custom) > 0) {
                 $customUrl = SitemapHelper::getCustomIndexSitemapUrl();
                 SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
@@ -74,16 +74,16 @@ class SitemapService extends Component
         $document->appendChild($topNode);
 
         $config = $settings->sitemapConfig;
-        
+
         if ($config && is_array($config)) {
             $definition = $config['elements'][$handle] ?? null;
-            
+
             if ($definition) {
                 $elementsSitemapUrls = SitemapHelper::getElementsSitemapUrls($handle, $definition, $page);
                 SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $elementsSitemapUrls);
             }
         }
-        
+
         return $document->saveXML();
     }
 
@@ -96,20 +96,48 @@ class SitemapService extends Component
         $document->appendChild($topNode);
 
         $config = $settings->sitemapConfig;
-        
+
         if ($config && is_array($config)) {
             $customUrls = $config['custom'] ?? null;
-            
-            if ($customUrls && count($customUrls)>0) {
+
+            if ($customUrls && count($customUrls) > 0) {
                 $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls);
                 SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
             }
         }
-        
+
         return $document->saveXML();
     }
 
-    private function getTopNode(&$document, $type='urlset')
+    public function submit()
+    {
+        $settings = SEOMate::$plugin->getSettings();
+        $pingUrls = $settings->sitemapSubmitUrlPatterns;
+        $sitemapPath = $settings->sitemapName . '.xml';
+
+        foreach ($pingUrls as $url) {
+            $sites = Craft::$app->getSites()->getAllSites();
+            
+            foreach ($sites as $site) {
+                $siteId = $site->id;
+                $sitemapUrl = UrlHelper::siteUrl($sitemapPath, null, null, $siteId);
+                
+                if (!empty($sitemapUrl)) {
+                    $submitUrl = $url . $sitemapUrl;
+                    $client = Craft::createGuzzleClient();
+
+                    try {
+                        $client->post($submitUrl);
+                        Craft::info('Index sitemap for site "' . $site->name . ' submitted to: ' . $submitUrl,__METHOD__);
+                    } catch (\Exception $e) {
+                        Craft::error('Error submitting index sitemap for site "' . $site->name . '" to: ' . $submitUrl . ' :: ' . $e->getMessage(),__METHOD__);
+                    }
+                }
+            }
+        }
+    }
+
+    private function getTopNode(&$document, $type = 'urlset')
     {
         $node = $document->createElement($type);
         $node->setAttribute(
@@ -120,7 +148,7 @@ class SitemapService extends Component
             'xmlns:xhtml',
             'http://www.w3.org/1999/xhtml'
         );
-        
+
         return $node;
     }
 }

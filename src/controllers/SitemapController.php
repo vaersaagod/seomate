@@ -53,6 +53,12 @@ class SitemapController extends Controller
 		);
     }
     
+    public function actionSubmit()
+    {
+        SEOMate::$plugin->sitemap->submit();
+        Craft::$app->end();
+    }
+    
     private function returnXml ($data)
 	{
 		$response = Craft::$app->getResponse();
