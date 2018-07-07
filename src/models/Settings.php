@@ -45,6 +45,7 @@ class Settings extends Model
     public $sitenameSeparator = '|';
     public $defaultProfile = null;
     public $outputAlternate = true;
+    public $altTextFieldHandle = null;
     
     public $defaultMeta = [];
     public $fieldProfiles = [];

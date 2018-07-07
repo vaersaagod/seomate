@@ -170,10 +170,10 @@ class MetaService extends Component
 
         if (is_array($value)) {
             foreach ($value as $val) {
-                $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $val ]);
+                $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $val]);
             }
         } else {
-            $r .= Craft::$app->getView()->renderString($template, [ 'key' => $key, 'value' => $value ]);
+            $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $value]);
         }
 
         return Template::raw($r);
@@ -228,24 +228,21 @@ class MetaService extends Component
 
     public function getElementPropertyDataByFields($element, $type, $fields)
     {
-
         if (!\is_array($fields)) {
             $fields = [$fields];
         }
 
         foreach ($fields as $fieldName) {
-
             if ($element[$fieldName] ?? null) {
 
                 // Root field
                 if ($type === 'text') {
 
-                    if ($value = \trim(\strip_tags((string) $element[$fieldName] ?? ''))) {
+                    if ($value = \trim(\strip_tags((string)$element[$fieldName] ?? ''))) {
                         return $value;
                     }
 
                 } else if ($type === 'image') {
-
                     if ($asset = $element[$fieldName]->one()) {
                         return $asset;
                     }
@@ -279,7 +276,7 @@ class MetaService extends Component
                         ->all();
 
                     foreach ($blocks as $block) {
-                        if ($value = \trim(\strip_tags((string) $block[$blockFieldHandle] ?? ''))) {
+                        if ($value = \trim(\strip_tags((string)$block[$blockFieldHandle] ?? ''))) {
                             return $value;
                         }
                     }
@@ -297,11 +294,8 @@ class MetaService extends Component
                             return $asset;
                         }
                     }
-
                 }
-
             }
-
         }
 
         return '';
@@ -350,6 +344,12 @@ class MetaService extends Component
                 if ($asset) {
                     $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
 
+                    $alt = null;
+
+                    if ($settings->altTextFieldHandle && $asset[$settings->altTextFieldHandle] && $asset[$settings->altTextFieldHandle] != '') {
+                        $alt = $asset->getAttributes()[$settings->altTextFieldHandle];
+                    }
+
                     // todo : need to figure out something better
                     if ($key === 'og:image') {
                         if (isset($transform['format'])) {
@@ -361,7 +361,16 @@ class MetaService extends Component
                         if (isset($transform['height'])) {
                             $meta[$key . ':height'] = $transform['height'];
                         }
+                        if ($alt) {
+                            $meta[$key . ':alt'] = $alt;
+                        }
                     }
+                    if ($key === 'twitter:image') {
+                        if ($alt) {
+                            $meta[$key . ':alt'] = $alt;
+                        }
+                    }
+
                 }
             }
         }

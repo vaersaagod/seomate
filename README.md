@@ -44,6 +44,7 @@ return [
         'sitenameSeparator' => '|',
         'defaultProfile' => 'default',
         'truncateLength' => true,
+        'altTextFieldHandle' => 'altText',
         
         'defaultMeta' => [
             'title' => ['globalSeo.seoTitle'],
@@ -55,12 +56,12 @@ return [
             'default' => [
                 'title' => ['seoTitle', 'title'],
                 'description' => ['seoDescription', 'summary', 'listText'],
-                'image' => ['seoImage', 'mainImage']
+                'image' => ['seoImages', 'mainImage']
             ],
             'portfolio' => [
                 'title' => ['seoTitle','title'],
                 'description' => ['seoDescription', 'summary'],
-                'image' => ['testMatrix:images.images', 'seoImage', 'images'],
+                'image' => ['seoImages', 'images', 'testMatrix:images.images'],
             ],
         ],
         
@@ -81,7 +82,7 @@ return [
         ],
         
         'sitemapEnabled' => true,
-        'sitemapLimit' => 100,
+        'sitemapLimit' => 10,
         'sitemapConfig' => [
             'elements' => [
                 'test' => [
@@ -106,6 +107,7 @@ return [
         
     ]
 ];
+
 
 ```
 
