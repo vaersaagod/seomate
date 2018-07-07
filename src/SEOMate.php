@@ -17,6 +17,7 @@ use craft\utilities\ClearCaches;
 use craft\web\View;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\services\MetaService;
+use vaersaagod\seomate\services\SchemaService;
 use vaersaagod\seomate\services\SitemapService;
 use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
@@ -54,6 +55,7 @@ use yii\base\Event;
  *
  * @property  MetaService $meta
  * @property  SitemapService $sitemap
+ * @property  SchemaService $schema
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -104,6 +106,7 @@ class SEOMate extends Plugin
         $this->setComponents([
             'meta' => MetaService::class,
             'sitemap' => SitemapService::class,
+            'schema' => SchemaService::class,
         ]);
 
         Event::on(
