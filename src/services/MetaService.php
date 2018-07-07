@@ -35,7 +35,7 @@ use craft\base\Component;
  * @package   SEOMate
  * @since     1.0.0
  */
-class SEOMateMetaService extends Component
+class MetaService extends Component
 {
 
     public function getContextMeta($context)

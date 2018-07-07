@@ -16,9 +16,8 @@ use craft\services\Elements;
 use craft\utilities\ClearCaches;
 use craft\web\View;
 use vaersaagod\seomate\helpers\CacheHelper;
-use vaersaagod\seomate\services\SEOMateMetaService;
-use vaersaagod\seomate\services\SEOMateService as SEOMateServiceService;
-use vaersaagod\seomate\services\SEOMateSitemapService;
+use vaersaagod\seomate\services\MetaService;
+use vaersaagod\seomate\services\SitemapService;
 use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
 use vaersaagod\seomate\twigextensions\SEOMateTwigExtension;
@@ -53,8 +52,8 @@ use yii\base\Event;
  * @package   SEOMate
  * @since     1.0.0
  *
- * @property  SEOMateMetaService $meta
- * @property  SEOMateSitemapService $sitemap
+ * @property  MetaService $meta
+ * @property  SitemapService $sitemap
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
@@ -103,8 +102,8 @@ class SEOMate extends Plugin
 
         // Register services
         $this->setComponents([
-            'meta' => SEOMateMetaService::class,
-            'sitemap' => SEOMateSitemapService::class,
+            'meta' => MetaService::class,
+            'sitemap' => SitemapService::class,
         ]);
 
         Event::on(

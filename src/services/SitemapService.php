@@ -33,7 +33,7 @@ use craft\base\Component;
  * @package   SEOMate
  * @since     1.0.0
  */
-class SEOMateSitemapService extends Component
+class SitemapService extends Component
 {
     public function index()
     {
