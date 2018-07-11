@@ -464,13 +464,27 @@ class MetaService extends Component
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
         }
-
-        // todo : revisit, is this good enough? More fallback?
-
-        if (is_array($settings->siteName)) {
+        
+        if (\is_array($settings->siteName)) {
             $siteName = $settings->siteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? '';
         } else {
-            $siteName = $settings->siteName ?? '';
+            if ($settings->siteName && is_string($settings->siteName)) {
+                $siteName = $settings->siteName;
+            } else {
+                try {
+                    $info = Craft::$app->getInfo();
+                } catch (ServerErrorHttpException $e) {
+                    $info = null;
+                }
+                
+                $sonfigSiteName = Craft::$app->getConfig()->getGeneral()->siteName;
+                
+                if (\is_array($sonfigSiteName)) {
+                    $sonfigSiteName = $sonfigSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($sonfigSiteName);
+                }
+                
+                $siteName = $sonfigSiteName ?? $info->name ?? '';
+            }
         }
 
         $preString = $settings->sitenamePosition === 'before' ? $siteName . ' ' . $settings->sitenameSeparator . ' ' : '';
