@@ -125,10 +125,10 @@ class SEOMate extends Plugin
             'seomateMeta',
             [$this, 'onRegisterMetaHook']
         );
-        
+
         // Adds SEOMate to the Clear Caches tool
         Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
-            function(RegisterCacheOptionsEvent $event) {
+            function (RegisterCacheOptionsEvent $event) {
                 $event->options[] = [
                     'key' => 'seomate-cache',
                     'label' => Craft::t('seomate', 'SEOMate cache'),
@@ -136,10 +136,10 @@ class SEOMate extends Plugin
                 ];
             }
         );
-        
+
         // After save element event handler
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT,
-            function(ElementEvent $event) {
+            function (ElementEvent $event) {
                 $element = $event->element;
                 if (!$event->isNew) {
                     CacheHelper::deleteMetaCacheForElement($element);
@@ -149,7 +149,7 @@ class SEOMate extends Plugin
 
         // Add in our Twig extensions
         Craft::$app->view->registerTwigExtension(new SEOMateTwigExtension());
-        
+
         // Add routes to sitemap if enabled
         if ($settings->sitemapEnabled) {
             Event::on(
@@ -158,9 +158,8 @@ class SEOMate extends Plugin
                 [$this, 'onRegisterSiteUrlRules']
             );
         }
-        
-        
-        
+
+
         /*
         // Register our site routes
         Event::on(
@@ -222,8 +221,8 @@ class SEOMate extends Plugin
         */
 
     }
-    
-    public function invalidateCaches() 
+
+    public function invalidateCaches()
     {
         CacheHelper::clearAllCaches();
     }
@@ -239,36 +238,32 @@ class SEOMate extends Plugin
     {
         $craft = \Craft::$app;
         $settings = $this->getSettings();
-        
+
         $meta = $this->meta->getContextMeta($context);
+        $canonicalUrl = $this->meta->getCanonicalUrl($context);
         $alternateUrls = $this->meta->getAlternateUrls($context);
 
         $context['seomate']['meta'] = $meta;
+        $context['seomate']['canonicalUrl'] = $canonicalUrl;
         $context['seomate']['alternateUrls'] = $alternateUrls;
 
         if ($settings['metaTemplate'] !== '') {
-            return $craft->view->renderTemplate(
-                $settings['metaTemplate'],
-                $context
-            );
+            return $craft->view->renderTemplate($settings['metaTemplate'], $context);
         }
 
         $oldTemplateMode = $craft->getView()->getTemplateMode();
         $craft->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
-        $output = $craft->getView()->renderTemplate(
-            'seomate/_output/meta',
-            $context
-        );
+        $output = $craft->getView()->renderTemplate('seomate/_output/meta', $context);
         $craft->getView()->setTemplateMode($oldTemplateMode);
 
         return $output;
     }
-    
-    public function onRegisterSiteUrlRules (RegisterUrlRulesEvent $event)
-	{
-	    $settings = $this->getSettings();
-	    
-	    if ($settings->sitemapEnabled) {
+
+    public function onRegisterSiteUrlRules(RegisterUrlRulesEvent $event)
+    {
+        $settings = $this->getSettings();
+
+        if ($settings->sitemapEnabled) {
             $sitemapName = $settings->sitemapName;
 
             $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
@@ -276,7 +271,7 @@ class SEOMate extends Plugin
             $event->rules[$sitemapName . '_custom.xml'] = 'seomate/sitemap/custom';
             $event->rules['robots.txt'] = 'seo/seo/robots';
         }
-	}
+    }
 
     // Protected Methods
     // =========================================================================

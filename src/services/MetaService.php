@@ -11,6 +11,7 @@
 namespace vaersaagod\seomate\services;
 
 use aelvan\imager\helpers\ImagerHelpers;
+use craft\base\Element;
 use craft\elements\db\MatrixBlockQuery;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -109,6 +110,36 @@ class MetaService extends Component
         return $meta;
     }
 
+    public function getCanonicalUrl($context)
+    {
+        $craft = Craft::$app;
+        $settings = SEOMate::$plugin->getSettings();
+        
+        $overrideObject = $context['seomate'] ?? null;
+
+        if ($overrideObject && isset($overrideObject['config'])) {
+            SEOMateHelper::updateSettings($settings, $overrideObject['config']);
+        }
+
+        if ($overrideObject && isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
+            return $overrideObject['canonicalUrl'];
+        }
+        
+        if ($overrideObject && isset($overrideObject['element'])) {
+            $element = $overrideObject['element'];
+        } else {
+            $element = $craft->urlManager->getMatchedElement();
+        }
+        
+        /** @var Element $element */
+        
+        if ($element && $element->getUrl()) {
+            return $element->getUrl();
+        }
+        
+        return $craft->getRequest()->getUrl();
+    }
+    
     public function getAlternateUrls($context)
     {
         $craft = Craft::$app;
@@ -187,7 +218,7 @@ class MetaService extends Component
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
 
-        if ($overrides && $overrides['config']) {
+        if ($overrides && isset($overrides['config'])) {
             SEOMateHelper::updateSettings($settings, $overrides['config']);
         }
 

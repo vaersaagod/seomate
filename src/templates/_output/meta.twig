@@ -1,13 +1,13 @@
 <link rel="home" href="{{ siteUrl }}"/>
-<link rel="canonical" href="{{ craft.app.request.absoluteUrl }}">
-<meta property="og:url" content="{{ craft.app.request.absoluteUrl }}"/>
+<link rel="canonical" href="{{ seomate.canonicalUrl }}">
+<meta property="og:url" content="{{ seomate.canonicalUrl }}"/>
+<meta name="twitter:url" content="{{ seomate.canonicalUrl }}"/>
 <meta property="og:locale" content="{{ craft.app.getSites().getCurrentSite().language }}"/>
-<meta name="twitter:url" content="{{ craft.app.request.absoluteUrl }}"/>
 
 {% set alternateUrls = seomate.alternateUrls ?? null %}
 
 {% if alternateUrls -%}
-    <link rel="alternate" href="{{ craft.app.request.absoluteUrl }}" hreflang="x-default"/>
+    <link rel="alternate" href="{{ seomate.canonicalUrl }}" hreflang="x-default"/>
     {% for alternateUrl in alternateUrls -%}
         <link rel="alternate" href="{{ alternateUrl.url }}" hreflang="{{ alternateUrl.language }}"/>
     {%- endfor %}
