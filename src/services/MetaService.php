@@ -589,11 +589,13 @@ class MetaService extends Component
             }
         }
 
-        $preString = $settings->sitenamePosition === 'before' ? $siteName . ' ' . $settings->sitenameSeparator . ' ' : '';
-        $postString = $settings->sitenamePosition === 'after' ? ' ' . $settings->sitenameSeparator . ' ' . $siteName : '';
-
-        foreach ($settings->sitenameTitleProperties as $property) {
-            $meta[$property] = $preString . $meta[$property] . $postString;
+        if ($siteName !== '') {
+            $preString = $settings->sitenamePosition === 'before' ? $siteName . ' ' . $settings->sitenameSeparator . ' ' : '';
+            $postString = $settings->sitenamePosition === 'after' ? ' ' . $settings->sitenameSeparator . ' ' . $siteName : '';
+    
+            foreach ($settings->sitenameTitleProperties as $property) {
+                $meta[$property] = $preString . $meta[$property] . $postString;
+            }
         }
 
         return $meta;
