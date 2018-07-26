@@ -10,17 +10,11 @@
 
 namespace vaersaagod\seomate\twigextensions;
 
+use Craft;
 use vaersaagod\seomate\SEOMate;
 
-use Craft;
 
 /**
- * Twig can be extended in many ways; you can add extra tags, filters, tests, operators,
- * global variables, and functions. You can even extend the parser itself with
- * node visitors.
- *
- * http://twig.sensiolabs.org/doc/advanced.html
- *
  * @author    Værsågod
  * @package   SEOMate
  * @since     1.0.0
@@ -35,7 +29,7 @@ class SEOMateTwigExtension extends \Twig_Extension
      *
      * @return string The extension name
      */
-    public function getName()
+    public function getName(): string
     {
         return 'SEOMate';
     }
@@ -47,7 +41,7 @@ class SEOMateTwigExtension extends \Twig_Extension
      *
      * @return array
      */
-    public function getFilters()
+    public function getFilters(): array
     {
         return [
             //new \Twig_SimpleFilter('someFilter', [$this, 'someInternalFunction']),
@@ -59,9 +53,9 @@ class SEOMateTwigExtension extends \Twig_Extension
      *
      *      {% set this = someFunction('something') %}
      *
-    * @return array
+     * @return array
      */
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [
             new \Twig_SimpleFunction('renderMetaTag', [$this, 'renderMetaTag']),
@@ -69,13 +63,11 @@ class SEOMateTwigExtension extends \Twig_Extension
     }
 
     /**
-     * Our function called via Twig; it can do anything you want
-     *
-     * @param null $text
-     *
-     * @return string
+     * @param string $key
+     * @param string $value
+     * @return \Twig_Markup
      */
-    public function renderMetaTag($key, $value)
+    public function renderMetaTag($key, $value): \Twig_Markup
     {
         return SEOMate::$plugin->meta->renderMetaTag($key, $value);
     }

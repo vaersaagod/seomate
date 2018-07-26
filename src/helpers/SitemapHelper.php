@@ -8,13 +8,13 @@
 
 namespace vaersaagod\seomate\helpers;
 
+use Craft;
+use craft\base\Element;
+use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
-use craft\records\Section;
 use vaersaagod\seomate\SEOMate;
-
-use Craft;
 
 /**
  * Sitemap Helper
@@ -25,19 +25,26 @@ use Craft;
  */
 class SitemapHelper
 {
-    public static function getIndexSitemapUrls($handle, $definition)
+    /**
+     * @param string $handle
+     * @param array $definition
+     * @return array
+     * @throws \yii\base\Exception
+     */
+    public static function getIndexSitemapUrls($handle, $definition): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
 
+        /** @var Element $elementClass */
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
             $criteria = $definition['criteria'] ?? [];
             $query = $elementClass::find();
             Craft::configure($query, $criteria);
         } else {
-            $elementClass = \craft\elements\Entry::class;
+            $elementClass = Entry::class;
             $criteria = ['section' => $handle];
             $query = $elementClass::find();
             Craft::configure($query, $criteria);
@@ -45,7 +52,7 @@ class SitemapHelper
 
         $count = $query->limit(null)->count();
         $pages = ceil($count / $limit);
-        $lastEntry = SitemapHelper::getLastEntry($query);
+        $lastEntry = self::getLastEntry($query);
 
         for ($i = 1; $i <= $pages; $i++) {
             $urls[] = [
@@ -57,23 +64,34 @@ class SitemapHelper
         return $urls;
     }
 
-    public static function getCustomIndexSitemapUrl()
+    /**
+     * @return array
+     * @throws \yii\base\Exception
+     */
+    public static function getCustomIndexSitemapUrl(): array
     {
         $settings = SEOMate::$plugin->getSettings();
-        
+
         return [
             'loc' => UrlHelper::siteUrl($settings->sitemapName . '_custom.xml'),
             'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c')
         ];
     }
 
-    public static function getElementsSitemapUrls($handle, $definition, $page)
+    /**
+     * @param string $handle
+     * @param array $definition
+     * @param $page
+     * @return array
+     */
+    public static function getElementsSitemapUrls($handle, $definition, $page): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
         $elements = null;
 
+        /** @var Element $elementClass */
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
             $criteria = $definition['criteria'] ?? [];
@@ -81,7 +99,7 @@ class SitemapHelper
             $params = $definition['params'] ?? [];
             Craft::configure($query, $criteria);
         } else {
-            $elementClass = \craft\elements\Entry::class;
+            $elementClass = Entry::class;
             $criteria = ['section' => $handle];
             $query = $elementClass::find();
             $params = $definition;
@@ -101,22 +119,32 @@ class SitemapHelper
 
         return $urls;
     }
-    
-    public static function getCustomSitemapUrls($customUrls)
+
+    /**
+     * @param array $customUrls
+     * @return array
+     * @throws \yii\base\Exception
+     */
+    public static function getCustomSitemapUrls($customUrls): array
     {
-        $settings = SEOMate::$plugin->getSettings();
         $urls = [];
-        
+
         foreach ($customUrls as $key => $params) {
             $urls[] = array_merge([
                 'loc' => UrlHelper::siteUrl($key),
                 'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
             ], $params);
         }
-        
+
         return $urls;
     }
 
+    /**
+     * @param \DOMDocument $document
+     * @param \DOMElement $sitemap
+     * @param string $nodeName
+     * @param array $urls
+     */
     public static function addUrlsToSitemap(&$document, &$sitemap, $nodeName, $urls)
     {
         foreach ($urls as $url) {
@@ -130,9 +158,12 @@ class SitemapHelper
         }
     }
 
+    /**
+     * @param ElementQueryInterface $query
+     * @return mixed
+     */
     public static function getLastEntry($query)
     {
-        $last = $query->orderBy('elements.dateUpdated DESC')->one();
-        return $last;
+        return $query->orderBy('elements.dateUpdated DESC')->one();
     }
 }

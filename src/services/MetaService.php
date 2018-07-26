@@ -10,27 +10,24 @@
 
 namespace vaersaagod\seomate\services;
 
-use aelvan\imager\helpers\ImagerHelpers;
+use Craft;
+use craft\base\Component;
 use craft\base\Element;
+use craft\elements\Asset;
 use craft\elements\db\MatrixBlockQuery;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use vaersaagod\seomate\assetbundles\SEOMate\SEOMateAsset;
+
+use vaersaagod\seomate\models\Settings;
+use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
-use vaersaagod\seomate\SEOMate;
+use yii\base\Exception;
+use yii\web\ServerErrorHttpException;
 
-use Craft;
-use craft\base\Component;
 
 /**
  * SEOMateService Service
- *
- * All of your plugin’s business logic should go in services, including saving data,
- * retrieving data, etc. They provide APIs that your controllers, template variables,
- * and other plugins can interact with.
- *
- * https://craftcms.com/docs/plugins/services
  *
  * @author    Værsågod
  * @package   SEOMate
@@ -39,7 +36,13 @@ use craft\base\Component;
 class MetaService extends Component
 {
 
-    public function getContextMeta($context)
+    /**
+     * @param $context
+     * @return array
+     * @throws ServerErrorHttpException
+     * @throws \craft\errors\SiteNotFoundException
+     */
+    public function getContextMeta($context): array
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -72,7 +75,7 @@ class MetaService extends Component
         }
 
         // Add default meta if available
-        if (isset($settings->defaultMeta) && is_array($settings->defaultMeta) && count($settings->defaultMeta) > 0) {
+        if ($settings->defaultMeta !== null && \count($settings->defaultMeta) > 0) {
             $meta = $this->processDefaultMeta($meta, $context, $settings);
         }
 
@@ -83,7 +86,6 @@ class MetaService extends Component
         if (!$settings->returnImageAsset) {
             $meta = $this->transformMetaAssets($meta, $settings);
         }
-
 
         // Apply restrictions
         if ($settings->applyRestrictions) {
@@ -96,9 +98,7 @@ class MetaService extends Component
         }
 
         // Additional mate data
-        // todo : Should this be moved out to event handler?
-        // todo : Maybe not necessary? Should maybe be in defaultMeta instead?
-        if (isset($settings->additionalMeta) && is_array($settings->additionalMeta) && count($settings->additionalMeta) > 0) {
+        if ($settings->additionalMeta !== null && \count($settings->additionalMeta) > 0) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
         }
 
@@ -110,11 +110,16 @@ class MetaService extends Component
         return $meta;
     }
 
+    /**
+     * @param $context
+     * @return null|string
+     * @throws \yii\base\InvalidConfigException
+     */
     public function getCanonicalUrl($context)
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
-        
+
         $overrideObject = $context['seomate'] ?? null;
 
         if ($overrideObject && isset($overrideObject['config'])) {
@@ -124,23 +129,29 @@ class MetaService extends Component
         if ($overrideObject && isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
             return $overrideObject['canonicalUrl'];
         }
-        
+
+        /** @var Element $element */
+
         if ($overrideObject && isset($overrideObject['element'])) {
             $element = $overrideObject['element'];
         } else {
             $element = $craft->urlManager->getMatchedElement();
         }
-        
-        /** @var Element $element */
-        
+
         if ($element && $element->getUrl()) {
             return $element->getUrl();
         }
-        
+
         return $craft->getRequest()->getUrl();
     }
-    
-    public function getAlternateUrls($context)
+
+    /**
+     * @param $context
+     * @return array
+     * @throws \craft\errors\SiteNotFoundException
+     * @throws \yii\base\Exception
+     */
+    public function getAlternateUrls($context): array
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -162,10 +173,10 @@ class MetaService extends Component
         foreach ($craft->getSites()->getAllSites() as $site) {
             if ($site->id !== $currentSite->id) {
                 $url = $craft->getElements()->getElementUriForSite($matchedElement->getId(), $site->id);
-                
+
                 if ($url !== false) { // if element was not available in the given site, this happens
                     $url = ($url === '__home__') ? '' : $url;
-    
+
                     if (!UrlHelper::isAbsoluteUrl($url)) {
                         try {
                             $url = UrlHelper::siteUrl($url, null, null, $site->id);
@@ -174,21 +185,26 @@ class MetaService extends Component
                             Craft::error($e->getMessage(), __METHOD__);
                         }
                     }
-    
+
                     if ($url && $url !== '') {
                         $alternateUrls[] = [
                             'url' => $url,
                             'language' => strtolower(str_replace('_', '-', $site->language))
                         ];
                     }
-                    }
+                }
             }
         }
 
         return $alternateUrls;
     }
 
-    public function renderMetaTag($key, $value)
+    /**
+     * @param string $key
+     * @param string|array $value
+     * @return \Twig_Markup
+     */
+    public function renderMetaTag($key, $value): \Twig_Markup
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -202,7 +218,7 @@ class MetaService extends Component
 
         $r = '';
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             foreach ($value as $val) {
                 $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $val]);
             }
@@ -213,9 +229,13 @@ class MetaService extends Component
         return Template::raw($r);
     }
 
-    public function getElementMeta($element, $overrides = null)
+    /**
+     * @param Element $element
+     * @param null|array $overrides
+     * @return array
+     */
+    public function getElementMeta($element, $overrides = null): array
     {
-        $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
 
         if ($overrides && isset($overrides['config'])) {
@@ -247,7 +267,12 @@ class MetaService extends Component
         return $meta;
     }
 
-    public function generateElementMetaByProfile($element, $profile)
+    /**
+     * @param Element $element
+     * @param array $profile
+     * @return array
+     */
+    public function generateElementMetaByProfile($element, $profile): array
     {
         $r = [];
 
@@ -259,7 +284,12 @@ class MetaService extends Component
         return $r;
     }
 
-
+    /**
+     * @param Element $element
+     * @param string $type
+     * @param array $fields
+     * @return null|string
+     */
     public function getElementPropertyDataByFields($element, $type, $fields)
     {
         if (!\is_array($fields)) {
@@ -277,13 +307,14 @@ class MetaService extends Component
                     }
 
                 } else if ($type === 'image') {
+                    
                     if ($asset = $element[$fieldName]->one()) {
                         return $asset;
                     }
 
                 }
 
-            } else if (!!\strpos($fieldName, ':')) {
+            } else if ((bool)\strpos($fieldName, ':')) {
 
                 // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
                 // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
@@ -335,9 +366,15 @@ class MetaService extends Component
         return '';
     }
 
+    /**
+     * @param $context
+     * @param string $type
+     * @param array $fields
+     * @return mixed
+     */
     public function getContextPropertyDataByFields($context, $type, $fields)
     {
-        if (is_array($fields)) {
+        if (\is_array($fields)) {
             foreach ($fields as $fieldName) {
                 $field = SEOMateHelper::getTargetFieldByHandleFromScope($context, $fieldName);
 
@@ -362,6 +399,12 @@ class MetaService extends Component
         return '';
     }
 
+    /**
+     * @param array $meta
+     * @param null|Settings $settings
+     * @return mixed
+     * @throws \craft\errors\SiteNotFoundException
+     */
     public function transformMetaAssets($meta, $settings = null)
     {
         if ($settings === null) {
@@ -375,12 +418,13 @@ class MetaService extends Component
 
                 $transform = $imageTransformMap[$key];
                 $asset = $meta[$key] ?? null;
+                
                 if ($asset) {
                     $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
 
                     $alt = null;
 
-                    if ($settings->altTextFieldHandle && $asset[$settings->altTextFieldHandle] && $asset[$settings->altTextFieldHandle] != '') {
+                    if ($settings->altTextFieldHandle && $asset[$settings->altTextFieldHandle] && ((string)$asset[$settings->altTextFieldHandle] !== '')) {
                         $alt = $asset->getAttributes()[$settings->altTextFieldHandle];
                     }
 
@@ -412,7 +456,14 @@ class MetaService extends Component
         return $meta;
     }
 
-    public function getTransformedUrl($asset, $transform, $settings = null)
+    /**
+     * @param Asset|string $asset
+     * @param array $transform
+     * @param null|Settings $settings
+     * @return string
+     * @throws \craft\errors\SiteNotFoundException
+     */
+    public function getTransformedUrl($asset, $transform, $settings = null): string
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -423,7 +474,7 @@ class MetaService extends Component
 
         if ($settings->useImagerIfInstalled && $imagerPlugin) {
             // todo : should we set more defaults?
-            if (!isset($transform['position']) && !is_string($asset) && isset($asset['focalPoint'])) {
+            if (!\is_string($asset) && !isset($transform['position']) && isset($asset['focalPoint'])) {
                 $transform['position'] = $asset['focalPoint'];
             }
 
@@ -441,6 +492,10 @@ class MetaService extends Component
         return $transformedUrl;
     }
 
+    /**
+     * @param array $meta
+     * @param array $overrideMeta
+     */
     public function overrideMeta(&$meta, $overrideMeta)
     {
         foreach ($overrideMeta as $key => $value) {
@@ -448,6 +503,11 @@ class MetaService extends Component
         }
     }
 
+    /**
+     * @param array $meta
+     * @param null|Settings $settings
+     * @return mixed
+     */
     public function autofillMeta($meta, $settings = null)
     {
         if ($settings === null) {
@@ -465,6 +525,11 @@ class MetaService extends Component
         return $meta;
     }
 
+    /**
+     * @param array $meta
+     * @param null|Settings $settings
+     * @return mixed
+     */
     public function applyMetaRestrictions($meta, $settings = null)
     {
         if ($settings === null) {
@@ -480,7 +545,7 @@ class MetaService extends Component
                 // todo : needs much more robust handling, this is proof of concept
 
                 if ($restrictions['type'] === 'text' && isset($restrictions['maxLength'])) {
-                    if (strlen($value) > $restrictions['maxLength']) {
+                    if (\strlen($value) > $restrictions['maxLength']) {
                         $meta[$key] = substr($value, 0, $restrictions['maxLength'] - 3) . '…';
                     }
                 }
@@ -490,16 +555,22 @@ class MetaService extends Component
         return $meta;
     }
 
+    /**
+     * @param array $meta
+     * @param null|Settings $settings
+     * @return mixed
+     * @throws \craft\errors\SiteNotFoundException
+     */
     public function addSitename($meta, $settings = null)
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
         }
-        
+
         if (\is_array($settings->siteName)) {
             $siteName = $settings->siteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? '';
         } else {
-            if ($settings->siteName && is_string($settings->siteName)) {
+            if ($settings->siteName && \is_string($settings->siteName)) {
                 $siteName = $settings->siteName;
             } else {
                 try {
@@ -507,13 +578,13 @@ class MetaService extends Component
                 } catch (ServerErrorHttpException $e) {
                     $info = null;
                 }
-                
+
                 $sonfigSiteName = Craft::$app->getConfig()->getGeneral()->siteName;
-                
+
                 if (\is_array($sonfigSiteName)) {
                     $sonfigSiteName = $sonfigSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($sonfigSiteName);
                 }
-                
+
                 $siteName = $sonfigSiteName ?? $info->name ?? '';
             }
         }
@@ -528,6 +599,12 @@ class MetaService extends Component
         return $meta;
     }
 
+    /**
+     * @param array $meta
+     * @param array $context
+     * @param null|Settings $settings
+     * @return mixed
+     */
     public function processDefaultMeta($meta, $context = [], $settings = null)
     {
         if ($settings === null) {
@@ -544,6 +621,12 @@ class MetaService extends Component
         return $meta;
     }
 
+    /**
+     * @param array $meta
+     * @param array $context
+     * @param null|Settings $settings
+     * @return mixed
+     */
     public function processAdditionalMeta($meta, $context = [], $settings = null)
     {
         if ($settings === null) {
@@ -551,9 +634,9 @@ class MetaService extends Component
         }
 
         foreach ($settings->additionalMeta as $key => $value) {
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 foreach ($value as $subValue) {
-                    // todo : Not good. Not good at all. :/
+                    // todo : Not good. Not good at all. :/ Make recursive?
                     $renderedValue = SEOMateHelper::renderString($subValue, $context);
 
                     if ($renderedValue && $renderedValue !== '') {

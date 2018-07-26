@@ -11,9 +11,6 @@
 namespace vaersaagod\seomate\variables;
 
 use Spatie\SchemaOrg\Schema;
-use vaersaagod\seomate\SEOMate as Plugin;
-
-use Craft;
 
 /**
  * SEOMate Schema Variable
@@ -24,6 +21,11 @@ use Craft;
  */
 class SchemaVariable
 {
+    /**
+     * @param $name
+     * @param $arguments
+     * @return mixed
+     */
     public function __call($name, $arguments)
     {
         return Schema::$name();

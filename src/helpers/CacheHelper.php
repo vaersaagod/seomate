@@ -8,10 +8,8 @@
 
 namespace vaersaagod\seomate\helpers;
 
-use craft\helpers\UrlHelper;
-use vaersaagod\seomate\SEOMate;
-
 use Craft;
+use vaersaagod\seomate\SEOMate;
 use yii\caching\TagDependency;
 
 /**
@@ -27,30 +25,48 @@ class CacheHelper
     const ELEMENT_TAG = 'seomate_meta_element_tag';
     const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
 
+    /**
+     * 
+     */
     public static function clearAllCaches()
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::SEOMATE_TAG);
     }
 
-    public static function hasMetaCacheForElement($element)
+    /**
+     * @param $element
+     * @return bool
+     */
+    public static function hasMetaCacheForElement($element): bool
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementKey($element)) ? true : false;
     }
 
+    /**
+     * @param $element
+     * @return mixed
+     */
     public static function getMetaCacheForElement($element)
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementKey($element));
     }
 
+    /**
+     * @param $element
+     */
     public static function deleteMetaCacheForElement($element)
     {
         $cache = Craft::$app->getCache();
         $cache->delete(self::getElementKey($element));
     }
 
+    /**
+     * @param $element
+     * @param $meta
+     */
     public static function setMetaCacheForElement($element, $meta)
     {
         $settings = SEOMate::$plugin->getSettings();
@@ -68,6 +84,10 @@ class CacheHelper
         $cache->set(self::getElementKey($element), $meta, $cacheDuration, $dependency);
     }
 
+    /**
+     * @param $element
+     * @return string
+     */
     private static function getElementKey($element): string
     {
         return self::ELEMENT_KEY_PREFIX . '_' . $element->site->handle . '_' . $element->id;

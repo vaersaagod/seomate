@@ -10,24 +10,16 @@
 
 namespace vaersaagod\seomate\services;
 
-use craft\helpers\Template;
+use Craft;
+use craft\base\Component;
 use craft\helpers\UrlHelper;
-use vaersaagod\seomate\helpers\CacheHelper;
-use vaersaagod\seomate\helpers\SEOMateHelper;
+
 use vaersaagod\seomate\helpers\SitemapHelper;
 use vaersaagod\seomate\SEOMate;
 
-use Craft;
-use craft\base\Component;
 
 /**
  * SEOMateService Service
- *
- * All of your plugin’s business logic should go in services, including saving data,
- * retrieving data, etc. They provide APIs that your controllers, template variables,
- * and other plugins can interact with.
- *
- * https://craftcms.com/docs/plugins/services
  *
  * @author    Værsågod
  * @package   SEOMate
@@ -35,7 +27,11 @@ use craft\base\Component;
  */
 class SitemapService extends Component
 {
-    public function index()
+    /**
+     * @return string
+     * @throws \yii\base\Exception
+     */
+    public function index(): string
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -45,18 +41,18 @@ class SitemapService extends Component
 
         $config = $settings->sitemapConfig;
 
-        if ($config && is_array($config)) {
+        if ($config && \is_array($config)) {
             $elements = $config['elements'] ?? null;
             $custom = $config['custom'] ?? null;
 
-            if ($elements && is_array($elements) && count($elements) > 0) {
+            if ($elements && \is_array($elements) && \count($elements) > 0) {
                 foreach ($elements as $key => $definition) {
                     $indexSitemapUrls = SitemapHelper::getIndexSitemapUrls($key, $definition);
                     SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', $indexSitemapUrls);
                 }
             }
 
-            if ($custom && is_array($custom) && count($custom) > 0) {
+            if ($custom && \is_array($custom) && \count($custom) > 0) {
                 $customUrl = SitemapHelper::getCustomIndexSitemapUrl();
                 SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
             }
@@ -65,7 +61,12 @@ class SitemapService extends Component
         return $document->saveXML();
     }
 
-    public function elements($handle, $page)
+    /**
+     * @param string $handle
+     * @param $page
+     * @return string
+     */
+    public function elements($handle, $page): string
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -75,7 +76,7 @@ class SitemapService extends Component
 
         $config = $settings->sitemapConfig;
 
-        if ($config && is_array($config)) {
+        if ($config && \is_array($config)) {
             $definition = $config['elements'][$handle] ?? null;
 
             if ($definition) {
@@ -87,7 +88,11 @@ class SitemapService extends Component
         return $document->saveXML();
     }
 
-    public function custom()
+    /**
+     * @return string
+     * @throws \yii\base\Exception
+     */
+    public function custom(): string
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -97,7 +102,7 @@ class SitemapService extends Component
 
         $config = $settings->sitemapConfig;
 
-        if ($config && is_array($config)) {
+        if ($config && \is_array($config)) {
             $customUrls = $config['custom'] ?? null;
 
             if ($customUrls && count($customUrls) > 0) {
@@ -109,6 +114,9 @@ class SitemapService extends Component
         return $document->saveXML();
     }
 
+    /**
+     * @throws \yii\base\Exception
+     */
     public function submit()
     {
         $settings = SEOMate::$plugin->getSettings();
@@ -117,27 +125,32 @@ class SitemapService extends Component
 
         foreach ($pingUrls as $url) {
             $sites = Craft::$app->getSites()->getAllSites();
-            
+
             foreach ($sites as $site) {
                 $siteId = $site->id;
                 $sitemapUrl = UrlHelper::siteUrl($sitemapPath, null, null, $siteId);
-                
+
                 if (!empty($sitemapUrl)) {
                     $submitUrl = $url . $sitemapUrl;
                     $client = Craft::createGuzzleClient();
 
                     try {
                         $client->post($submitUrl);
-                        Craft::info('Index sitemap for site "' . $site->name . ' submitted to: ' . $submitUrl,__METHOD__);
+                        Craft::info('Index sitemap for site "' . $site->name . ' submitted to: ' . $submitUrl, __METHOD__);
                     } catch (\Exception $e) {
-                        Craft::error('Error submitting index sitemap for site "' . $site->name . '" to: ' . $submitUrl . ' :: ' . $e->getMessage(),__METHOD__);
+                        Craft::error('Error submitting index sitemap for site "' . $site->name . '" to: ' . $submitUrl . ' :: ' . $e->getMessage(), __METHOD__);
                     }
                 }
             }
         }
     }
 
-    private function getTopNode(&$document, $type = 'urlset')
+    /**
+     * @param \DOMDocument $document
+     * @param string $type
+     * @return \DOMElement
+     */
+    private function getTopNode(&$document, $type = 'urlset'): \DOMElement
     {
         $node = $document->createElement($type);
         $node->setAttribute(

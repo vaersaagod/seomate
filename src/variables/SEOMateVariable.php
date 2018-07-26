@@ -10,10 +10,8 @@
 
 namespace vaersaagod\seomate\variables;
 
-use vaersaagod\seomate\SEOMate;
 use craft\helpers\Template;
-
-use Craft;
+use vaersaagod\seomate\SEOMate;
 
 /**
  * SEOMate Variable
@@ -28,13 +26,22 @@ class SEOMateVariable
 {
     // Public Methods
     // =========================================================================
-    
-    public function renderMetaTag($key, $value)
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return \Twig_Markup
+     */
+    public function renderMetaTag($key, $value): \Twig_Markup
     {
         return SEOMate::$plugin->meta->renderMetaTag($key, $value);
     }
 
-    public function breadcrumbSchema($breadcrumbArray)
+    /**
+     * @param array $breadcrumbArray
+     * @return \Twig_Markup
+     */
+    public function breadcrumbSchema($breadcrumbArray): \Twig_Markup
     {
         $breadcrumbList = SEOMate::$plugin->schema->breadcrumb($breadcrumbArray);
         return Template::raw($breadcrumbList->toScript());

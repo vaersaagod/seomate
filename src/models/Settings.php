@@ -18,13 +18,6 @@ use craft\base\Model;
 /**
  * SEOMate Settings Model
  *
- * This is a model used to define the plugin's settings.
- *
- * Models are containers for data. Just about every time information is passed
- * between services, controllers, and templates in Craft, it’s passed via a model.
- *
- * https://craftcms.com/docs/plugins/models
- *
  * @author    Værsågod
  * @package   SEOMate
  * @since     1.0.0
@@ -35,7 +28,7 @@ class Settings extends Model
     // =========================================================================
 
     public $siteName = null;
-    
+
     public $metaTemplate = '';
     public $cacheEnabled = true;
     public $cacheDuration = 3600;
@@ -46,7 +39,7 @@ class Settings extends Model
     public $defaultProfile = null;
     public $outputAlternate = true;
     public $altTextFieldHandle = null;
-    
+
     public $defaultMeta = [];
     public $fieldProfiles = [];
     public $profileMap = [];
@@ -67,7 +60,7 @@ class Settings extends Model
             'type' => 'image'
         ],
     ];
-    
+
     public $applyRestrictions = false;
     public $truncateLength = false;
     public $truncateSuffix = '...';
@@ -106,7 +99,7 @@ class Settings extends Model
         'title' => '<title>{{ value }}</title>',
         'og:title,og:description,og:image,og:image:width,og:image:height,og:image:type,og:type' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
-    
+
     public $sitemapEnabled = false;
     public $sitemapName = 'sitemap';
     public $sitemapLimit = 500;
@@ -115,21 +108,14 @@ class Settings extends Model
         'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
         'http://www.bing.com/webmaster/ping.aspx?siteMap=',
     ];
-    
+
     // Public Methods
     // =========================================================================
 
     /**
-     * Returns the validation rules for attributes.
-     *
-     * Validation rules are used by [[validate()]] to check if attribute values are valid.
-     * Child classes may override this method to declare different validation rules.
-     *
-     * More info: http://www.yiiframework.com/doc-2.0/guide-input-validation.html
-     *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
 

@@ -8,18 +8,10 @@
 
 namespace vaersaagod\seomate\services;
 
-use craft\helpers\Template;
-use craft\helpers\UrlHelper;
+use craft\base\Component;
+
 use Spatie\SchemaOrg\BreadcrumbList;
 use Spatie\SchemaOrg\ListItem;
-use Spatie\SchemaOrg\Schema;
-use vaersaagod\seomate\helpers\CacheHelper;
-use vaersaagod\seomate\helpers\SEOMateHelper;
-use vaersaagod\seomate\helpers\SitemapHelper;
-use vaersaagod\seomate\SEOMate;
-
-use Craft;
-use craft\base\Component;
 
 /**
  * SchemaService Service

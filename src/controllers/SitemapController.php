@@ -10,11 +10,12 @@
 
 namespace vaersaagod\seomate\controllers;
 
+use Craft;
+use craft\web\Controller;
+
 use craft\web\Response;
 use vaersaagod\seomate\SEOMate;
 
-use Craft;
-use craft\web\Controller;
 
 /**
  * Sitemap Controller
@@ -29,41 +30,60 @@ class SitemapController extends Controller
 {
 
     protected $allowAnonymous = true;
-    
+
+    /**
+     * @return Response|\yii\console\Response
+     * @throws \yii\base\Exception
+     */
     public function actionIndex()
     {
         return $this->returnXml(
-			SEOMate::$plugin->sitemap->index()
-		);
+            SEOMate::$plugin->sitemap->index()
+        );
     }
-    
+
+    /**
+     * @return Response|\yii\console\Response
+     */
     public function actionElement()
     {
         $params = Craft::$app->getUrlManager()->getRouteParams();
-        
+
         return $this->returnXml(
-			SEOMate::$plugin->sitemap->elements($params['handle'], $params['page'])
-		);
+            SEOMate::$plugin->sitemap->elements($params['handle'], $params['page'])
+        );
     }
-    
+
+    /**
+     * @return Response|\yii\console\Response
+     * @throws \yii\base\Exception
+     */
     public function actionCustom()
     {
         return $this->returnXml(
-			SEOMate::$plugin->sitemap->custom()
-		);
+            SEOMate::$plugin->sitemap->custom()
+        );
     }
-    
+
+    /**
+     * @throws \yii\base\ExitException
+     * @throws \yii\base\Exception
+     */
     public function actionSubmit()
     {
         SEOMate::$plugin->sitemap->submit();
         Craft::$app->end();
     }
-    
-    private function returnXml ($data)
-	{
-		$response = Craft::$app->getResponse();
-		$response->content = $data;
-		$response->format = Response::FORMAT_XML;
-		return $response;
-	}
+
+    /**
+     * @param string $data
+     * @return Response|\yii\console\Response
+     */
+    private function returnXml($data)
+    {
+        $response = Craft::$app->getResponse();
+        $response->content = $data;
+        $response->format = Response::FORMAT_XML;
+        return $response;
+    }
 }
