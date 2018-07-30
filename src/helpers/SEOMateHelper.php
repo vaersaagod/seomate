@@ -59,7 +59,7 @@ class SEOMateHelper
                     $mapIds[] = $element->section->handle;
                     break;
                 case 'category':
-                    $mapIds[] = $element->section->handle;
+                    $mapIds[] = $element->group->handle;
                     break;
             }
         }
