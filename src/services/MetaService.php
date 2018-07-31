@@ -142,7 +142,7 @@ class MetaService extends Component
             return $element->getUrl();
         }
 
-        return $craft->getRequest()->getUrl();
+        return UrlHelper::url($craft->getRequest()->getFullPath());
     }
 
     /**
@@ -155,6 +155,8 @@ class MetaService extends Component
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
+        $alternateUrls = [];
+        $currentSite = $craft->getSites()->getCurrentSite();
 
         $overrideObject = $context['seomate'] ?? null;
 
@@ -162,17 +164,20 @@ class MetaService extends Component
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
 
-        $alternateUrls = [];
-        $matchedElement = $craft->urlManager->getMatchedElement();
-        $currentSite = $craft->getSites()->getCurrentSite();
+        /** @var Element $element */
+        if ($overrideObject && isset($overrideObject['element'])) {
+            $element = $overrideObject['element'];
+        } else {
+            $element = $craft->urlManager->getMatchedElement();
+        }
 
-        if (!$matchedElement || !$currentSite) {
+        if (!$element || !$currentSite) {
             return [];
         }
 
         foreach ($craft->getSites()->getAllSites() as $site) {
             if ($site->id !== $currentSite->id) {
-                $url = $craft->getElements()->getElementUriForSite($matchedElement->getId(), $site->id);
+                $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
 
                 if ($url !== false) { // if element was not available in the given site, this happens
                     $url = ($url === '__home__') ? '' : $url;
