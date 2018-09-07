@@ -1,3 +1,9 @@
+{% set meta = seomate.meta %}
+
+{% for key, data in meta %}
+    {{- renderMetaTag(key, data) }}
+{% endfor %}
+
 <link rel="home" href="{{ siteUrl }}"/>
 <link rel="canonical" href="{{ seomate.canonicalUrl }}">
 <meta property="og:url" content="{{ seomate.canonicalUrl }}"/>
@@ -12,10 +18,3 @@
         <link rel="alternate" href="{{ alternateUrl.url }}" hreflang="{{ alternateUrl.language }}"/>
     {%- endfor %}
 {% endif %}
-
-{% set meta = seomate.meta %}
-
-{% for key, data in meta %}
-    {{- renderMetaTag(key, data) }}
-{% endfor %}
-
