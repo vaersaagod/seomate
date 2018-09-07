@@ -74,13 +74,13 @@ class Settings extends Model
             'format' => 'jpg',
         ],
         'og:image' => [
-            'width' => 1120,
-            'height' => 600,
+            'width' => 1200,
+            'height' => 630,
             'format' => 'jpg',
         ],
         'twitter:image' => [
             'width' => 1200,
-            'height' => 630,
+            'height' => 600,
             'format' => 'jpg',
         ],
     ];
