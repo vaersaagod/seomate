@@ -597,9 +597,10 @@ class MetaService extends Component
         if ($siteName !== '') {
             $preString = $settings->sitenamePosition === 'before' ? $siteName . ' ' . $settings->sitenameSeparator . ' ' : '';
             $postString = $settings->sitenamePosition === 'after' ? ' ' . $settings->sitenameSeparator . ' ' . $siteName : '';
-    
+
             foreach ($settings->sitenameTitleProperties as $property) {
-                $meta[$property] = $preString . $meta[$property] . $postString;
+                $metaValue = $preString . ($meta[$property] ?? '') . $postString;
+                $meta[$property] = \trim($metaValue, " {$settings->sitenameSeparator}");
             }
         }
 
