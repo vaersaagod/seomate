@@ -62,6 +62,7 @@ class Settings extends Model
     ];
 
     public $applyRestrictions = false;
+    public $validImageExtensions = ['jpg', 'gif', 'png'];
     public $truncateLength = false;
     public $truncateSuffix = '...';
 

@@ -9,6 +9,7 @@
 namespace vaersaagod\seomate\helpers;
 
 use Craft;
+use craft\elements\Asset;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
@@ -128,6 +129,20 @@ class SEOMateHelper
         }
 
         return $currentScope;
+    }
+
+    /**
+     * @param Asset $asset
+     * @return bool
+     */
+    public static function isValidImageAsset($asset) {
+        $settings = SEOMate::$plugin->getSettings();
+        
+        if (\in_array(strtolower($asset->extension), $settings->validImageExtensions, true)) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

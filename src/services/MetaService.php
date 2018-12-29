@@ -177,11 +177,15 @@ class MetaService extends Component
                     }
 
                 } else if ($type === 'image') {
+                    $assets = $element[$fieldName]->all() ?? null;
                     
-                    if ($asset = $element[$fieldName]->one()) {
-                        return $asset;
+                    if ($assets) {
+                        foreach ($assets as $asset) {
+                            if (SEOMateHelper::isValidImageAsset($asset)) {
+                                return $asset;
+                            }
+                        }
                     }
-
                 }
 
             } else if ((bool)\strpos($fieldName, ':')) {
@@ -217,16 +221,21 @@ class MetaService extends Component
                     }
 
                 } else if ($type === 'image') {
-
+                    // TODO : For some reason, I couldn't get this eager loading to work. :/  - @ndre
                     $blocks = $blockQuery
                         ->type($blockTypeHandle)
-                        ->with(["{$blockTypeHandle}:{$blockFieldHandle}"])
+                        /*->with(["{$blockTypeHandle}:{$blockFieldHandle}"])*/
                         ->all();
-
+                    
                     foreach ($blocks as $block) {
-                        // TODO – should we check if the Asset is an actual, transformable *image* here?
-                        if ($asset = $block[$blockFieldHandle][0] ?? null) {
-                            return $asset;
+                        $assets = $block[$blockFieldHandle]->all() ?? null;
+                        
+                        if ($assets) {
+                            foreach ($assets as $asset) {
+                                if (SEOMateHelper::isValidImageAsset($asset)) {
+                                    return $asset;
+                                }
+                            }
                         }
                     }
                 }
@@ -256,11 +265,14 @@ class MetaService extends Component
 
                 if ($type === 'image') {
                     if ($field !== null) {
-                        $assets = $field->all();
+                        $assets = $field->all() ?? null;
 
-                        foreach ($assets as $asset) {
-                            // todo : Check if asset is valid
-                            return $asset;
+                        if ($assets) {
+                            foreach ($assets as $asset) {
+                                if (SEOMateHelper::isValidImageAsset($asset)) {
+                                    return $asset;
+                                }
+                            }
                         }
                     }
                 }
