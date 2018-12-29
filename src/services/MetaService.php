@@ -641,9 +641,13 @@ class MetaService extends Component
         }
 
         foreach ($settings->additionalMeta as $key => $value) {
+            if (\is_callable($value)) {
+                $r = $value($context);
+                $value = $r;
+            }
+            
             if (\is_array($value)) {
                 foreach ($value as $subValue) {
-                    // todo : Not good. Not good at all. :/ Make recursive?
                     $renderedValue = SEOMateHelper::renderString($subValue, $context);
 
                     if ($renderedValue && $renderedValue !== '') {
