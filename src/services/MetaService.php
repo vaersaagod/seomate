@@ -265,8 +265,6 @@ class MetaService extends Component
             $fieldProfile = $settings->fieldProfiles[$profile];
 
             $meta = $this->generateElementMetaByProfile($element, $fieldProfile);
-        } else {
-            // todo : fallback meta
         }
 
         return $meta;
@@ -307,7 +305,7 @@ class MetaService extends Component
                 // Root field
                 if ($type === 'text') {
 
-                    if ($value = \trim(\strip_tags((string)$element[$fieldName] ?? ''))) {
+                    if ($value = \trim(\strip_tags((string)($element[$fieldName] ?? '')))) {
                         return $value;
                     }
 
@@ -346,7 +344,7 @@ class MetaService extends Component
                         ->all();
 
                     foreach ($blocks as $block) {
-                        if ($value = \trim(\strip_tags((string)$block[$blockFieldHandle] ?? ''))) {
+                        if ($value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')))) {
                             return $value;
                         }
                     }
@@ -394,6 +392,7 @@ class MetaService extends Component
                         $assets = $field->all();
 
                         foreach ($assets as $asset) {
+                            // todo : Check if asset is valid
                             return $asset;
                         }
                     }
