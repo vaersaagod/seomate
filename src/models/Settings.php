@@ -97,7 +97,7 @@ class Settings extends Model
     public $tagTemplateMap = [
         'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
         'title' => '<title>{{ value }}</title>',
-        'og:title,og:description,og:image,og:image:width,og:image:height,og:image:alt,og:image:type,og:type,og:see_also,og:sitename,fb:app_id,fb:admins,fb:profile_id' => '<meta property="{{ key }}" content="{{ value }}">',
+        '/^og:/,/^fb:/' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
 
     public $sitemapEnabled = false;
