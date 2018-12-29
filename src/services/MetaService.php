@@ -2,8 +2,6 @@
 /**
  * SEOMate plugin for Craft CMS 3.x
  *
- * -
- *
  * @link      https://www.vaersaagod.no/
  * @copyright Copyright (c) 2018 Værsågod
  */
@@ -15,31 +13,25 @@ use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
 use craft\elements\db\MatrixBlockQuery;
-use craft\helpers\Template;
-use craft\helpers\UrlHelper;
 
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
-use yii\base\Exception;
 use yii\web\ServerErrorHttpException;
 
 
 /**
- * SEOMateService Service
- *
  * @author    Værsågod
  * @package   SEOMate
  * @since     1.0.0
  */
 class MetaService extends Component
 {
-
+    
     /**
      * @param $context
      * @return array
-     * @throws ServerErrorHttpException
      * @throws \craft\errors\SiteNotFoundException
      */
     public function getContextMeta($context): array
@@ -109,131 +101,7 @@ class MetaService extends Component
 
         return $meta;
     }
-
-    /**
-     * @param $context
-     * @return null|string
-     * @throws \yii\base\InvalidConfigException
-     */
-    public function getCanonicalUrl($context)
-    {
-        $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
-
-        $overrideObject = $context['seomate'] ?? null;
-
-        if ($overrideObject && isset($overrideObject['config'])) {
-            SEOMateHelper::updateSettings($settings, $overrideObject['config']);
-        }
-
-        if ($overrideObject && isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
-            return $overrideObject['canonicalUrl'];
-        }
-
-        /** @var Element $element */
-
-        if ($overrideObject && isset($overrideObject['element'])) {
-            $element = $overrideObject['element'];
-        } else {
-            $element = $craft->urlManager->getMatchedElement();
-        }
-
-        if ($element && $element->getUrl()) {
-            return $element->getUrl();
-        }
-
-        return UrlHelper::url($craft->getRequest()->getFullPath());
-    }
-
-    /**
-     * @param $context
-     * @return array
-     * @throws \craft\errors\SiteNotFoundException
-     * @throws \yii\base\Exception
-     */
-    public function getAlternateUrls($context): array
-    {
-        $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
-        $alternateUrls = [];
-        $currentSite = $craft->getSites()->getCurrentSite();
-
-        $overrideObject = $context['seomate'] ?? null;
-
-        if ($overrideObject && isset($overrideObject['config'])) {
-            SEOMateHelper::updateSettings($settings, $overrideObject['config']);
-        }
-
-        /** @var Element $element */
-        if ($overrideObject && isset($overrideObject['element'])) {
-            $element = $overrideObject['element'];
-        } else {
-            $element = $craft->urlManager->getMatchedElement();
-        }
-
-        if (!$element || !$currentSite) {
-            return [];
-        }
-
-        foreach ($craft->getSites()->getAllSites() as $site) {
-            if ($site->id !== $currentSite->id) {
-                $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
-
-                if ($url !== false) { // if element was not available in the given site, this happens
-                    $url = ($url === '__home__') ? '' : $url;
-
-                    if (!UrlHelper::isAbsoluteUrl($url)) {
-                        try {
-                            $url = UrlHelper::siteUrl($url, null, null, $site->id);
-                        } catch (Exception $e) {
-                            $url = '';
-                            Craft::error($e->getMessage(), __METHOD__);
-                        }
-                    }
-
-                    if ($url && $url !== '') {
-                        $alternateUrls[] = [
-                            'url' => $url,
-                            'language' => strtolower(str_replace('_', '-', $site->language))
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $alternateUrls;
-    }
-
-    /**
-     * @param string $key
-     * @param string|array $value
-     * @return \Twig_Markup
-     */
-    public function renderMetaTag($key, $value): \Twig_Markup
-    {
-        $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
-
-        $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
-        $template = $tagTemplateMap['default'] ?? '';
-
-        if (isset($tagTemplateMap[$key])) {
-            $template = $tagTemplateMap[$key];
-        }
-
-        $r = '';
-
-        if (\is_array($value)) {
-            foreach ($value as $val) {
-                $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $val]);
-            }
-        } else {
-            $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $value]);
-        }
-
-        return Template::raw($r);
-    }
-
+    
     /**
      * @param Element $element
      * @param null|array $overrides
@@ -300,9 +168,8 @@ class MetaService extends Component
         }
 
         foreach ($fields as $fieldName) {
-            if ($element[$fieldName] ?? null) {
-
-                // Root field
+            if ($element[$fieldName] ?? null) { // Root field
+                
                 if ($type === 'text') {
 
                     if ($value = \trim(\strip_tags((string)($element[$fieldName] ?? '')))) {

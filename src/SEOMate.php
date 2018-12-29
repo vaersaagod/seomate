@@ -23,8 +23,10 @@ use craft\web\View;
 
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\services\MetaService;
+use vaersaagod\seomate\services\RenderService;
 use vaersaagod\seomate\services\SchemaService;
 use vaersaagod\seomate\services\SitemapService;
+use vaersaagod\seomate\services\UrlsService;
 use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
 use vaersaagod\seomate\twigextensions\SEOMateTwigExtension;
@@ -38,6 +40,8 @@ use yii\base\Event;
  * @since     1.0.0
  *
  * @property  MetaService $meta
+ * @property  UrlsService $urls
+ * @property  RenderService $render
  * @property  SitemapService $sitemap
  * @property  SchemaService $schema
  * @property  Settings $settings
@@ -73,6 +77,8 @@ class SEOMate extends Plugin
         // Register services
         $this->setComponents([
             'meta' => MetaService::class,
+            'urls' => UrlsService::class,
+            'render' => RenderService::class,
             'sitemap' => SitemapService::class,
             'schema' => SchemaService::class,
         ]);
@@ -150,8 +156,8 @@ class SEOMate extends Plugin
         $settings = $this->getSettings();
 
         $meta = $this->meta->getContextMeta($context);
-        $canonicalUrl = $this->meta->getCanonicalUrl($context);
-        $alternateUrls = $this->meta->getAlternateUrls($context);
+        $canonicalUrl = $this->urls->getCanonicalUrl($context);
+        $alternateUrls = $this->urls->getAlternateUrls($context);
 
         $context['seomate']['meta'] = $meta;
         $context['seomate']['canonicalUrl'] = $canonicalUrl;

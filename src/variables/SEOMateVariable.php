@@ -34,7 +34,7 @@ class SEOMateVariable
      */
     public function renderMetaTag($key, $value): \Twig_Markup
     {
-        return SEOMate::$plugin->meta->renderMetaTag($key, $value);
+        return SEOMate::$plugin->render->renderMetaTag($key, $value);
     }
 
     /**
