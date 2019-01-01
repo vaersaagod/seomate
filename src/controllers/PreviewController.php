@@ -139,29 +139,33 @@ class PreviewController extends BaseEntriesController
      */
     private function _showEntry(Entry $entry): Response
     {
+
         $sectionSiteSettings = $entry->getSection()->getSiteSettings();
+
         if (!isset($sectionSiteSettings[$entry->siteId]) || !$sectionSiteSettings[$entry->siteId]->hasUrls) {
             throw new ServerErrorHttpException('The entry ' . $entry->id . ' doesn’t have a URL for the site ' . $entry->siteId . '.');
         }
+
         $site = Craft::$app->getSites()->getSiteById($entry->siteId);
         if (!$site) {
             throw new ServerErrorHttpException('Invalid site ID: ' . $entry->siteId);
         }
+
+        Craft::$app->getSites()->setCurrentSite($site);
         Craft::$app->language = $site->language;
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
         if (!$entry->postDate) {
             $entry->postDate = new DateTime();
         }
+
         // Have this entry override any freshly queried entries with the same ID/site ID
         Craft::$app->getElements()->setPlaceholderElement($entry);
         $this->getView()->getTwig()->disableStrictVariables();
-        $templateMode = $this->getView()->getTemplateMode();
         $this->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
-        $template = $this->renderTemplate('seomate/preview', [
+
+        return $this->renderTemplate('seomate/preview', [
             'entry' => $entry,
             'meta' => SEOMate::$plugin->meta->getElementMeta($entry),
         ]);
-        $this->getView()->setTemplateMode($templateMode);
-        return $template;
     }
 }

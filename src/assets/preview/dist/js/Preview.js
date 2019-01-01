@@ -31,9 +31,18 @@
             }
 
             this.preview = new Craft.LivePreview();
+
             this.preview.init($.extend(Craft.livePreview.settings, {
+                fields: [].concat.apply([], Object.values(window.SEOMATE_FIELD_PROFILE || {})).map(function (handle) {
+                    return '#fields-' + handle.split(':')[0] + '-field';
+                }).join(','),
                 previewAction: 'seomate/preview'
             }));
+
+            this.preview.on('enter', $.proxy(function () {
+                this.preview.$editor.find('.btn:first-child').text(Craft.t('seomate', 'Close SEO Preview'));
+            }, this));
+
             this.preview.toggle();
         },
 

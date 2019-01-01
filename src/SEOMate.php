@@ -12,6 +12,7 @@ namespace vaersaagod\seomate;
 
 use Craft;
 use craft\base\Plugin;
+use craft\helpers\Json;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 use craft\events\RegisterUrlRulesEvent;
@@ -23,6 +24,7 @@ use craft\web\View;
 
 use vaersaagod\seomate\assets\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
+use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\services\MetaService;
 use vaersaagod\seomate\services\RenderService;
 use vaersaagod\seomate\services\SchemaService;
@@ -197,8 +199,24 @@ class SEOMate extends Plugin
         }
     }
 
-    public function registerPreviewAssetsBundle()
+    /**
+     * @param array $context
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function registerPreviewAssetsBundle(array $context = [])
     {
+        $element = $context['entry'] ?? $context['category'] ?? null;
+        if (!$element) {
+            return;
+        }
+        // Get fields to include
+        $settings = $this->getSettings();
+        $profile = SEOMateHelper::getElementProfile($element, $settings) ?? $settings->defaultProfile ?? null;
+        $fieldProfile = Json::encode($settings->fieldProfiles[$profile] ?? []);
+        $js = <<<JS
+                    SEOMATE_FIELD_PROFILE = {$fieldProfile};
+JS;
+        Craft::$app->getView()->registerJs($js, View::POS_HEAD);
         Craft::$app->getView()->registerAssetBundle(PreviewAsset::class);
     }
 
