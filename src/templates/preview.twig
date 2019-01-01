@@ -1,0 +1,10 @@
+<h1>{{ meta.title }}</h1>
+
+{% if meta.description %}
+    <p>{{ meta.description }}</p>
+{% endif %}
+
+{% set image = meta.image %}
+{% if image %}
+    <img src="{{ craft.imager.transformImage(image, { width: 200 }).url }}" alt="" />
+{% endif %}

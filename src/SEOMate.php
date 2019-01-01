@@ -21,6 +21,7 @@ use craft\services\Elements;
 use craft\utilities\ClearCaches;
 use craft\web\View;
 
+use vaersaagod\seomate\assets\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\services\MetaService;
 use vaersaagod\seomate\services\RenderService;
@@ -133,6 +134,11 @@ class SEOMate extends Plugin
                 [$this, 'onRegisterSiteUrlRules']
             );
         }
+
+        // Register preview asset bundle
+        $view = Craft::$app->getView();
+        $view->hook('cp.entries.edit', [$this, 'registerPreviewAssetsBundle']);
+        $view->hook('cp.categories.edit', [$this, 'registerPreviewAssetsBundle']);
     }
 
     /**
@@ -189,6 +195,11 @@ class SEOMate extends Plugin
             $event->rules[$sitemapName . '_<handle:\w*>_<page:\d*>.xml'] = 'seomate/sitemap/element';
             $event->rules[$sitemapName . '_custom.xml'] = 'seomate/sitemap/custom';
         }
+    }
+
+    public function registerPreviewAssetsBundle()
+    {
+        Craft::$app->getView()->registerAssetBundle(PreviewAsset::class);
     }
 
     // Protected Methods
