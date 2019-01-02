@@ -7,6 +7,6 @@
     </div>
 
     <div class="Google__description">
-        {{ meta.description }}
+        {{ meta.description | length > 150 ? meta.description[:150] ~ '...' : meta.description }}
     </div>
 </div>
