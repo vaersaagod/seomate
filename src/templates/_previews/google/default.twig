@@ -1,0 +1,12 @@
+<div class="Google__default">
+    <div class="Google__title">
+        {{ meta.title }}
+    </div>
+    <div class="Google__url">
+        {{ entry.url | length > 85 ? entry.url[:85] ~ '...' : entry.url }}
+    </div>
+
+    <div class="Google__description">
+        {{ meta.description }}
+    </div>
+</div>

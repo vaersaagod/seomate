@@ -44,9 +44,17 @@ class PreviewController extends BaseEntriesController
     public function actionIndex(): Response
     {
 
-        $this->requirePostRequest();
+        // $this->requirePostRequest();
 
-        $entry = $this->_getEntryModel();
+        $entryId = Craft::$app->getRequest()->getParam('entryId');
+
+        if ($entryId) {
+            $entry = Craft::$app->getEntries()->getEntryById($entryId);
+        } else {
+            $entry = $this->_getEntryModel();
+        }
+
+
         $this->enforceEditEntryPermissions($entry);
 
         // Set the language to the user's preferred language so DateFormatter returns the right format

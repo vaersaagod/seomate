@@ -1,10 +1,35 @@
-<h1>{{ meta.title }}</h1>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            {{ source('seomate/Preview.css') }}
+        </style>
+    </head>
+    <body>
+        {% set image = meta.image %}
+        <div class="Google">
+            <h2><div class="l-wrap"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/google/default' %}
+            </div>
+        </div>
 
-{% if meta.description %}
-    <p>{{ meta.description }}</p>
-{% endif %}
+        <div class="Facebook">
+            <h2><div class="l-wrap">Facebook</div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/facebook' %}
+            </div>
+        </div>
 
-{% set image = meta.image %}
-{% if image %}
-    <img src="{{ craft.imager.transformImage(image, { width: 200 }).url }}" alt="" />
-{% endif %}
+        <div class="Twitter">
+            <h2><div class="l-wrap">Twitter</div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/twitter' %}
+            </div>
+        </div>
+
+
+    </body>
+</html>

@@ -1,0 +1,48 @@
+
+
+<div class="Facebook__context">
+    <div class="Facebook__context-inner">
+        <div class="Facebook__context-post Facebook__context-extra">
+            <div class="">
+                <span>Jane Doe</span><span>2 hrs</span>
+            </div>
+            <div>
+                Check out this post: <span class="Facebook__blue">{{ entry.url }}</span>
+            </div>
+
+        </div>
+        <div class="Facebook__item Facebook__item--desktop">
+            <div class="Facebook__image">
+                {% if image %}
+                    {% set transformed = craft.imager.transformImage(image, { width: 1200, height: 630 }) %}
+                    <img src="{{ transformed.url }}" alt="">
+                {% endif %}
+            </div>
+
+            <div class="Facebook__meta">
+                <div class="Facebook__url">
+                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''})}}
+                </div>
+
+                <div class="Facebook__text">
+                    <div class="Facebook__title">
+                        <span>{{ meta.title }}</span>
+                    </div>
+                    <div class="Facebook__description">
+                        {{ meta.description }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="Facebook__context-post-share Facebook__context-extra">
+
+        </div>
+
+        <div class="Facebook__context-post-bottom Facebook__context-extra">
+
+        </div>
+    </div>
+
+</div>
