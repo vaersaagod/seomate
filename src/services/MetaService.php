@@ -452,24 +452,16 @@ class MetaService extends Component
 
         if (\is_array($settings->siteName)) {
             $siteName = $settings->siteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? '';
+        } else if ($settings->siteName && \is_string($settings->siteName)) {
+            $siteName = $settings->siteName;
         } else {
-            if ($settings->siteName && \is_string($settings->siteName)) {
-                $siteName = $settings->siteName;
-            } else {
-                try {
-                    $info = Craft::$app->getInfo();
-                } catch (ServerErrorHttpException $e) {
-                    $info = null;
-                }
+            $configSiteName = Craft::$app->getConfig()->getGeneral()->siteName;
 
-                $sonfigSiteName = Craft::$app->getConfig()->getGeneral()->siteName;
-
-                if (\is_array($sonfigSiteName)) {
-                    $sonfigSiteName = $sonfigSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($sonfigSiteName);
-                }
-
-                $siteName = $sonfigSiteName ?? $info->name ?? '';
+            if (\is_array($configSiteName)) {
+                $configSiteName = $configSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($configSiteName);
             }
+            
+            $siteName = $configSiteName ?? Craft::$app->getSites()->getCurrentSite()->name ?? '';
         }
 
         if ($siteName !== '') {
