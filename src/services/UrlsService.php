@@ -77,6 +77,10 @@ class UrlsService extends Component
         if ($overrideObject && isset($overrideObject['config'])) {
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
+        
+        if (!$settings->outputAlternate) {
+            return [];
+        }
 
         /** @var Element $element */
         if ($overrideObject && isset($overrideObject['element'])) {
