@@ -25,10 +25,10 @@
 
                 <div class="Facebook__text">
                     <div class="Facebook__title">
-                        <span>{{ meta.title }}</span>
+                        <span>{{ meta.title|striptags|raw }}</span>
                     </div>
                     <div class="Facebook__description">
-                        {{ meta.description }}
+                        {{ meta.description|striptags|raw }}
                     </div>
                 </div>
 

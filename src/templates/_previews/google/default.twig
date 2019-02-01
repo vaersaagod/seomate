@@ -1,12 +1,12 @@
 <div class="Google__default">
     <div class="Google__title">
-        {{ meta.title }}
+        {{ meta.title|striptags|raw }}
     </div>
     <div class="Google__url">
         {{ entry.url | length > 85 ? entry.url[:85] ~ '...' : entry.url }}
     </div>
 
     <div class="Google__description">
-        {{ meta.description | length > 150 ? meta.description[:150] ~ '...' : meta.description }}
+        {{ (meta.description | length > 150 ? meta.description[:150] ~ '...' : meta.description)|striptags|raw }}
     </div>
 </div>

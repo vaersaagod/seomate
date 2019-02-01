@@ -20,10 +20,10 @@
             <div class="Twitter__meta">
                 <div class="Twitter__text">
                     <div class="Twitter__title">
-                        <span>{{ meta.title }}</span>
+                        <span>{{ meta.title|striptags|raw }}</span>
                     </div>
                     <div class="Twitter__description">
-                        {{ meta.description }}
+                        {{ meta.description|striptags|raw }}
                     </div>
                 </div>
 
