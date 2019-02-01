@@ -31,7 +31,10 @@
             }
 
             // Get fields to display
-            var fields = ['#title-field'].concat.apply([], Object.values(window.SEOMATE_FIELD_PROFILE || {})).map(function (handle) {
+            var fields = [].concat.apply([], Object.values(window.SEOMATE_FIELD_PROFILE || {})).map(function (handle) {
+                if (handle === 'title') {
+                    return '#title-field';
+                }
                 return '#fields-' + handle.split(':')[0] + '-field';
             }).join(',');
 
