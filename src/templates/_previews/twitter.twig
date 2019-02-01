@@ -1,3 +1,5 @@
+{% set image = meta['twitter:image'] ?? meta['og:image'] ?? meta.image ?? null %}
+
 <div class="Twitter__context">
     <div class="Twitter__context-inner">
         <div class="Twitter__context-tweet">
@@ -11,8 +13,7 @@
         <div class="Twitter__card">
             <div class="Twitter__image">
                 {% if image %}
-                    {% set transformed = craft.imager.transformImage(image, { width: 1200, height: 600 }) %}
-                    <img src="{{ transformed.url }}" alt="">
+                    <img src="{{ image.getUrl({ width: 1200, height: 600, mode: 'crop' }) }}" alt="">
                 {% endif %}
             </div>
 

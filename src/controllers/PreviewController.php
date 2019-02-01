@@ -44,8 +44,7 @@ class PreviewController extends BaseEntriesController
     public function actionIndex(): Response
     {
 
-        // $this->requirePostRequest();
-
+        //$this->requirePostRequest();
         $entryId = Craft::$app->getRequest()->getParam('entryId');
 
         if ($entryId) {
@@ -53,7 +52,6 @@ class PreviewController extends BaseEntriesController
         } else {
             $entry = $this->_getEntryModel();
         }
-
 
         $this->enforceEditEntryPermissions($entry);
 
@@ -168,12 +166,27 @@ class PreviewController extends BaseEntriesController
 
         // Have this entry override any freshly queried entries with the same ID/site ID
         Craft::$app->getElements()->setPlaceholderElement($entry);
-        $this->getView()->getTwig()->disableStrictVariables();
-        $this->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
 
+        // Get meta
+        $view = $this->getView();
+        $view->getTwig()->disableStrictVariables();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+            'seomate' => [
+                'element' => $entry,
+                'config' => [
+                    'returnImageAsset' => true,
+                    'cacheEnabled' => false,
+                ],
+            ],
+        ]));
+
+        // Render previews
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate('seomate/preview', [
             'entry' => $entry,
-            'meta' => SEOMate::$plugin->meta->getElementMeta($entry),
+            'meta' => $meta,
         ]);
     }
 }

@@ -30,12 +30,18 @@
                 return;
             }
 
-            this.preview = new Craft.LivePreview();
+            // Get fields to display
+            var fields = ['#title-field'].concat.apply([], Object.values(window.SEOMATE_FIELD_PROFILE || {})).map(function (handle) {
+                return '#fields-' + handle.split(':')[0] + '-field';
+            }).join(',');
 
+            console.log({ fields });
+
+            // Order fields by priority
+
+            this.preview = new Craft.LivePreview();
             this.preview.init($.extend(Craft.livePreview.settings, {
-                fields: [].concat.apply([], Object.values(window.SEOMATE_FIELD_PROFILE || {})).map(function (handle) {
-                    return '#fields-' + handle.split(':')[0] + '-field';
-                }).join(','),
+                fields: fields,
                 previewAction: 'seomate/preview'
             }));
 

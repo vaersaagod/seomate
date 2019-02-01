@@ -1,4 +1,4 @@
-
+{% set image = meta['og:image'] ?? meta.image ?? null %}
 
 <div class="Facebook__context">
     <div class="Facebook__context-inner">
@@ -14,8 +14,7 @@
         <div class="Facebook__item Facebook__item--desktop">
             <div class="Facebook__image">
                 {% if image %}
-                    {% set transformed = craft.imager.transformImage(image, { width: 1200, height: 630 }) %}
-                    <img src="{{ transformed.url }}" alt="">
+                    <img src="{{ image.getUrl({ width: 1200, height: 630, mode: 'crop' }) }}" alt="">
                 {% endif %}
             </div>
 

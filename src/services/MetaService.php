@@ -12,8 +12,11 @@ use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
+use craft\elements\db\ElementQuery;
 use craft\elements\db\MatrixBlockQuery;
 
+use craft\elements\MatrixBlock;
+use craft\fields\BaseRelationField;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\CacheHelper;
@@ -28,7 +31,7 @@ use yii\web\ServerErrorHttpException;
  */
 class MetaService extends Component
 {
-    
+
     /**
      * @param $context
      * @return array
@@ -101,7 +104,7 @@ class MetaService extends Component
 
         return $meta;
     }
-    
+
     /**
      * @param Element $element
      * @param null|array $overrides
@@ -169,7 +172,7 @@ class MetaService extends Component
 
         foreach ($fields as $fieldName) {
             if ($element[$fieldName] ?? null) { // Root field
-                
+
                 if ($type === 'text') {
 
                     if ($value = \trim(\strip_tags((string)($element[$fieldName] ?? '')))) {
@@ -178,7 +181,7 @@ class MetaService extends Component
 
                 } else if ($type === 'image') {
                     $assets = $element[$fieldName]->all() ?? null;
-                    
+
                     if ($assets) {
                         foreach ($assets as $asset) {
                             if (SEOMateHelper::isValidImageAsset($asset)) {
@@ -205,36 +208,44 @@ class MetaService extends Component
                     continue;
                 }
 
-                // Need to clone the element query before filtering on type, because using + mutating the actual element query would propagate to whatever happens in the actual entry template
                 $blockQuery = clone $element[$fieldName];
 
                 if ($type === 'text') {
 
-                    $blocks = $blockQuery
-                        ->type($blockTypeHandle)
-                        ->all();
+                    $blocks = $blockQuery->all();
 
                     foreach ($blocks as $block) {
-                        if ($value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')))) {
+                        if ($block->type->handle !== $blockTypeHandle) {
+                            continue;
+                        }
+                        $value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')));
+                        if ($value) {
                             return $value;
                         }
                     }
 
                 } else if ($type === 'image') {
-                    // TODO : For some reason, I couldn't get this eager loading to work. :/  - @ndre
-                    $blocks = $blockQuery
-                        ->type($blockTypeHandle)
-                        /*->with(["{$blockTypeHandle}:{$blockFieldHandle}"])*/
-                        ->all();
-                    
+
+                    if (Craft::$app->getRequest()->getIsLivePreview()) {
+                        $blocks = $blockQuery->all();
+                    } else {
+                        $blocks = $blockQuery->with(["{$blockTypeHandle}:{$blockFieldHandle}"])->all();
+                    }
+
+                    /* @var MatrixBlock $block */
                     foreach ($blocks as $block) {
-                        $assets = $block[$blockFieldHandle]->all() ?? null;
-                        
-                        if ($assets) {
-                            foreach ($assets as $asset) {
-                                if (SEOMateHelper::isValidImageAsset($asset)) {
-                                    return $asset;
-                                }
+                        if ($block->type->handle !== $blockTypeHandle || !($assets = $block[$blockFieldHandle] ?? null)) {
+                            continue;
+                        }
+                        if ($assets instanceof ElementQuery) {
+                            $assets = $assets->all();
+                        }
+                        if (!$assets || !\is_array($assets)) {
+                            continue;
+                        }
+                        foreach ($assets as $asset) {
+                            if (SEOMateHelper::isValidImageAsset($asset)) {
+                                return $asset;
                             }
                         }
                     }
@@ -301,7 +312,7 @@ class MetaService extends Component
 
                 $transform = $imageTransformMap[$key];
                 $asset = $meta[$key] ?? null;
-                
+
                 if ($asset) {
                     $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
 
@@ -460,7 +471,7 @@ class MetaService extends Component
             if (\is_array($configSiteName)) {
                 $configSiteName = $configSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($configSiteName);
             }
-            
+
             $siteName = $configSiteName ?? Craft::$app->getSites()->getCurrentSite()->name ?? '';
         }
 
@@ -516,7 +527,7 @@ class MetaService extends Component
                 $r = $value($context);
                 $value = $r;
             }
-            
+
             if (\is_array($value)) {
                 foreach ($value as $subValue) {
                     $renderedValue = SEOMateHelper::renderString($subValue, $context);
