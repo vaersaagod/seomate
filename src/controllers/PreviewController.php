@@ -44,7 +44,7 @@ class PreviewController extends BaseEntriesController
     public function actionIndex(): Response
     {
 
-        //$this->requirePostRequest();
+        $this->requirePostRequest();
         $entryId = Craft::$app->getRequest()->getParam('entryId');
 
         if ($entryId) {
@@ -59,7 +59,6 @@ class PreviewController extends BaseEntriesController
         Craft::$app->updateTargetLanguage(true);
 
         $this->_populateEntryModel($entry);
-
         return $this->_showEntry($entry);
     }
 

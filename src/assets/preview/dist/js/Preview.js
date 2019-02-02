@@ -38,14 +38,10 @@
                 return '#fields-' + handle.split(':')[0] + '-field';
             }).join(',');
 
-            console.log({ fields });
-
-            // Order fields by priority
-
             this.preview = new Craft.LivePreview();
             this.preview.init($.extend(Craft.livePreview.settings, {
                 fields: fields,
-                previewAction: 'seomate/preview'
+                previewAction: Craft.SEOMatePlugin.previewAction
             }));
 
             this.preview.on('enter', $.proxy(function () {
