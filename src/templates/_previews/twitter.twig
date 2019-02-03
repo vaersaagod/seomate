@@ -15,7 +15,11 @@
         <div class="Twitter__card">
             <div class="Twitter__image">
                 {% if image %}
-                    <img src="{{ image.getUrl({ width: 1200, height: 600, mode: 'crop' }) }}" alt="">
+                    {% if image.getUrl is defined %}
+                        <img src="{{ image.getUrl({ width: 1200, height: 600, mode: 'crop' }) }}" alt="">
+                    {% else %}
+                        <img src="{{ image }}" alt="">
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -30,9 +34,8 @@
                 </div>
 
                 <div class="Twitter__url">
-                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''})}}
+                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''}) }}
                 </div>
-
             </div>
         </div>
     </div>

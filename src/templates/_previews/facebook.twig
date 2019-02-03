@@ -14,15 +14,19 @@
 
         </div>
         <div class="Facebook__item Facebook__item--desktop">
-            <div class="Facebook__image">
-                {% if image %}
-                    <img src="{{ image.getUrl({ width: 1200, height: 630, mode: 'crop' }) }}" alt="">
-                {% endif %}
-            </div>
+            {% if image %}
+                <div class="Facebook__image">
+                    {% if image.getUrl is defined %}
+                        <img src="{{ image.getUrl({ width: 1200, height: 630, mode: 'crop' }) }}" alt="">
+                    {% else %}
+                        <img src="{{ image }}" alt="">
+                    {% endif %}
+                </div>
+            {% endif %}
 
             <div class="Facebook__meta">
                 <div class="Facebook__url">
-                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''})}}
+                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''}) }}
                 </div>
 
                 <div class="Facebook__text">

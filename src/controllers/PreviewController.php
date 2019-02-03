@@ -175,7 +175,6 @@ class PreviewController extends BaseEntriesController
             'seomate' => [
                 'element' => $entry,
                 'config' => [
-                    'returnImageAsset' => true,
                     'cacheEnabled' => false,
                 ],
             ],
