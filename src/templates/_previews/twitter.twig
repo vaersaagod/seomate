@@ -1,4 +1,6 @@
 {% set image = meta['twitter:image'] ?? meta['og:image'] ?? meta.image ?? null %}
+{% set title = meta['twitter:title'] ?? meta.title ?? '' %}
+{% set description = meta['twitter:description'] ?? meta.description ?? '' %}
 
 <div class="Twitter__context">
     <div class="Twitter__context-inner">
@@ -20,16 +22,15 @@
             <div class="Twitter__meta">
                 <div class="Twitter__text">
                     <div class="Twitter__title">
-                        <span>{{ meta.title|striptags|raw }}</span>
+                        <span>{{ title|striptags|raw }}</span>
                     </div>
                     <div class="Twitter__description">
-                        {{ meta.description|striptags|raw }}
+                        {{ description|striptags|raw }}
                     </div>
                 </div>
 
                 <div class="Twitter__url">
                     {{ siteUrl | replace({'http://': '', 'https://': '', '//': '', '/': ''})}}
-
                 </div>
 
             </div>

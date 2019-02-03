@@ -1,4 +1,6 @@
 {% set image = meta['og:image'] ?? meta.image ?? null %}
+{% set title = meta['og:title'] ?? meta.title ?? '' %}
+{% set description = meta['og:description'] ?? meta.description ?? '' %}
 
 <div class="Facebook__context">
     <div class="Facebook__context-inner">
@@ -25,10 +27,10 @@
 
                 <div class="Facebook__text">
                     <div class="Facebook__title">
-                        <span>{{ meta.title|striptags|raw }}</span>
+                        <span>{{ title|striptags|raw }}</span>
                     </div>
                     <div class="Facebook__description">
-                        {{ meta.description|striptags|raw }}
+                        {{ description|striptags|raw }}
                     </div>
                 </div>
 
