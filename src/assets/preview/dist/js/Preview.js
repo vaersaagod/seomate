@@ -21,12 +21,12 @@
 
         open: function () {
 
-            if (this.preview) {
-                this.preview.toggle();
+            if (!Craft.livePreview) {
                 return;
             }
 
-            if (!Craft.livePreview) {
+            if (this.preview) {
+                this.preview.toggle();
                 return;
             }
 

@@ -11,7 +11,8 @@
 namespace vaersaagod\seomate\controllers;
 
 use Craft;
-use craft\controllers\BaseEntriesController;
+
+use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
@@ -21,6 +22,7 @@ use craft\web\View;
 use DateTime;
 
 use vaersaagod\seomate\SEOMate;
+use yii\web\BadRequestHttpException;
 
 
 /**
@@ -32,11 +34,11 @@ use vaersaagod\seomate\SEOMate;
  * @package   SEOMate
  * @since     1.0.0
  */
-class PreviewController extends BaseEntriesController
+class PreviewController extends Controller
 {
 
     /**
-     * Previews an element.
+     * Previews an Entry or a Category
      *
      * @return Response
      * @throws NotFoundHttpException if the requested entry version cannot be found
@@ -45,21 +47,196 @@ class PreviewController extends BaseEntriesController
     {
 
         $this->requirePostRequest();
-        $entryId = Craft::$app->getRequest()->getParam('entryId');
+        $request = Craft::$app->getRequest();
 
-        if ($entryId) {
-            $entry = Craft::$app->getEntries()->getEntryById($entryId);
-        } else {
-            $entry = $this->_getEntryModel();
+        // What kind of element is it?
+        if ($entryId = Craft::$app->getRequest()->getParam('entryId') !== null) {
+
+            // Are we previewing a version?
+            $versionId = Craft::$app->getRequest()->getBodyParam('versionId');
+            if ($versionId) {
+                $entry = Craft::$app->getEntryRevisions()->getVersionById($versionId);
+                if (!$entry) {
+                    throw new NotFoundHttpException('Entry version not found');
+                }
+                $this->_enforceEditEntryPermissions($entry);
+            } else {
+                $entry = $this->_getEntryModel();
+                $this->_enforceEditEntryPermissions($entry);
+                // Set the language to the user's preferred language so DateFormatter returns the right format
+                Craft::$app->updateTargetLanguage(true);
+                $this->_populateEntryModel($entry);
+            }
+
+            return $this->_showEntry($entry);
+
+        } else if ($categoryId = Craft::$app->getRequest()->getParam('categoryId') !== null) {
+
+            $category = $this->_getCategoryModel();
+            $this->_enforceEditCategoryPermissions($category);
+            $this->_populateCategoryModel($category);
+
+            return $this->_showCategory($category);
+
         }
 
-        $this->enforceEditEntryPermissions($entry);
+        throw new BadRequestHttpException();
+    }
 
-        // Set the language to the user's preferred language so DateFormatter returns the right format
-        Craft::$app->updateTargetLanguage(true);
+    /**
+     * Enforces all Edit Category permissions.
+     *
+     * @param Category $category
+     */
+    private function _enforceEditCategoryPermissions(Category $category)
+    {
+        if (Craft::$app->getIsMultiSite()) {
+            // Make sure they have access to this site
+            $this->requirePermission('editSite:' . $category->getSite()->uid);
+        }
+        // Make sure the user is allowed to edit categories in this group
+        $this->requirePermission('editCategories:' . $category->getGroup()->uid);
+    }
 
-        $this->_populateEntryModel($entry);
-        return $this->_showEntry($entry);
+    /**
+     * Fetches or creates a Category.
+     *
+     * @return Category
+     * @throws BadRequestHttpException if the requested category group doesn't exist
+     * @throws NotFoundHttpException if the requested category cannot be found
+     */
+    private function _getCategoryModel(): Category
+    {
+        $request = Craft::$app->getRequest();
+        $categoryId = $request->getBodyParam('categoryId');
+        $siteId = $request->getBodyParam('siteId');
+        if ($categoryId) {
+            $category = Craft::$app->getCategories()->getCategoryById($categoryId, $siteId);
+            if (!$category) {
+                throw new NotFoundHttpException('Category not found');
+            }
+        } else {
+            $groupId = $request->getRequiredBodyParam('groupId');
+            if (($group = Craft::$app->getCategories()->getGroupById($groupId)) === null) {
+                throw new BadRequestHttpException('Invalid category group ID: ' . $groupId);
+            }
+            $category = new Category();
+            $category->groupId = $group->id;
+            $category->fieldLayoutId = $group->fieldLayoutId;
+            if ($siteId) {
+                $category->siteId = $siteId;
+            }
+        }
+        return $category;
+    }
+
+    /**
+     * Populates an Category with post data.
+     *
+     * @param Category $category
+     */
+    private function _populateCategoryModel(Category $category)
+    {
+        // Set the category attributes, defaulting to the existing values for whatever is missing from the post data
+        $request = Craft::$app->getRequest();
+        $category->slug = $request->getBodyParam('slug', $category->slug);
+        $category->enabled = (bool)$request->getBodyParam('enabled', $category->enabled);
+        $category->title = $request->getBodyParam('title', $category->title);
+        $fieldsLocation = $request->getParam('fieldsLocation', 'fields');
+        $category->setFieldValuesFromRequest($fieldsLocation);
+        // Parent
+        if (($parentId = $request->getBodyParam('parentId')) !== null) {
+            if (is_array($parentId)) {
+                $parentId = reset($parentId) ?: '';
+            }
+            $category->newParentId = $parentId ?: '';
+        }
+    }
+
+    /**
+     * Displays a category.
+     *
+     * @param Category $category
+     * @return Response
+     * @throws ServerErrorHttpException if the category doesn't have a URL for the site it's configured with, or if the category's site ID is invalid
+     */
+    private function _showCategory(Category $category): Response
+    {
+        $categoryGroupSiteSettings = $category->getGroup()->getSiteSettings();
+        if (!isset($categoryGroupSiteSettings[$category->siteId]) || !$categoryGroupSiteSettings[$category->siteId]->hasUrls) {
+            throw new ServerErrorHttpException('The category ' . $category->id . ' doesn’t have a URL for the site ' . $category->siteId . '.');
+        }
+        $site = Craft::$app->getSites()->getSiteById($category->siteId);
+        if (!$site) {
+            throw new ServerErrorHttpException('Invalid site ID: ' . $category->siteId);
+        }
+        Craft::$app->language = $site->language;
+        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
+        // Have this category override any freshly queried categories with the same ID/site
+        Craft::$app->getElements()->setPlaceholderElement($category);
+
+        // Get meta
+        $view = $this->getView();
+        $view->getTwig()->disableStrictVariables();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+            'seomate' => [
+                'element' => $category,
+                'config' => [
+                    'cacheEnabled' => false,
+                ],
+            ],
+        ]));
+
+        // Render previews
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        return $this->renderTemplate('seomate/preview', [
+            'category' => $category,
+            'meta' => $meta,
+        ]);
+    }
+
+    /**
+     * Enforces all Edit Entry permissions.
+     *
+     * @param Entry $entry
+     * @param bool $duplicate
+     */
+    private function _enforceEditEntryPermissions(Entry $entry, bool $duplicate = false)
+    {
+        $userSession = Craft::$app->getUser();
+        $permissionSuffix = ':' . $entry->getSection()->uid;
+        if (Craft::$app->getIsMultiSite()) {
+            // Make sure they have access to this site
+            $this->requirePermission('editSite:' . $entry->getSite()->uid);
+        }
+        // Make sure the user is allowed to edit entries in this section
+        $this->requirePermission('editEntries' . $permissionSuffix);
+        // Is it a new entry?
+        if (!$entry->id || $duplicate) {
+            // Make sure they have permission to create new entries in this section
+            $this->requirePermission('createEntries' . $permissionSuffix);
+        } else {
+            switch (get_class($entry)) {
+                case Entry::class:
+                    // If it's another user's entry (and it's not a Single), make sure they have permission to edit those
+                    if (
+                        $entry->authorId != $userSession->getIdentity()->id &&
+                        $entry->getSection()->type !== Section::TYPE_SINGLE
+                    ) {
+                        $this->requirePermission('editPeerEntries' . $permissionSuffix);
+                    }
+                    break;
+                case EntryDraft::class:
+                    // If it's another user's draft, make sure they have permission to edit those
+                    /** @var EntryDraft $entry */
+                    if (!$entry->creatorId || $entry->creatorId != $userSession->getIdentity()->id) {
+                        $this->requirePermission('editPeerEntryDrafts' . $permissionSuffix);
+                    }
+                    break;
+            }
+        }
     }
 
     /**
