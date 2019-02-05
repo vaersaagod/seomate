@@ -15,6 +15,7 @@ use Craft;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
+use craft\models\Section;
 use craft\web\Controller;
 use craft\web\Response;
 use craft\web\View;
@@ -90,12 +91,13 @@ class PreviewController extends Controller
      */
     private function _enforceEditCategoryPermissions(Category $category)
     {
+        $isCraft31 = \version_compare(Craft::$app->getVersion(), '3.1', '>=');
         if (Craft::$app->getIsMultiSite()) {
             // Make sure they have access to this site
-            $this->requirePermission('editSite:' . $category->getSite()->uid);
+            $this->requirePermission('editSite:' . ($isCraft31 ? $category->getSite()->uid : $category->getSite()->id));
         }
         // Make sure the user is allowed to edit categories in this group
-        $this->requirePermission('editCategories:' . $category->getGroup()->uid);
+        $this->requirePermission('editCategories:' . ($isCraft31 ? $category->getGroup()->uid : $category->getGroup()->id));
     }
 
     /**
@@ -205,11 +207,12 @@ class PreviewController extends Controller
      */
     private function _enforceEditEntryPermissions(Entry $entry, bool $duplicate = false)
     {
+        $isCraft31 = \version_compare(Craft::$app->getVersion(), '3.1', '>=');
         $userSession = Craft::$app->getUser();
-        $permissionSuffix = ':' . $entry->getSection()->uid;
+        $permissionSuffix = ':' . ($isCraft31 ? $entry->getSection()->uid : $entry->getSection()->id);
         if (Craft::$app->getIsMultiSite()) {
             // Make sure they have access to this site
-            $this->requirePermission('editSite:' . $entry->getSite()->uid);
+            $this->requirePermission('editSite:' . ($isCraft31 ? $entry->getSite()->uid : $entry->getSite()->id));
         }
         // Make sure the user is allowed to edit entries in this section
         $this->requirePermission('editEntries' . $permissionSuffix);
