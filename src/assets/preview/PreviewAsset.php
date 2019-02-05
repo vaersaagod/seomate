@@ -18,6 +18,7 @@ use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
 use craft\web\View;
+use vaersaagod\seomate\SEOMate;
 
 /**
  * @author    Værsågod
@@ -59,6 +60,26 @@ class PreviewAsset extends AssetBundle
         parent::registerAssetFiles($view);
 
         if ($view instanceof View) {
+
+            $previewEnabled = SEOMate::$plugin->getSettings()->previewEnabled;
+            if ($previewEnabled === false) {
+                return;
+            }
+
+            $segments = Craft::$app->getRequest()->getSegments();
+            $currentSourceHandle = \in_array($segments[0] ?? null, ['entries', 'categories']) ? $segments[1] ?? null : null;
+            if (!$currentSourceHandle) {
+                return;
+            }
+
+            if ($previewEnabled !== true) {
+                if (!\is_array($previewEnabled)) {
+                    $previewEnabled = \explode(',', $previewEnabled);
+                }
+                if (!\in_array($currentSourceHandle, $previewEnabled)) {
+                    return;
+                }
+            }
 
             $previewAction = 'seomate/preview';
             if (\version_compare(Craft::$app->getVersion(), '3.1', '>=')) {

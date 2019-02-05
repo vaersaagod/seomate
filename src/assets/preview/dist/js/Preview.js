@@ -2,6 +2,10 @@
 
     /** global: Craft */
     /** global: Garnish */
+    if (!Craft || !Craft.SEOMatePlugin || !Craft.SEOMatePlugin.previewAction) {
+        return;
+    }
+
     var SEOmatePreview = Garnish.Base.extend({
 
         $toggleBtn: null,

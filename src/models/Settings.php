@@ -110,6 +110,11 @@ class Settings extends Model
         'http://www.bing.com/webmaster/ping.aspx?siteMap=',
     ];
 
+    /**
+     * @var bool|array Enable live SEO previews in the Control Panel for everything (true), nothing (false) or an array of section and/or category group handles
+     */
+    public $previewEnabled = true;
+
     // Public Methods
     // =========================================================================
 
