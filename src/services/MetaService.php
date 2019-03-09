@@ -440,7 +440,7 @@ class MetaService extends Component
 
                 if ($restrictions['type'] === 'text' && isset($restrictions['maxLength'])) {
                     if (\strlen($value) > $restrictions['maxLength']) {
-                        $meta[$key] = substr($value, 0, $restrictions['maxLength'] - 3) . '…';
+                        $meta[$key] = substr($value, 0, $restrictions['maxLength'] - strlen($settings->truncateSuffix)) . $settings->truncateSuffix;
                     }
                 }
             }
