@@ -63,8 +63,8 @@ class Settings extends Model
 
     public $applyRestrictions = false;
     public $validImageExtensions = ['jpg', 'jpeg', 'gif', 'png'];
-    public $truncateLength = false;
     public $truncateSuffix = '...';
+    public $truncateLength = false; // FIXME: no longer in use
 
     public $returnImageAsset = false;
     public $useImagerIfInstalled = true;
