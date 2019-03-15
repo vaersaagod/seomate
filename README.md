@@ -39,7 +39,7 @@ To install the plugin, either install it from the plugin store, or follow these 
 
 ## Configuring
 
-GeoMate can be configured by creating a file named `geomate.php` in your Craft config folder, 
+SEOMate can be configured by creating a file named `seomate.php` in your Craft config folder, 
 and overriding settings as needed. 
 
 ### cacheEnabled [bool]
