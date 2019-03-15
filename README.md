@@ -42,6 +42,21 @@ To install the plugin, either install it from the plugin store, or follow these 
 GeoMate can be configured by creating a file named `geomate.php` in your Craft config folder, 
 and overriding settings as needed. 
 
+### cacheEnabled [bool]
+*Default: `'true'`*  
+Enables/disables caching of generated meta data. The cached data will be automatically
+cleared when an element is saved, but it can also be completely deleted through Craft's
+clear cache tool.
+
+### cacheDuration [int]
+*Default: `3600`*  
+Duration of meta cache in seconds.
+
+### previewEnabled [bool|array]
+*Default: `true`*  
+Enable live SEO previews in the Control Panel for everything (true), 
+nothing (false) or an array of section and/or category group handles.
+
 ### siteName [string|array|null]
 *Default: `null`*  
 Defines the site name to be used in meta data. Can be a plain string, or an array
@@ -67,16 +82,6 @@ SEOMate comes with a default meta template the outputs the configured meta tags.
 every project is different, so if you want to customize the output you can use this 
 setting to provide a custom template (it needs to be in your site's template path). 
 
-### cacheEnabled [bool]
-*Default: `'true'`*  
-Enables/disables caching of generated meta data. The cached data will be automatically
-cleared when an element is saved, but it can also be completely deleted through Craft's
-clear cache tool.
-
-### cacheDuration [int]
-*Default: `3600`*  
-Duration of meta cache in seconds.
-
 ### includeSitenameInTitle [bool]
 *Default: `true`*  
 Enables/disabled if the site name should be displayed as part of the meta title.
@@ -89,7 +94,7 @@ the site name is only added to the `title` meta tag.
 Example that also adds it to `og:title` and `twitter:title` tags:
 
 ``` 
-'siteName' => ['title', 'og:title', 'twitter:title']
+'sitenameTitleProperties' => ['title', 'og:title', 'twitter:title']
 ```
 
 ### sitenamePosition [string]
@@ -100,10 +105,6 @@ meta content.
 ### sitenameSeparator [string]
 *Default: `'|'`*  
 The separator between the meta tag content and the site name.
-
-### defaultProfile [string|null]
-*Default: `''`*  
-Sets the default meta data profile to use (see the `fieldProfiles` config setting).
 
 ### outputAlternate [bool]
 *Default: `true`*  
@@ -119,6 +120,10 @@ probably want to disable this.
 If you have a field for alternate text on your assets, you should set this 
 to your field's handle. This will pull and output the text for the `og:image:alt`
 and `twitter:image:alt` properties.
+
+### defaultProfile [string|null]
+*Default: `''`*  
+Sets the default meta data profile to use (see the `fieldProfiles` config setting).
 
 ### fieldProfiles [array]
 *Default: `[]`*  
@@ -155,18 +160,78 @@ Example:
 Field waterfalls are parsed from left to right. Empty or missing fields are ignored, 
 and SEOMate continues to look for a valid value in the next field.
 
-
 ### profileMap [array]
 *Default: `[]`*  
+The profile map provides a way to map sections and category groups to profiles
+defined in `fieldProfiles`. If a section or category group is not found in this
+map, the profile defined in `defaultProfile` will be used.
 
+```
+'profileMap' => [
+    'products' => 'products',
+    'frontpage' => 'landingPages',
+    'campaigns' => 'landingPages',
+],
+```
 
 ### defaultMeta [array]
 *Default: `[]`*  
-...
+This setting defines the default meta data that will be used if no valid meta data
+was found for the current element (ie, non of the fields provided in the field profile
+existed or had valid values). 
+
+The waterfall uses the current _context_ to search for meta data. In the example
+below, we're falling back to using fields in two globals with handle `globalSeo` 
+and `settings`:
+
+```
+'defaultMeta' => [
+    'title' => ['globalSeo.seoTitle'],
+    'description' => ['globalSeo.seoDescription', 'settings.companyInfo'],
+    'image' => ['globalSeo.seoImages']
+],
+```
 
 ### additionalMeta [array]
 *Default: `[]`*  
-...
+
+The additional meta setting defines all other meta data that you want SEOMate
+to output. This is a convenient way to add more global meta data, that is used
+throughout the site. Please note that you don't have to use this, you could also
+just add the meta data directly to your meta, or html head, template.
+
+The key defines the meta data property to output, and the value could be either
+a plain text, some twig that will be parsed based on the current context, an array
+which will result in multiple tags of this property being output, or a function.
+
+In the example below, some properties are plain text (`og:type` and `twitter:card`),
+some contains twig (for instance `fb:profile_id`), and for `og:see_also` we provide
+a function that returns an array. 
+
+```
+'additionalMeta' => [
+    'og:type' => 'website',
+    'twitter:card' => 'summary_large_image',
+    
+    'fb:profile_id' => '{{ settings.facebookProfileId }}',
+    'twitter:site' => '@{{ settings.twitterHandle }}',
+    'twitter:author' => '@{{ settings.twitterHandle }}',
+    'twitter:creator' => '@{{ settings.twitterHandle }}',
+    
+    'og:see_also' => function ($context) {
+        $someLinks = [];
+        $matrixBlocks = $context['globalSeo']->someLinks->all() ?? null;
+        
+        if ($matrixBlocks && count($matrixBlocks) > 0) {
+            foreach ($matrixBlocks as $matrixBlock) {
+                $someLinks[] = $matrixBlock->someLinkUrl ?? '';
+            }
+        }
+        
+        return $someLinks;
+    },
+],
+```
 
 ### metaPropertyTypes [array]
 *Default: (see below)*  
@@ -194,7 +259,7 @@ Example/default value:
 
 ### applyRestrictions [bool]
 *Default: `false`*  
-Enables/disables enforcing of restrictions.
+Enables/disables enforcing of restrictions defined in `metaPropertyTypes`.
 
 ### validImageExtensions [array]
 *Default: `['jpg', 'jpeg', 'gif', 'png']`*  
@@ -305,7 +370,7 @@ Map of output templates for the meta properties.
 Default value:
 ```
 [
-    'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
+    'default' => '<meta name="{{ key }}" content="{{ value }}">',
     'title' => '<title>{{ value }}</title>',
     '/^og:/,/^fb:/' => '<meta property="{{ key }}" content="{{ value }}">',
 ]
@@ -328,25 +393,42 @@ sitemap is being generated.
 
 ### sitemapConfig [array]
 *Default: `[]`*  
-...
+Defines the content of the sitemaps. The configuration consists of two main 
+keys, `elements` and `custom`. In `elements`, you can define sitemaps that 
+will automatically query for elements in certain sections or based on custom 
+criterias, and in `custom` you add paths that are added to a separate custom 
+sitemap.
 
-### sitemapSubmitUrlPatterns [array]
-*Default: (see below)*  
-An array of URL patterns that SEOMate will submit the sitemap to.
+In the example below, we get all elements from the sections with handles 
+`projects` and `news`, and then query for entries in four specific 
+sections. In addition to these, we add two custom urls.    
 
-Default value:
 ```
-[
-    'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
-    'http://www.bing.com/webmaster/ping.aspx?siteMap=',
-]
+'sitemapConfig' => [
+    'elements' => [
+        'projects' => ['changefreq' => 'weekly', 'priority' => 0.5],
+        'news' => ['changefreq' => 'weekly', 'priority' => 0.5],
+        
+        'indexpages' => [
+            'elementType' => \craft\elements\Entry::class,
+            'criteria' => ['section' => ['frontpage', 'newsListPage', 'membersListPage', 'aboutPage']],
+            'params' => ['changefreq' => 'daily', 'priority' => 0.5],
+        ],
+    ],
+    'custom' => [
+        '/custom-1' => ['changefreq' => 'weekly', 'priority' => 1],
+        '/custom-2' => ['changefreq' => 'weekly', 'priority' => 1],
+    ]
+],
 ```
 
-### previewEnabled [bool|array]
-*Default: (see below)*  
-Enable live SEO previews in the Control Panel for everything (true), 
-nothing (false) or an array of section and/or category group handles.
+Using the expanded criteria syntax, you can query for whichever type of element, 
+as long as they are registered as a valid element type in Craft.
 
+The main sitemap index will be available on the root of your site, and named
+according to the `sitemapName` config setting (`sitemap.xml` by default). The actual
+sitemaps will be named using the pattern `sitemap_<elementKey>_<page>.xml` for 
+elements and `sitemap_custom.xml` for the custom urls.
 
 
 
