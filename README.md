@@ -400,8 +400,9 @@ criterias, and in `custom` you add paths that are added to a separate custom
 sitemap.
 
 In the example below, we get all elements from the sections with handles 
-`projects` and `news`, and then query for entries in four specific 
-sections. In addition to these, we add two custom urls.    
+`projects` and `news`, query for entries in four specific 
+sections and all categories in group `newsCategories`. In addition to these¨, 
+we add two custom urls.    
 
 ```
 'sitemapConfig' => [
@@ -413,6 +414,11 @@ sections. In addition to these, we add two custom urls.
             'elementType' => \craft\elements\Entry::class,
             'criteria' => ['section' => ['frontpage', 'newsListPage', 'membersListPage', 'aboutPage']],
             'params' => ['changefreq' => 'daily', 'priority' => 0.5],
+        ],
+        'newscategories' => [
+            'elementType' => \craft\elements\Category::class,
+            'criteria' => ['group' => 'newsCategories'],
+            'params' => ['changefreq' => 'weekly', 'priority' => 0.2],
         ],
     ],
     'custom' => [
