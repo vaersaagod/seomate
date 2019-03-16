@@ -56,7 +56,7 @@ class SitemapHelper
 
         for ($i = 1; $i <= $pages; $i++) {
             $urls[] = [
-                'loc' => UrlHelper::siteUrl($settings->sitemapName . '_' . $handle . '_' . $i . '.xml'),
+                'loc' => UrlHelper::siteUrl($settings->sitemapName . '-' . $handle . '-' . $i . '.xml'),
                 'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c')
             ];
         }
@@ -73,7 +73,7 @@ class SitemapHelper
         $settings = SEOMate::$plugin->getSettings();
 
         return [
-            'loc' => UrlHelper::siteUrl($settings->sitemapName . '_custom.xml'),
+            'loc' => UrlHelper::siteUrl($settings->sitemapName . '-custom.xml'),
             'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c')
         ];
     }

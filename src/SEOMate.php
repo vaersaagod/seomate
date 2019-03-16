@@ -194,8 +194,8 @@ class SEOMate extends Plugin
             $sitemapName = $settings->sitemapName;
 
             $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
-            $event->rules[$sitemapName . '_<handle:\w*>_<page:\d*>.xml'] = 'seomate/sitemap/element';
-            $event->rules[$sitemapName . '_custom.xml'] = 'seomate/sitemap/custom';
+            $event->rules[$sitemapName . '-<handle:\w*>-<page:\d*>.xml'] = 'seomate/sitemap/element';
+            $event->rules[$sitemapName . '-custom.xml'] = 'seomate/sitemap/custom';
         }
     }
 
