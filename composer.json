@@ -1,0 +1,46 @@
+{
+    "name": "vaersaagod/seomate",
+    "description": "SEO, mate! It's important.",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "seomate",
+        "seo",
+        "json-ld",
+        "meta"
+    ],
+    "support": {
+        "docs": "https://github.com/vaersaagod/seomate/blob/master/README.md",
+        "issues": "https://github.com/vaersaagod/seomate/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Værsågod",
+            "homepage": "https://www.vaersaagod.no/"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0",
+        "spatie/schema-org": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "vaersaagod\\seomate\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "SEOMate",
+        "handle": "seomate",
+        "hasCpSettings": false,
+        "hasCpSection": false,
+        "changelogUrl": "https://raw.githubusercontent.com/vaersaagod/seomate/master/CHANGELOG.md",
+        "components": {
+        },
+        "class": "vaersaagod\\seomate\\SEOMate"
+    }
+}

@@ -1,0 +1,42 @@
+{% set image = meta['twitter:image'] ?? meta['og:image'] ?? meta.image ?? null %}
+{% set title = meta['twitter:title'] ?? meta.title ?? '' %}
+{% set description = meta['twitter:description'] ?? meta.description ?? '' %}
+
+<div class="Twitter__context">
+    <div class="Twitter__context-inner">
+        <div class="Twitter__context-tweet">
+            <div class="Twitter__context-meta">
+                <span>Jane Doe</span><span>@JaneDoe</span><span>2h</span>
+            </div>
+            <div class="Twitter__context-content">
+                Check out this post: {{ entry.url }}
+            </div>
+        </div>
+        <div class="Twitter__card">
+            <div class="Twitter__image">
+                {% if image %}
+                    {% if image.getUrl is defined %}
+                        <img src="{{ image.getUrl({ width: 1200, height: 600, mode: 'crop' }) }}" alt="">
+                    {% else %}
+                        <img src="{{ image }}" alt="">
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="Twitter__meta">
+                <div class="Twitter__text">
+                    <div class="Twitter__title">
+                        <span>{{ title|striptags|raw }}</span>
+                    </div>
+                    <div class="Twitter__description">
+                        {{ description|striptags|raw }}
+                    </div>
+                </div>
+
+                <div class="Twitter__url">
+                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': ''}) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

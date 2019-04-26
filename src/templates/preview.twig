@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            {{ source('seomate/Preview.css') }}
+        </style>
+    </head>
+    <body>
+
+        {% set entry = entry ?? category ?? element ?? null %}
+
+        <div class="Google">
+            <h2><div class="l-wrap"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/google/default' %}
+            </div>
+        </div>
+
+        <div class="Facebook">
+            <h2><div class="l-wrap">Facebook</div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/facebook' %}
+            </div>
+        </div>
+
+        <div class="Twitter">
+            <h2><div class="l-wrap">Twitter</div></h2>
+            <div class="l-wrap">
+                {% include 'seomate/_previews/twitter' %}
+            </div>
+        </div>
+
+
+    </body>
+</html>

@@ -1,0 +1,53 @@
+{% set image = meta['og:image'] ?? meta.image ?? null %}
+{% set title = meta['og:title'] ?? meta.title ?? '' %}
+{% set description = meta['og:description'] ?? meta.description ?? '' %}
+
+<div class="Facebook__context">
+    <div class="Facebook__context-inner">
+        <div class="Facebook__context-post Facebook__context-extra">
+            <div class="">
+                <span>Jane Doe</span><span>2 hrs</span>
+            </div>
+            <div>
+                Check out this post: <span class="Facebook__blue">{{ entry.url }}</span>
+            </div>
+
+        </div>
+        <div class="Facebook__item Facebook__item--desktop">
+            {% if image %}
+                <div class="Facebook__image">
+                    {% if image.getUrl is defined %}
+                        <img src="{{ image.getUrl({ width: 1200, height: 630, mode: 'crop' }) }}" alt="">
+                    {% else %}
+                        <img src="{{ image }}" alt="">
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="Facebook__meta">
+                <div class="Facebook__url">
+                    {{ siteUrl | replace({'http://': '', 'https://': '', '//': ''}) }}
+                </div>
+
+                <div class="Facebook__text">
+                    <div class="Facebook__title">
+                        <span>{{ title|striptags|raw }}</span>
+                    </div>
+                    <div class="Facebook__description">
+                        {{ description|striptags|raw }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="Facebook__context-post-share Facebook__context-extra">
+
+        </div>
+
+        <div class="Facebook__context-post-bottom Facebook__context-extra">
+
+        </div>
+    </div>
+
+</div>
