@@ -343,10 +343,10 @@ You can also do more complex element criterias, and manually add custom paths:
             'criteria' => ['section' => 'semiSecret', 'notThatSecret' => true],
             'params' => ['changefreq' => 'daily', 'priority' => 0.5],
         ],
-        'custom' => [
-            '/cookies' => ['changefreq' => 'weekly', 'priority' => 1],
-            '/terms-and-conditions' => ['changefreq' => 'weekly', 'priority' => 1],
-        ]
+    ],
+    'custom' => [
+        '/cookies' => ['changefreq' => 'weekly', 'priority' => 1],
+        '/terms-and-conditions' => ['changefreq' => 'weekly', 'priority' => 1],
     ],
 ],
 ``` 
