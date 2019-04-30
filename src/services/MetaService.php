@@ -66,6 +66,11 @@ class MetaService extends Component
             $meta = $this->getElementMeta($element, $overrideObject);
         }
 
+        // Additional meta data
+        if ($settings->additionalMeta !== null && \count($settings->additionalMeta) > 0) {
+            $meta = $this->processAdditionalMeta($meta, $context, $settings);
+        }
+        
         // Overwrite with pre-generated values from template
         if ($overrideObject && isset($overrideObject['meta'])) {
             $this->overrideMeta($meta, $overrideObject['meta']);
@@ -93,12 +98,7 @@ class MetaService extends Component
         if ($settings->includeSitenameInTitle) {
             $meta = $this->addSitename($meta, $settings);
         }
-
-        // Additional mate data
-        if ($settings->additionalMeta !== null && \count($settings->additionalMeta) > 0) {
-            $meta = $this->processAdditionalMeta($meta, $context, $settings);
-        }
-
+        
         // Cache it
         if ($element && $settings->cacheEnabled) {
             CacheHelper::setMetaCacheForElement($element, $meta);
