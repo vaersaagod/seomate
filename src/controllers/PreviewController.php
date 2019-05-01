@@ -8,26 +8,30 @@
 
 namespace vaersaagod\seomate\controllers;
 
-use Craft;
-use craft\models\EntryDraft;
 use DateTime;
 
-use craft\elements\Category;
-use craft\elements\Entry;
-use craft\helpers\DateTimeHelper;
-use craft\models\Section;
-use craft\web\Controller;
-use craft\web\Response;
-use craft\web\View;
-
-use vaersaagod\seomate\SEOMate;
-
+use yii\base\Event;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
+
+use Craft;
+use craft\events\TemplateEvent;
+use craft\elements\Category;
+use craft\elements\Entry;
+use craft\helpers\DateTimeHelper;
+use craft\models\CategoryGroup_SiteSettings;
+use craft\models\EntryDraft;
+use craft\models\Section_SiteSettings;
+use craft\models\Section;
+use craft\web\Controller;
+use craft\web\Response;
+use craft\web\View;
+
+use vaersaagod\seomate\SEOMate;
 
 /**
  * Preview Controller
@@ -40,6 +44,37 @@ use yii\web\ServerErrorHttpException;
  */
 class PreviewController extends Controller
 {
+
+    /**
+     * @var array
+     */
+    private $_extraTemplateVariables;
+
+    /**
+     *
+     */
+    public function init()
+    {
+        parent::init();
+        Event::on(
+            View::class,
+            View::EVENT_AFTER_RENDER_TEMPLATE,
+            [$this, 'onAfterRenderTemplate']
+        );
+    }
+
+    /**
+     * @param TemplateEvent $event
+     */
+    public function onAfterRenderTemplate(TemplateEvent $event)
+    {
+        $settings = SEOMate::$plugin->getSettings();
+        $metaTemplate = $settings->metaTemplate ?: 'seomate/_output/meta';
+        if ($event->template !== $metaTemplate) {
+            return;
+        }
+        $this->_extraTemplateVariables = $event->variables['seomate'] ?? null;
+    }
 
     /**
      * Previews an Entry or a Category
@@ -192,14 +227,32 @@ class PreviewController extends Controller
         $view->getTwig()->disableStrictVariables();
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
 
-        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+        $context = array_merge($view->getTwig()->getGlobals(), [
             'seomate' => [
                 'element' => $category,
-                'config' => [
-                    'cacheEnabled' => false,
-                ],
             ],
-        ]));
+        ]);
+
+        // Attempt to render the category's page template, to make sure that any template overrides are added to the context
+        if ($this->_renderCategoryPageTemplate($category, $context) && is_array($this->_extraTemplateVariables)) {
+            foreach ($this->_extraTemplateVariables as $key => $value) {
+                if (\is_array($value)) {
+                    $context['seomate'][$key] = \array_merge_recursive($context['seomate'][$key] ?? [], $value);
+                } else {
+                    $context['seomate'][$key] = $value;
+                }
+            }
+        }
+
+        // Make sure the SEOMate cache is disabled
+        $context['seomate'] = array_merge_recursive($context['seomate'], [
+            'config' => [
+                'cacheEnabled' => false,
+            ],
+        ]);
+
+        // Get meta
+        $meta = SEOMate::$plugin->meta->getContextMeta($context);
 
         // Render previews
         $view->setTemplateMode(View::TEMPLATE_MODE_CP);
@@ -207,6 +260,40 @@ class PreviewController extends Controller
             'category' => $category,
             'meta' => $meta,
         ]);
+    }
+
+    /**
+     * @param Category $category
+     * @param array $context
+     * @return bool
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    private function _renderCategoryPageTemplate(Category $category, array $context = []): bool
+    {
+
+        /** @var CategoryGroup_SiteSettings $categoryGroupSettings */
+        $categoryGroupSettings = $category->getGroup()->getSiteSettings()[$category->siteId] ?? null;
+        if (!$categoryGroupSettings) {
+            return false;
+        }
+
+        $view = Craft::$app->getView();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $template = $categoryGroupSettings['template'] ?? null;
+        if (!$template || !$view->doesTemplateExist($template)) {
+            return false;
+        }
+
+        $view->renderPageTemplate($template, \array_merge($context, [
+            'category' => $category,
+        ]));
+
+        return true;
     }
 
     /**
@@ -365,14 +452,32 @@ class PreviewController extends Controller
         $view->getTwig()->disableStrictVariables();
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
 
-        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+        $context = \array_merge($view->getTwig()->getGlobals(), [
             'seomate' => [
                 'element' => $entry,
-                'config' => [
-                    'cacheEnabled' => false,
-                ],
             ],
-        ]));
+        ]);
+
+        // Attempt to render the entry's page template, to make sure that any template overrides are added to the context
+        if ($this->_renderEntryPageTemplate($entry, $context) && is_array($this->_extraTemplateVariables)) {
+            foreach ($this->_extraTemplateVariables as $key => $value) {
+                if (\is_array($value)) {
+                    $context['seomate'][$key] = \array_merge_recursive($context['seomate'][$key] ?? [], $value);
+                } else {
+                    $context['seomate'][$key] = $value;
+                }
+            }
+        }
+
+        // Make sure the SEOMate cache is disabled
+        $context['seomate'] = \array_merge_recursive($context['seomate'], [
+            'config' => [
+                'cacheEnabled' => false,
+            ],
+        ]);
+
+        // Get meta
+        $meta = SEOMate::$plugin->meta->getContextMeta($context);
 
         // Render previews
         $view->setTemplateMode(View::TEMPLATE_MODE_CP);
@@ -380,5 +485,39 @@ class PreviewController extends Controller
             'entry' => $entry,
             'meta' => $meta,
         ]);
+    }
+
+    /**
+     * @param Entry $entry
+     * @param array $context
+     * @return bool
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    private function _renderEntryPageTemplate(Entry $entry, array $context = []): bool
+    {
+
+        /** @var Section_SiteSettings $sectionSettings */
+        $sectionSettings = $entry->getSection()->getSiteSettings()[$entry->siteId] ?? null;
+        if (!$sectionSettings) {
+            return false;
+        }
+
+        $view = Craft::$app->getView();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $template = $sectionSettings['template'] ?? null;
+        if (!$template || !$view->doesTemplateExist($template)) {
+            return false;
+        }
+
+        $view->renderPageTemplate($template, \array_merge($context, [
+            'entry' => $entry,
+        ]));
+
+        return true;
     }
 }
