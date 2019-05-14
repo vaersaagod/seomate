@@ -34,12 +34,12 @@ class RenderService extends Component
     // =========================================================================
 
     /**
-     * @event MetaTemplateEvent The event that is triggered when registering CP template roots
+     * @event MetaTemplateEvent The event that is triggered immediately before SEOMate renders the meta template
      */
     const EVENT_SEOMATE_BEFORE_RENDER_META_TEMPLATE = 'seomateBeforeRenderMetaTemplate';
 
     /**
-     * @event MetaTemplateEvent The event that is triggered when registering site template roots
+     * @event MetaTemplateEvent The event that is triggered immediately after SEOMate renders the meta template
      */
     const EVENT_SEOMATE_AFTER_RENDER_META_TEMPLATE = 'seomateAfterRenderMetaTemplate';
 
