@@ -10,12 +10,14 @@ namespace vaersaagod\seomate\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\Template;
+use craft\helpers\Template as TemplateHelper;
+use craft\web\View;
 
 use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 
 use vaersaagod\seomate\SEOMate;
+use vaersaagod\seomate\events\MetaTemplateEvent;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 
 /**
@@ -27,6 +29,85 @@ use vaersaagod\seomate\helpers\SEOMateHelper;
  */
 class RenderService extends Component
 {
+
+    // Constants
+    // =========================================================================
+
+    /**
+     * @event MetaTemplateEvent The event that is triggered when registering CP template roots
+     */
+    const EVENT_SEOMATE_BEFORE_RENDER_META_TEMPLATE = 'seomateBeforeRenderMetaTemplate';
+
+    /**
+     * @event MetaTemplateEvent The event that is triggered when registering site template roots
+     */
+    const EVENT_SEOMATE_AFTER_RENDER_META_TEMPLATE = 'seomateAfterRenderMetaTemplate';
+
+    /**
+     * Renders the meta template
+     *
+     * @param array $context
+     * @return string
+     * @throws LoaderError
+     * @throws SyntaxError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \yii\base\Exception
+     */
+    public function renderMetaTemplate(array $context): string
+    {
+
+        $view = Craft::$app->getView();
+        $oldTemplateMode = $view->getTemplateMode();
+
+        $seomate = SEOMate::$plugin;
+        $settings = $seomate->getSettings();
+
+        // Figure out which template to render
+        $template = $settings->metaTemplate;
+        if (!$template) {
+            // Render the default SEOM
+            $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+            $template = 'seomate/_output/meta';
+        }
+
+        // Trigger a "seomateBeforeRenderMetaTemplate" event
+        if ($this->hasEventHandlers(self::EVENT_SEOMATE_BEFORE_RENDER_META_TEMPLATE)) {
+            $event = new MetaTemplateEvent([
+                'context' => $context,
+                'template' => $template,
+            ]);
+            $this->trigger(self::EVENT_SEOMATE_BEFORE_RENDER_META_TEMPLATE, $event);
+            $context = $event->context;
+        }
+
+        // Get meta data, etc and add it to the context
+        $meta = $seomate->meta->getContextMeta($context);
+        $canonicalUrl = $seomate->urls->getCanonicalUrl($context);
+        $alternateUrls = $seomate->urls->getAlternateUrls($context);
+        $context['seomate']['meta'] = $meta;
+        $context['seomate']['canonicalUrl'] = $canonicalUrl;
+        $context['seomate']['alternateUrls'] = $alternateUrls;
+
+        // Render it
+        $output = $view->renderTemplate($template, $context);
+
+        // Reset the template mode
+        $view->setTemplateMode($oldTemplateMode);
+
+        // Trigger a "seomateAfterRenderMetaTemplate" event
+        if ($this->hasEventHandlers(self::EVENT_SEOMATE_AFTER_RENDER_META_TEMPLATE)) {
+            $event = new MetaTemplateEvent([
+                'context' => $context,
+                'template' => $template,
+                'output' => $output,
+            ]);
+            $this->trigger(self::EVENT_SEOMATE_AFTER_RENDER_META_TEMPLATE, $event);
+            $output = $event->output;
+        }
+
+        return $output;
+    }
+
     /**
      * Renders meta tag by key and value. 
      * Uses tag template from tagTemplateMap config setting.
@@ -73,6 +154,6 @@ class RenderService extends Component
             Craft::error($e->getMessage(), __METHOD__);
         }
 
-        return Template::raw($r);
+        return TemplateHelper::raw($r);
     }
 }

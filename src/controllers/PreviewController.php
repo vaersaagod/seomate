@@ -19,7 +19,7 @@ use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
 
 use Craft;
-use craft\events\TemplateEvent;
+use craft\base\ElementInterface;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
@@ -32,6 +32,8 @@ use craft\web\Response;
 use craft\web\View;
 
 use vaersaagod\seomate\SEOMate;
+use vaersaagod\seomate\events\MetaTemplateEvent;
+use vaersaagod\seomate\services\RenderService;
 
 /**
  * Preview Controller
@@ -46,9 +48,9 @@ class PreviewController extends Controller
 {
 
     /**
-     * @var array
+     * @var array|null
      */
-    private $_extraTemplateVariables;
+    private $_metaTemplateContextOverrides;
 
     /**
      *
@@ -57,23 +59,18 @@ class PreviewController extends Controller
     {
         parent::init();
         Event::on(
-            View::class,
-            View::EVENT_AFTER_RENDER_TEMPLATE,
-            [$this, 'onAfterRenderTemplate']
+            RenderService::class,
+            RenderService::EVENT_SEOMATE_BEFORE_RENDER_META_TEMPLATE,
+            [$this, 'onBeforeRenderMetaTemplate']
         );
     }
 
     /**
      * @param TemplateEvent $event
      */
-    public function onAfterRenderTemplate(TemplateEvent $event)
+    public function onBeforeRenderMetaTemplate(MetaTemplateEvent $event)
     {
-        $settings = SEOMate::$plugin->getSettings();
-        $metaTemplate = $settings->metaTemplate ?: 'seomate/_output/meta';
-        if ($event->template !== $metaTemplate) {
-            return;
-        }
-        $this->_extraTemplateVariables = $event->variables['seomate'] ?? null;
+        $this->_metaTemplateContextOverrides = $event->context['seomate'] ?? null;
     }
 
     /**
@@ -112,7 +109,8 @@ class PreviewController extends Controller
                 $this->_populateEntryModel($entry);
             }
 
-            return $this->_showEntry($entry);
+            return $this->_showElement($entry);
+
         }
 
         if ($categoryId !== null) {
@@ -120,7 +118,7 @@ class PreviewController extends Controller
             $this->_enforceEditCategoryPermissions($category);
             $this->_populateCategoryModel($category);
 
-            return $this->_showCategory($category);
+            return $this->_showElement($category);
         }
 
         throw new BadRequestHttpException();
@@ -197,69 +195,6 @@ class PreviewController extends Controller
             }
             $category->newParentId = $parentId ?: '';
         }
-    }
-
-    /**
-     * Displays a category.
-     *
-     * @param Category $category
-     * @return Response
-     * @throws Exception
-     * @throws InvalidConfigException
-     */
-    private function _showCategory(Category $category): Response
-    {
-        $categoryGroupSiteSettings = $category->getGroup()->getSiteSettings();
-        if (!isset($categoryGroupSiteSettings[$category->siteId]) || !$categoryGroupSiteSettings[$category->siteId]->hasUrls) {
-            throw new ServerErrorHttpException('The category ' . $category->id . ' doesn’t have a URL for the site ' . $category->siteId . '.');
-        }
-        $site = Craft::$app->getSites()->getSiteById($category->siteId);
-        if (!$site) {
-            throw new ServerErrorHttpException('Invalid site ID: ' . $category->siteId);
-        }
-        Craft::$app->language = $site->language;
-        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
-        // Have this category override any freshly queried categories with the same ID/site
-        Craft::$app->getElements()->setPlaceholderElement($category);
-
-        // Get meta
-        $view = $this->getView();
-        $view->getTwig()->disableStrictVariables();
-        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-
-        $context = array_merge($view->getTwig()->getGlobals(), [
-            'seomate' => [
-                'element' => $category,
-            ],
-        ]);
-
-        // Attempt to render the category's page template, to make sure that any template overrides are added to the context
-        if ($this->_renderCategoryPageTemplate($category, $context) && is_array($this->_extraTemplateVariables)) {
-            foreach ($this->_extraTemplateVariables as $key => $value) {
-                if (\is_array($value)) {
-                    $context['seomate'][$key] = \array_merge_recursive($context['seomate'][$key] ?? [], $value);
-                } else {
-                    $context['seomate'][$key] = $value;
-                }
-            }
-        }
-
-        // Make sure the SEOMate cache is disabled
-        $context['seomate'] = array_merge_recursive($context['seomate'], [
-            'config' => [
-                'cacheEnabled' => false,
-            ],
-        ]);
-
-        // Get meta
-        $meta = SEOMate::$plugin->meta->getContextMeta($context);
-
-        // Render previews
-        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
-        return $this->renderTemplate('seomate/preview', [
-            'category' => $category,
-            'meta' => $meta,
-        ]);
     }
 
     /**
@@ -417,107 +352,85 @@ class PreviewController extends Controller
     }
 
     /**
-     * Displays an entry.
+     * Render SEO previews for an element
      *
-     * @param Entry $entry
+     * @param ElementInterface $element
      * @return Response
      * @throws Exception
      * @throws InvalidConfigException
+     * @throws ServerErrorHttpException
      */
-    private function _showEntry(Entry $entry): Response
+    private function _showElement(ElementInterface $element): Response
     {
-        $sectionSiteSettings = $entry->getSection()->getSiteSettings();
 
-        if (!isset($sectionSiteSettings[$entry->siteId]) || !$sectionSiteSettings[$entry->siteId]->hasUrls) {
-            throw new ServerErrorHttpException('The entry ' . $entry->id . ' doesn’t have a URL for the site ' . $entry->siteId . '.');
+        $elementType = null;
+        $pageTemplate = null;
+
+        if ($element instanceof Entry) {
+            /** @var Entry $element */
+            $elementType = 'entry';
+            $sectionSiteSettings = $element->getSection()->getSiteSettings()[$element->siteId] ?? null;
+            if (!$sectionSiteSettings || !$sectionSiteSettings->hasUrls) {
+                throw new ServerErrorHttpException('The entry ' . $element->id . ' doesn’t have a URL for the site ' . $element->siteId . '.');
+            }
+            $pageTemplate = $sectionSiteSettings->template;
+        } else if ($element instanceof Category) {
+            /** @var Category $element */
+            $elementType = 'category';
+            $categoryGroupSiteSettings = $element->getGroup()->getSiteSettings()[$element->siteId];
+            if (!$categoryGroupSiteSettings || !$categoryGroupSiteSettings->hasUrls) {
+                throw new ServerErrorHttpException('The category ' . $element->id . ' doesn’t have a URL for the site ' . $element->siteId . '.');
+            }
+            $pageTemplate = $categoryGroupSiteSettings->template;
+        } else {
+            throw new ServerErrorHttpException('Invalid element type ' . get_class($element));
         }
 
-        $site = Craft::$app->getSites()->getSiteById($entry->siteId);
+        $site = Craft::$app->getSites()->getSiteById($element->siteId);
         if (!$site) {
-            throw new ServerErrorHttpException('Invalid site ID: ' . $entry->siteId);
+            throw new ServerErrorHttpException('Invalid site ID: ' . $element->siteId);
         }
-
-        Craft::$app->getSites()->setCurrentSite($site);
         Craft::$app->language = $site->language;
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
-        if (!$entry->postDate) {
-            $entry->postDate = new DateTime();
-        }
-
-        // Have this entry override any freshly queried entries with the same ID/site ID
-        Craft::$app->getElements()->setPlaceholderElement($entry);
+        // Have this element override any freshly queried elements with the same ID/site
+        Craft::$app->getElements()->setPlaceholderElement($element);
 
         // Get meta
         $view = $this->getView();
         $view->getTwig()->disableStrictVariables();
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
 
-        $context = \array_merge($view->getTwig()->getGlobals(), [
-            'seomate' => [
-                'element' => $entry,
-            ],
-        ]);
+        // Create a basic context
+        $context = $view->getTwig()->getGlobals();
 
-        // Attempt to render the entry's page template, to make sure that any template overrides are added to the context
-        if ($this->_renderEntryPageTemplate($entry, $context) && is_array($this->_extraTemplateVariables)) {
-            foreach ($this->_extraTemplateVariables as $key => $value) {
-                if (\is_array($value)) {
-                    $context['seomate'][$key] = \array_merge_recursive($context['seomate'][$key] ?? [], $value);
-                } else {
-                    $context['seomate'][$key] = $value;
-                }
+        // Attempt to render the element's page template, to make sure that any template overrides are added to the context
+        if ($pageTemplate && $view->doesTemplateExist($pageTemplate)) {
+            try {
+                $success = !!$view->renderPageTemplate($pageTemplate, \array_merge($context, [
+                    $elementType => $element,
+                ]));
+            } catch (\Throwable $e) {
+                // Don't really care that this threw an error – the `$_metaTemplateContextOverrides` is a nice-to-have
+                $success = false;
+            }
+            // If the page template rendered successfully and our `seomateBeforeRenderMetaTemplate` event handler was able to pick up a `seomate` config override array from the original page template context, merge it
+            if ($success && $this->_metaTemplateContextOverrides && \is_array($this->_metaTemplateContextOverrides)) {
+                $context['seomate'] = $this->_metaTemplateContextOverrides;
             }
         }
 
-        // Make sure the SEOMate cache is disabled
-        $context['seomate'] = \array_merge_recursive($context['seomate'], [
-            'config' => [
-                'cacheEnabled' => false,
-            ],
-        ]);
+        // Make sure the SEOMate cache is disabled, and that there's an `element` in there
+        $context['seomate']['element'] = $context['seomate']['element'] ?? $element;
+        $context['seomate']['config']['cacheEnabled'] = false;
 
         // Get meta
         $meta = SEOMate::$plugin->meta->getContextMeta($context);
 
-        // Render previews
+        // Render previews, finally
         $view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate('seomate/preview', [
-            'entry' => $entry,
+            $elementType => $element,
             'meta' => $meta,
         ]);
-    }
-
-    /**
-     * @param Entry $entry
-     * @param array $context
-     * @return bool
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\RuntimeError
-     * @throws \Twig\Error\SyntaxError
-     */
-    private function _renderEntryPageTemplate(Entry $entry, array $context = []): bool
-    {
-
-        /** @var Section_SiteSettings $sectionSettings */
-        $sectionSettings = $entry->getSection()->getSiteSettings()[$entry->siteId] ?? null;
-        if (!$sectionSettings) {
-            return false;
-        }
-
-        $view = Craft::$app->getView();
-        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-
-        $template = $sectionSettings['template'] ?? null;
-        if (!$template || !$view->doesTemplateExist($template)) {
-            return false;
-        }
-
-        $view->renderPageTemplate($template, \array_merge($context, [
-            'entry' => $entry,
-        ]));
-
-        return true;
     }
 }

@@ -177,29 +177,9 @@ class SEOMate extends Plugin
      * @throws SyntaxError
      * @throws Exception
      */
-    public function onRegisterMetaHook(&$context): string
+    public function onRegisterMetaHook(array $context): string
     {
-        $craft = Craft::$app;
-        $settings = $this->getSettings();
-
-        $meta = $this->meta->getContextMeta($context);
-        $canonicalUrl = $this->urls->getCanonicalUrl($context);
-        $alternateUrls = $this->urls->getAlternateUrls($context);
-
-        $context['seomate']['meta'] = $meta;
-        $context['seomate']['canonicalUrl'] = $canonicalUrl;
-        $context['seomate']['alternateUrls'] = $alternateUrls;
-
-        if ($settings['metaTemplate'] !== '') {
-            return $craft->view->renderTemplate($settings['metaTemplate'], $context);
-        }
-
-        $oldTemplateMode = $craft->getView()->getTemplateMode();
-        $craft->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
-        $output = $craft->getView()->renderTemplate('seomate/_output/meta', $context);
-        $craft->getView()->setTemplateMode($oldTemplateMode);
-
-        return $output;
+        return $this->render->renderMetaTemplate($context);
     }
 
     /**
