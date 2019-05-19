@@ -25,7 +25,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-use vaersaagod\seomate\assets\PreviewAsset;
+use vaersaagod\seomate\assets\preview\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\services\MetaService;
