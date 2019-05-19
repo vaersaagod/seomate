@@ -6,7 +6,7 @@
  * @copyright Copyright (c) 2019 Værsågod
  */
 
-namespace vaersaagod\seomate\assets;
+namespace vaersaagod\seomate\assets\preview;
 
 use Craft;
 use craft\helpers\Json;
