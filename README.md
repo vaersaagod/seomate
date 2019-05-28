@@ -726,7 +726,7 @@ Defines the content of the sitemaps. The configuration consists of two main
 keys, `elements` and `custom`. In `elements`, you can define sitemaps that 
 will automatically query for elements in certain sections or based on custom 
 criterias, and in `custom` you add paths that are added to a separate custom 
-sitemap.
+sitemap. You may also add links to manually generated sitemaps in `additionalSitemaps`.
 
 In the example below, we get all elements from the sections with handles 
 `projects` and `news`, query for entries in four specific 
@@ -753,6 +753,10 @@ we add two custom urls.
     'custom' => [
         '/custom-1' => ['changefreq' => 'weekly', 'priority' => 1],
         '/custom-2' => ['changefreq' => 'weekly', 'priority' => 1],
+    ],
+    'additionalSitemaps' => [
+        '/sitemap-from-other-plugin.xml',
+        '/manually-generated-sitemap.xml'
     ]
 ],
 ```

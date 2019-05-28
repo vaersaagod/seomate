@@ -74,22 +74,31 @@ class SitemapHelper
 
     /**
      * Returns sitemap url for custom sitemap for including in sitemap index
-     * 
+     *
      * @return array
      */
     public static function getCustomIndexSitemapUrl(): array
     {
         $settings = SEOMate::$plugin->getSettings();
-        
+        return self::getSitemapUrl($settings->sitemapName . '-custom.xml');
+    }
+
+    /**
+     * Returns sitemap url for sitemap with the given name
+     * @param $name
+     * @return array
+     */
+    public static function getSitemapUrl($name): array
+    {
         try {
             return [
-                'loc' => UrlHelper::siteUrl($settings->sitemapName . '-custom.xml'),
+                'loc' => UrlHelper::siteUrl($name),
                 'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c')
             ];
         } catch (Exception $e) {
             Craft::error($e->getMessage(), __METHOD__);
         }
-        
+
         return [];
     }
 
