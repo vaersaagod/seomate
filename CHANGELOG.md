@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 1.0.3 - 2019-06-30
+### Added
+- Added support for using matrix field syntax in `defaultMeta` (fixes #9). 
+
 ## 1.0.2 - 2019-05-19
 ### Fixed
 - Fixed missing multi-byte handling of maxLength enforcement (Thanks @rungta). 
