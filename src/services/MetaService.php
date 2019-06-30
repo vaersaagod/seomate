@@ -12,9 +12,6 @@ use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
-use craft\elements\db\ElementQuery;
-use craft\elements\db\MatrixBlockQuery;
-use craft\elements\MatrixBlock;
 use craft\errors\SiteNotFoundException;
 
 use vaersaagod\seomate\models\Settings;
@@ -170,90 +167,15 @@ class MetaService extends Component
      * @param Element $element
      * @param string $type
      * @param array $fields
-     * @return null|string
+     * @return mixed
      */
     public function getElementPropertyDataByFields($element, $type, $fields)
     {
-        foreach ($fields as $fieldName) {
-            if ($element[$fieldName] ?? null) { // Root field
-
-                if ($type === 'text') {
-
-                    if ($value = \trim(\strip_tags((string)($element[$fieldName] ?? '')))) {
-                        return $value;
-                    }
-
-                } else if ($type === 'image') {
-                    $assets = $element[$fieldName]->all() ?? null;
-
-                    if ($assets) {
-                        foreach ($assets as $asset) {
-                            if (SEOMateHelper::isValidImageAsset($asset)) {
-                                return $asset;
-                            }
-                        }
-                    }
-                }
-
-            } else if ((bool)\strpos($fieldName, ':')) {
-
-                // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
-                // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
-                $matrixFieldPathSegments = \explode(':', $fieldName);
-                $fieldName = \array_shift($matrixFieldPathSegments) ?: null;
-                if (!$fieldName || empty($matrixFieldPathSegments) || !($element[$fieldName] ?? null) || !($element[$fieldName] instanceof MatrixBlockQuery)) {
-                    continue;
-                }
-
-                // Nice one, there's actually a Matrix field for that attribute.
-                // Now get the block type and field handles
-                $blockPathSegments = \explode('.', $matrixFieldPathSegments[0]);
-                if (!($blockTypeHandle = $blockPathSegments[0] ?? null) || !($blockFieldHandle = $blockPathSegments[1] ?? null)) {
-                    continue;
-                }
-
-                $blockQuery = clone $element[$fieldName];
-
-                if ($type === 'text') {
-
-                    $blocks = $blockQuery->all();
-
-                    foreach ($blocks as $block) {
-                        if ($block->type->handle !== $blockTypeHandle) {
-                            continue;
-                        }
-                        $value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')));
-                        if ($value) {
-                            return $value;
-                        }
-                    }
-
-                } else if ($type === 'image') {
-
-                    if (Craft::$app->getRequest()->getIsLivePreview()) {
-                        $blocks = $blockQuery->all();
-                    } else {
-                        $blocks = $blockQuery->with(["{$blockTypeHandle}:{$blockFieldHandle}"])->all();
-                    }
-
-                    /* @var MatrixBlock $block */
-                    foreach ($blocks as $block) {
-                        if ($block->type->handle !== $blockTypeHandle || !($assets = $block[$blockFieldHandle] ?? null)) {
-                            continue;
-                        }
-                        if ($assets instanceof ElementQuery) {
-                            $assets = $assets->all();
-                        }
-                        if (!$assets || !\is_array($assets)) {
-                            continue;
-                        }
-                        foreach ($assets as $asset) {
-                            if (SEOMateHelper::isValidImageAsset($asset)) {
-                                return $asset;
-                            }
-                        }
-                    }
-                }
+        foreach ($fields as $fieldHandle) {
+            $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($element, $fieldHandle, $type);
+            
+            if ($fieldValue !== null) {
+                return $fieldValue;
             }
         }
 
@@ -271,26 +193,13 @@ class MetaService extends Component
     public function getContextPropertyDataByFields($context, $type, $fields)
     {
         foreach ($fields as $fieldName) {
-            $field = SEOMateHelper::getTargetFieldByHandleFromScope($context, $fieldName);
-
-            if ($type === 'text') {
-                if ($field !== null && $field !== '') {
-                    return trim(strip_tags((string)$field));
-                }
-            }
-
-            if ($type === 'image') {
-                if ($field !== null) {
-                    $assets = $field->all() ?? null;
-
-                    if ($assets) {
-                        foreach ($assets as $asset) {
-                            if (SEOMateHelper::isValidImageAsset($asset)) {
-                                return $asset;
-                            }
-                        }
-                    }
-                }
+            // Get the deepest scope possible, and the remaining field handle.
+            list($primaryScope, $fieldHandle) = SEOMateHelper::reduceScopeAndHandle($context, $fieldName);
+            
+            $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($primaryScope, $fieldHandle, $type);
+            
+            if ($fieldValue !== null) {
+                return $fieldValue;
             }
         }
 
