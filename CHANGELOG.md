@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 1.0.4 - 2019-07-01
+### Fixes
+- Fixes an issue where SEO Preview settings could override native Live Preview settings (fixes #7). 
+
 ## 1.0.3 - 2019-06-30
 ### Added
 - Added support for using matrix field syntax in `defaultMeta` (fixes #9). 
