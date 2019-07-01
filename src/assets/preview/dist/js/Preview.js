@@ -17,8 +17,7 @@
             if (!$lpBtn.length) {
                 return;
             }
-            this.$toggleBtn = $lpBtn.clone();
-            this.$toggleBtn.text(Craft.t('seomate', 'SEO Preview')).removeClass('livepreviewbtn').addClass('seopreviewbtn');
+            this.$toggleBtn = $('<div class="btn seopreviewbtn">' + Craft.t('seomate', 'SEO Preview') + '</div>');
             this.$toggleBtn.on('click', $.proxy(this.onPreviewBtnClick, this));
             $lpBtn.after(this.$toggleBtn);
         },
@@ -43,7 +42,7 @@
             }).join(',');
 
             this.preview = new Craft.LivePreview();
-            this.preview.init($.extend(Craft.livePreview.settings, {
+            this.preview.init($.extend({}, Craft.livePreview.settings, {
                 fields: fields,
                 previewAction: Craft.SEOMatePlugin.previewAction
             }));
