@@ -8,19 +8,20 @@
 
 namespace vaersaagod\seomate\controllers;
 
-use Craft;
-use craft\models\EntryDraft;
-use DateTime;
+use vaersaagod\seomate\SEOMate;
 
+use Craft;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
+use craft\models\EntryDraft;
 use craft\models\Section;
 use craft\web\Controller;
 use craft\web\Response;
 use craft\web\View;
 
-use vaersaagod\seomate\SEOMate;
+use craft\commerce\elements\Product;
+use craft\commerce\helpers\Product as ProductHelper;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -28,6 +29,8 @@ use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
+
+use DateTime;
 
 /**
  * Preview Controller
@@ -57,6 +60,7 @@ class PreviewController extends Controller
         $this->requirePostRequest();
         $entryId = Craft::$app->getRequest()->getParam('entryId');
         $categoryId = Craft::$app->getRequest()->getParam('categoryId');
+        $productId = Craft::$app->getRequest()->getParam('productId');
 
         // What kind of element is it?
         if ($entryId !== null) {
@@ -86,6 +90,13 @@ class PreviewController extends Controller
             $this->_populateCategoryModel($category);
 
             return $this->_showCategory($category);
+        }
+
+        if ($productId !== null) {
+            $product = ProductHelper::populateProductFromPost();
+            $this->_enforceProductPermissions($product);
+
+            return $this->_showProduct($product);
         }
 
         throw new BadRequestHttpException();
@@ -378,6 +389,63 @@ class PreviewController extends Controller
         $view->setTemplateMode(View::TEMPLATE_MODE_CP);
         return $this->renderTemplate('seomate/preview', [
             'entry' => $entry,
+            'meta' => $meta,
+        ]);
+    }
+
+    /**
+     * @param Product $product
+     * @throws HttpException
+     */
+    private function _enforceProductPermissions(Product $product)
+    {
+        $this->requirePermission('commerce-manageProductType:' . $product->getType()->uid);
+    }
+
+    /**
+     * @param Product $product
+     * @return Response
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws ServerErrorHttpException
+     */
+    private function _showProduct(Product $product): Response
+    {
+
+        $productType = $product->getType();
+        if (!$productType) {
+            throw new ServerErrorHttpException('Product type not found.');
+        }
+        $siteSettings = $productType->getSiteSettings();
+        if (!isset($siteSettings[$product->siteId]) || !$siteSettings[$product->siteId]->hasUrls) {
+            throw new ServerErrorHttpException('The product ' . $product->id . ' doesn\'t have a URL for the site ' . $product->siteId . '.');
+        }
+        $site = Craft::$app->getSites()->getSiteById($product->siteId);
+        if (!$site) {
+            throw new ServerErrorHttpException('Invalid site ID: ' . $product->siteId);
+        }
+        Craft::$app->language = $site->language;
+        // Have this product override any freshly queried products with the same ID/site
+        Craft::$app->getElements()->setPlaceholderElement($product);
+
+        // Get meta
+        $view = $this->getView();
+        $view->getTwig()->disableStrictVariables();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+            'seomate' => [
+                'element' => $product,
+                'config' => [
+                    'cacheEnabled' => false,
+                ],
+            ],
+        ]));
+
+        // Render previews
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        return $this->renderTemplate('seomate/preview', [
+            'product' => $product,
             'meta' => $meta,
         ]);
     }
