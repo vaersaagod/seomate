@@ -133,7 +133,7 @@ class UrlsService extends Component
                 if ($fallbackSite === null || $fallbackSite->id !== $site->id) {
                     $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
 
-                    if ($url !== false) { // if element was not available in the given site, this happens
+                    if ($url !== false && $url !== null) { // if element was not available in the given site, this happens
                         $url = $this->prepAlternateUrlForSite($url, $site);
 
                         if ($url && $url !== '') {
@@ -160,7 +160,7 @@ class UrlsService extends Component
     private function prepAlternateUrlForSite($uri, $site): string
     {
         $url = ($uri === '__home__') ? '' : $uri;
-
+        
         if (!UrlHelper::isAbsoluteUrl($url)) {
             try {
                 $url = UrlHelper::siteUrl($url, null, null, $site->id);
