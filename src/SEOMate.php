@@ -155,6 +155,7 @@ class SEOMate extends Plugin
         $view = Craft::$app->getView();
         $view->hook('cp.entries.edit', [$this, 'registerPreviewAssetsBundle']);
         $view->hook('cp.categories.edit', [$this, 'registerPreviewAssetsBundle']);
+        $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
     }
 
     /**
@@ -228,7 +229,7 @@ class SEOMate extends Plugin
      */
     public function registerPreviewAssetsBundle(array $context = [])
     {
-        $element = $context['entry'] ?? $context['category'] ?? null;
+        $element = $context['entry'] ?? $context['category'] ?? $context['product'] ?? null;
         if (!$element) {
             return;
         }

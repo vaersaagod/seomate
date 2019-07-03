@@ -84,7 +84,15 @@ JS;
         }
 
         $segments = Craft::$app->getRequest()->getSegments();
-        $currentSourceHandle = \in_array($segments[0] ?? null, ['entries', 'categories']) ? $segments[1] ?? null : null;
+        if (empty($segments)) {
+            return false;
+        }
+
+        if ($segments[0] === 'commerce') {
+            \array_shift($segments);
+        }
+
+        $currentSourceHandle = \in_array($segments[0], ['entries', 'categories', 'products']) ? $segments[1] ?? null : null;
         if (!$currentSourceHandle) {
             return false;
         }
