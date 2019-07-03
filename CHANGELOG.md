@@ -1,7 +1,18 @@
 # SEOMate Changelog
 
+## 1.0.5 - 2019-07-03
+### Added
+- Added SEO Preview for Craft Commerce Products
+
+### Changed
+- Changed the behaviour of the output meta template, empty tags are no longer being rendered.
+
+### Fixed
+- Fixes an issue where elements without urls in some sites would create an error when getting alternate url (fixes #10)
+- Fixes an issue where the "SEO Preview" button was missing for Entries in Craft 3.2.x (fixes #12)
+
 ## 1.0.4 - 2019-07-01
-### Fixes
+### Fixed
 - Fixes an issue where SEO Preview settings could override native Live Preview settings (fixes #7). 
 
 ## 1.0.3 - 2019-06-30
