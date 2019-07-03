@@ -13,7 +13,7 @@
 
         init: function () {
             // Create preview btn
-            var $lpBtn = $('#header .livepreviewbtn');
+            var $lpBtn = $('#header .livepreviewbtn, #header #preview-btn');
             if (!$lpBtn.length) {
                 return;
             }
