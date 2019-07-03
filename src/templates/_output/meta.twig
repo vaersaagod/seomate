@@ -10,7 +10,9 @@
 {% endif %}
 
 {% for key, data in meta %}
-    {{- renderMetaTag(key, data) }}
+    {% if data != '' %}
+        {{- renderMetaTag(key, data) }}
+    {% endif %}
 {% endfor %}
 
 {% set alternateUrls = seomate.alternateUrls ?? null %}
