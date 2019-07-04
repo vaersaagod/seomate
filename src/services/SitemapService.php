@@ -53,6 +53,7 @@ class SitemapService extends Component
         if (!empty($config)) {
             $elements = $config['elements'] ?? null;
             $custom = $config['custom'] ?? null;
+            $additionalSitemaps = $config['additionalSitemaps'] ?? null;
 
             if ($elements && \is_array($elements) && \count($elements) > 0) {
                 foreach ($elements as $key => $definition) {
@@ -64,6 +65,13 @@ class SitemapService extends Component
             if ($custom && \is_array($custom) && \count($custom) > 0) {
                 $customUrl = SitemapHelper::getCustomIndexSitemapUrl();
                 SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
+            }
+
+            if ($additionalSitemaps && \is_array($additionalSitemaps) && \count($additionalSitemaps) > 0) {
+                foreach ($additionalSitemaps as $sitemap) {
+                    $addtnlSitemap = SitemapHelper::getSitemapUrl($sitemap);
+                    SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$addtnlSitemap]);
+                }
             }
             
             $data = $document->saveXML();
