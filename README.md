@@ -725,13 +725,19 @@ sitemap is being generated.
 Defines the content of the sitemaps. The configuration consists of two main 
 keys, `elements` and `custom`. In `elements`, you can define sitemaps that 
 will automatically query for elements in certain sections or based on custom 
-criterias, and in `custom` you add paths that are added to a separate custom 
-sitemap. You may also add links to manually generated sitemaps in `additionalSitemaps`.
+criterias. 
+
+In `custom` you add paths that are added to a separate custom sitemap, and you 
+may also add links to manually generated sitemaps in `additionalSitemaps`. Both 
+of these settings can be a flat array of custom urls or sitemap paths that you 
+want to add, or a nested array where the keys are site handles, to specify 
+custom urls/sitemaps that are site specific, or `'*'`, for additional ones. 
+See the example below. 
 
 In the example below, we get all elements from the sections with handles 
 `projects` and `news`, query for entries in four specific 
-sections and all categories in group `newsCategories`. In addition to these¨, 
-we add two custom urls.    
+sections and all categories in group `newsCategories`. In addition to these, 
+we add two custom urls, and two additional sitemaps.
 
 ```
 'sitemapConfig' => [
@@ -761,8 +767,41 @@ we add two custom urls.
 ],
 ```
 
-Using the expanded criteria syntax, you can query for whichever type of element, 
-as long as they are registered as a valid element type in Craft.
+Example with site specific custom urls and additional sitemaps:
+
+```
+'sitemapConfig' => [
+    /* ... */ 
+    
+    'custom' => [
+        '*' => [
+            '/custom-global-1' => ['changefreq' => 'weekly', 'priority' => 1],
+            '/custom-global-2' => ['changefreq' => 'weekly', 'priority' => 1],
+        ],
+        'english' => [
+            '/custom-english' => ['changefreq' => 'weekly', 'priority' => 1],
+        ],
+        'norwegian' => [
+            '/custom-norwegian' => ['changefreq' => 'weekly', 'priority' => 1],
+        ]
+    ],
+    'additionalSitemaps' => [
+        '*' => [
+            '/sitemap-from-other-plugin.xml',
+            '/sitemap-from-another-plugin.xml',
+        ],
+        'english' => [
+            '/manually-generated-english-sitemap.xml',
+        ],
+        'norwegian' => [
+            '/manually-generated-norwegian-sitemap.xml',
+        ]
+    ]
+],
+``` 
+
+**Using the expanded criteria syntax, you can query for whichever type of element, 
+as long as they are registered as a valid element type in Craft.**
 
 The main sitemap index will be available on the root of your site, and named
 according to the `sitemapName` config setting (`sitemap.xml` by default). The actual

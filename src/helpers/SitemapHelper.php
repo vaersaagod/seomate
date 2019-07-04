@@ -200,4 +200,28 @@ class SitemapHelper
     {
         return $query->orderBy('elements.dateUpdated DESC')->one();
     }
+
+    /**
+     * Checks if the supplied config array is a multi-site config. Returns true if
+     * any of the keys are '*' or matches a site handle.
+     * 
+     * @param $array
+     * @return bool
+     */
+    public static function isMultisiteConfig($array): bool 
+    {
+        if (isset($array['*'])) {
+            return true;
+        }
+        
+        $sites = Craft::$app->getSites()->getAllSites();
+        
+        foreach ($sites as $site) {
+            if (isset($array[$site->handle])) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

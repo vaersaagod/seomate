@@ -10,6 +10,7 @@ namespace vaersaagod\seomate\services;
 
 use Craft;
 use craft\base\Component;
+use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 
 use vaersaagod\seomate\helpers\CacheHelper;
@@ -64,16 +65,51 @@ class SitemapService extends Component
 
             if ($custom && \is_array($custom) && \count($custom) > 0) {
                 $customUrl = SitemapHelper::getCustomIndexSitemapUrl();
-                SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
+
+                if (SitemapHelper::isMultisiteConfig($custom)) {
+                    try {
+                        $currentSiteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
+
+                        if (isset($custom['*']) || isset($custom[$currentSiteHandle])) {
+                            SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
+                        }
+                    } catch (SiteNotFoundException $e) {
+                        Craft::error($e->getMessage(), __METHOD__);
+                    }
+                } else {
+                    SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
+                }
             }
 
             if ($additionalSitemaps && \is_array($additionalSitemaps) && \count($additionalSitemaps) > 0) {
-                foreach ($additionalSitemaps as $sitemap) {
+                $additionalUrls = [];
+                if (SitemapHelper::isMultisiteConfig($additionalSitemaps)) {
+                    
+                    if (isset($additionalSitemaps['*'])) {
+                        $additionalUrls = array_merge($additionalUrls, $additionalSitemaps['*']);
+                    }
+                    
+                    try {
+                        $currentSiteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
+
+                        if (isset($additionalSitemaps[$currentSiteHandle])) {
+                            $additionalUrls = array_merge($additionalUrls, $additionalSitemaps[$currentSiteHandle]);
+                        }
+                    } catch (SiteNotFoundException $e) {
+                        Craft::error($e->getMessage(), __METHOD__);
+                    }
+                    
+                    
+                } else {
+                    $additionalUrls = array_merge($additionalUrls, $additionalSitemaps);
+                }
+                
+                foreach ($additionalUrls as $sitemap) {
                     $addtnlSitemap = SitemapHelper::getSitemapUrl($sitemap);
                     SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$addtnlSitemap]);
                 }
             }
-            
+
             $data = $document->saveXML();
             CacheHelper::setCacheForSitemapIndex($siteId, $data);
         }
@@ -102,7 +138,7 @@ class SitemapService extends Component
         $topNode->appendChild($comment);
 
         $config = $settings->sitemapConfig;
-        
+
         if (!empty($config)) {
             $definition = $config['elements'][$handle] ?? null;
 
@@ -120,7 +156,7 @@ class SitemapService extends Component
 
             CacheHelper::setCacheForElementSitemap($siteId, $data, $handle, $definition, $page);
         }
-        
+
         return $data ?? $document->saveXML();
     }
 
@@ -143,8 +179,26 @@ class SitemapService extends Component
             $customUrls = $config['custom'] ?? null;
 
             if ($customUrls && count($customUrls) > 0) {
-                $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls);
-                SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
+                if (SitemapHelper::isMultisiteConfig($customUrls)) {
+                    try {
+                        $currentSiteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
+
+                        if (isset($customUrls[$currentSiteHandle])) {
+                            $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls[$currentSiteHandle]);
+                            SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
+                        }
+
+                        if (isset($customUrls['*'])) {
+                            $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls['*']);
+                            SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
+                        }
+                    } catch (SiteNotFoundException $e) {
+                        Craft::error($e->getMessage(), __METHOD__);
+                    }
+                } else {
+                    $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls);
+                    SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
+                }
             }
         }
 
