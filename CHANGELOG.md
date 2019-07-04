@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.0.7 - 2019-07-04
+### Added
+- Added support for configuring custom sitemaps urls and additional sitemap urls on a per site basis.
+- Added support for adding additional sitemaps, generated outside of SEOMate, to the main sitemap index (Thanks @jrm98). 
+
 ## 1.0.6 - 2019-07-04
 ### Fixed
 - Fixes an issue where the "Close SEO Preview" button label could be applied to buttons inside the field panel in SEO Preview (fixes #13)
