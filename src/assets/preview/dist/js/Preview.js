@@ -48,7 +48,11 @@
             }));
 
             this.preview.on('enter', $.proxy(function () {
-                this.preview.$editor.find('.btn:first-child').text(Craft.t('seomate', 'Close SEO Preview'));
+                var closeBtn = this.preview.$editorContainer.find('header .btn').get(0);
+                if (!closeBtn) {
+                    return;
+                }
+                $(closeBtn).text(Craft.t('seomate', 'Close SEO Preview'));
             }, this));
 
             this.preview.toggle();
