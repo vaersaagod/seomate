@@ -11,6 +11,7 @@ namespace vaersaagod\seomate\controllers;
 use vaersaagod\seomate\SEOMate;
 
 use Craft;
+use craft\base\Element;
 use craft\elements\Category;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
@@ -51,7 +52,7 @@ class PreviewController extends Controller
 
     /**
      * @param string|int $elementId
-     * @param null $siteId
+     * @param string|int|null $siteId
      * @return Response
      * @throws Exception
      * @throws InvalidConfigException
@@ -61,7 +62,7 @@ class PreviewController extends Controller
     {
 
         /** @var Element $element */
-        $element = Craft::$app->getElements()->getElementById($elementId, null, $siteId);
+        $element = Craft::$app->getElements()->getElementById((int)$elementId, null, $siteId);
         if (!$element || !$element->uri) {
             return $this->asRaw('');
         }
@@ -71,8 +72,10 @@ class PreviewController extends Controller
             throw new ServerErrorHttpException('Invalid site ID: ' . $element->siteId);
         }
 
-        Craft::$app->language = $site->language;
-        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
+        if ($site->language) {
+            Craft::$app->language = $site->language;
+            Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
+        }
         // Have this element override any freshly queried elements with the same ID/site
         Craft::$app->getElements()->setPlaceholderElement($element);
 
