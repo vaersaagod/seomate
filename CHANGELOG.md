@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased
+## 1.1.0 - 2019-08-10
 ### Added
 - Added new `previewLabel` config setting
 - Added SEO Preview as a Preview Target for Craft 3.2+. Fixes #16.
