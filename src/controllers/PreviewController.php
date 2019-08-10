@@ -45,6 +45,60 @@ class PreviewController extends Controller
 {
 
     /**
+     * @inheritdoc
+     */
+    protected $allowAnonymous = ['preview'];
+
+    /**
+     * @param string|int $elementId
+     * @param null $siteId
+     * @return Response
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws ServerErrorHttpException
+     */
+    public function actionPreview($elementId, $siteId = null): Response
+    {
+
+        /** @var Element $element */
+        $element = Craft::$app->getElements()->getElementById($elementId, null, $siteId);
+        if (!$element || !$element->uri) {
+            return $this->asRaw('');
+        }
+
+        $site = Craft::$app->getSites()->getSiteById($element->siteId);
+        if (!$site) {
+            throw new ServerErrorHttpException('Invalid site ID: ' . $element->siteId);
+        }
+
+        Craft::$app->language = $site->language;
+        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
+        // Have this element override any freshly queried elements with the same ID/site
+        Craft::$app->getElements()->setPlaceholderElement($element);
+
+        // Get meta
+        $view = $this->getView();
+        $view->getTwig()->disableStrictVariables();
+        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+
+        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
+            'seomate' => [
+                'element' => $element,
+                'config' => [
+                    'cacheEnabled' => false,
+                ],
+            ],
+        ]));
+
+        // Render previews
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        return $this->renderTemplate('seomate/preview', [
+            'element' => $element,
+            'meta' => $meta,
+        ]);
+    }
+
+    /**
      * Previews an Entry or a Category
      *
      * @return Response
@@ -58,6 +112,7 @@ class PreviewController extends Controller
     {
 
         $this->requirePostRequest();
+
         $entryId = Craft::$app->getRequest()->getParam('entryId');
         $categoryId = Craft::$app->getRequest()->getParam('categoryId');
         $productId = Craft::$app->getRequest()->getParam('productId');

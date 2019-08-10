@@ -26,6 +26,7 @@ class Settings extends Model
     public $cacheEnabled = true;
     public $cacheDuration = 3600;
     public $previewEnabled = true;
+    public $previewLabel = null;
     public $siteName = null;
     public $metaTemplate = '';
     public $includeSitenameInTitle = true;

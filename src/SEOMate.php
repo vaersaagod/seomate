@@ -12,11 +12,13 @@ use Craft;
 use craft\base\Element;
 use craft\base\Plugin;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
-use craft\events\RegisterUrlRulesEvent;
 use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
+use craft\events\RegisterPreviewTargetsEvent;
+use craft\events\RegisterUrlRulesEvent;
 use craft\services\Elements;
 use craft\utilities\ClearCaches;
 use craft\web\View;
@@ -141,21 +143,70 @@ class SEOMate extends Plugin
             }
         );
 
-
-        // Add routes to sitemap if enabled
         if ($settings->sitemapEnabled) {
+            // Register sitemap urls
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-                [$this, 'onRegisterSiteUrlRules']
+                function (RegisterUrlRulesEvent $event) use ($settings) {
+                    $sitemapName = $settings->sitemapName;
+
+                    $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
+                    $event->rules[$sitemapName . '-<handle:\w*>-<page:\d*>.xml'] = 'seomate/sitemap/element';
+                    $event->rules[$sitemapName . '-custom.xml'] = 'seomate/sitemap/custom';
+                }
             );
         }
 
-        // Register preview asset bundle
-        $view = Craft::$app->getView();
-        $view->hook('cp.entries.edit', [$this, 'registerPreviewAssetsBundle']);
-        $view->hook('cp.categories.edit', [$this, 'registerPreviewAssetsBundle']);
-        $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
+        if ($settings->previewEnabled) {
+
+            // Register preview asset bundle for legacy Live Preview (Categories and Craft Commerce)
+            $view = Craft::$app->getView();
+            $view->hook('cp.categories.edit', [$this, 'registerPreviewAssetsBundle']);
+            $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
+
+            // Register Preview Target for Craft 3.2.x
+            $craft32 = \version_compare(Craft::$app->getVersion(), '3.2', '>=');
+            if ($craft32) {
+
+                /** @var Settings $settings */
+                $settings = $this->getSettings();
+
+                // Register preview target
+                Event::on(
+                    Element::class,
+                    Element::EVENT_REGISTER_PREVIEW_TARGETS,
+                    function (RegisterPreviewTargetsEvent $event) use ($settings) {
+                        /** @var Element $element */
+                        $element = $event->sender;
+                        $event->previewTargets[] = [
+                            'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
+                            'url' => UrlHelper::siteUrl('seomate/preview', [
+                                'elementId' => $element->id,
+                                'siteId' => $element->siteId,
+                            ]),
+                        ];
+                    }
+                );
+
+                // Register preview site route
+                $request = Craft::$app->getRequest();
+                if ($request->getIsSiteRequest() && !$request->getIsConsoleRequest()) {
+                    Event::on(
+                        UrlManager::class,
+                        UrlManager::EVENT_REGISTER_SITE_URL_RULES,
+                        function (RegisterUrlRulesEvent $event) {
+                            $event->rules['seomate/preview'] = 'seomate/preview/preview';
+                        }
+                    );
+                }
+
+            } else {
+
+                // Fall back to legacy Live Preview for older installs
+                $view->hook('cp.entries.edit', [$this, 'registerPreviewAssetsBundle']);
+            }
+        }
     }
 
     /**
@@ -204,24 +255,6 @@ class SEOMate extends Plugin
     }
 
     /**
-     * Registers site URL rules
-     * 
-     * @param RegisterUrlRulesEvent $event
-     */
-    public function onRegisterSiteUrlRules(RegisterUrlRulesEvent $event)
-    {
-        $settings = $this->getSettings();
-
-        if ($settings->sitemapEnabled) {
-            $sitemapName = $settings->sitemapName;
-
-            $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
-            $event->rules[$sitemapName . '-<handle:\w*>-<page:\d*>.xml'] = 'seomate/sitemap/element';
-            $event->rules[$sitemapName . '-custom.xml'] = 'seomate/sitemap/custom';
-        }
-    }
-
-    /**
      * Registers assets bundle for preview
      *
      * @param array $context
@@ -234,6 +267,7 @@ class SEOMate extends Plugin
             return;
         }
         // Get fields to include
+        /** @var Settings $settings */
         $settings = $this->getSettings();
         $profile = SEOMateHelper::getElementProfile($element, $settings) ?? $settings->defaultProfile ?? null;
         $fieldProfile = Json::encode($settings->fieldProfiles[$profile] ?? []);

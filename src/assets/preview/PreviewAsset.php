@@ -49,7 +49,9 @@ class PreviewAsset extends AssetBundle
         parent::registerAssetFiles($view);
 
         if ($view instanceof View) {
-            $previewEnabled = SEOMate::$plugin->getSettings()->previewEnabled;
+
+            $settings = SEOMate::$plugin->getSettings();
+            $previewEnabled = $settings->previewEnabled;
 
             if (!$this->shouldPreview($previewEnabled)) {
                 return;
@@ -62,6 +64,7 @@ class PreviewAsset extends AssetBundle
 
             $config = [
                 'previewAction' => $previewAction,
+                'previewLabel' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
             ];
             $configJson = Json::encode($config, JSON_UNESCAPED_UNICODE);
             $js = <<<JS

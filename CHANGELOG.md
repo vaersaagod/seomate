@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## Unreleased
+### Added
+- Added new `previewLabel` config setting
+- Added SEO Preview as a Preview Target for Craft 3.2+. Fixes #16.
+
 ## 1.0.7 - 2019-07-04
 ### Added
 - Added support for configuring custom sitemaps urls and additional sitemap urls on a per site basis.

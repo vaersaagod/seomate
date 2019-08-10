@@ -13,11 +13,11 @@
 
         init: function () {
             // Create preview btn
-            var $lpBtn = $('#header .livepreviewbtn, #header #preview-btn');
+            var $lpBtn = $('#header .livepreviewbtn');
             if (!$lpBtn.length) {
                 return;
             }
-            this.$toggleBtn = $('<div class="btn seopreviewbtn">' + Craft.t('seomate', 'SEO Preview') + '</div>');
+            this.$toggleBtn = $('<div class="btn seopreviewbtn">' + (Craft.SEOMatePlugin.previewLabel || Craft.t('seomate', 'SEO Preview')) + '</div>');
             this.$toggleBtn.on('click', $.proxy(this.onPreviewBtnClick, this));
             $lpBtn.after(this.$toggleBtn);
         },
