@@ -179,6 +179,9 @@ class SEOMate extends Plugin
                     function (RegisterPreviewTargetsEvent $event) use ($settings) {
                         /** @var Element $element */
                         $element = $event->sender;
+                        if (!$element->getUrl()) {
+                            return false;
+                        }
                         $event->previewTargets[] = [
                             'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
                             'url' => UrlHelper::siteUrl('seomate/preview', [
