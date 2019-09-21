@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.1 - 2019-09-21
+### Fixed
+- Fixes indentation and whitespace issues in default meta template. Fixes #22.
+- The "SEO Preview" Preview Target is no longer available when editing entries without URLs
+
 ## 1.1.0 - 2019-08-10
 ### Added
 - Added new `previewLabel` config setting
