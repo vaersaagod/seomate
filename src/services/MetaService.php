@@ -279,9 +279,14 @@ class MetaService extends Component
         }
 
         $imagerPlugin = Craft::$app->plugins->getPlugin('imager');
+        
+        if (!$imagerPlugin) {
+            $imagerPlugin = Craft::$app->plugins->getPlugin('imager-x');
+        }
+        
         $transformedUrl = '';
 
-        if ($settings->useImagerIfInstalled && $imagerPlugin && $imagerPlugin instanceof \aelvan\imager\Imager) {
+        if ($settings->useImagerIfInstalled && $imagerPlugin && ($imagerPlugin instanceof \aelvan\imager\Imager || $imagerPlugin instanceof \spacecatninja\imagerx\ImagerX)) {
             if (!\is_string($asset) && !isset($transform['position']) && isset($asset['focalPoint'])) {
                 $transform['position'] = $asset['focalPoint'];
             }
@@ -292,7 +297,7 @@ class MetaService extends Component
                 if ($transformedAsset) {
                     $transformedUrl = $transformedAsset->getUrl();
                 }
-            } catch (\aelvan\imager\exceptions\ImagerException $e) {
+            } catch (\Throwable $e) {
                 Craft::error($e->getMessage(), __METHOD__);
             }
         } else {
