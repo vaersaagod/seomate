@@ -832,6 +832,36 @@ Example/default value:
 
 ## Template variables
 
+### craft.seomate.getMeta([config=[]])
+Returns an object with the same meta data that is passed to the meta data 
+template. 
+
+```
+{% set metaData = craft.seomate.getMeta() %}
+Meta Title: {{ metaData.meta.title }} 
+Canonical URL: {{ metaData.canonicalUrl }} 
+```
+
+You can optionally pass in a config object the same way you would in your template 
+overrides, to customize the data, or use a custom element as the source:
+
+```
+{% set metaData = craft.seomate.getMeta({
+    profile: 'specialProfile',
+    element: craft.entries.section('newsListing').one(),
+    canonicalUrl: someOtherUrl,
+    
+    config: {
+        includeSitenameInTitle: false
+    },
+    
+    meta: {
+        title: 'Custom title',
+        'twitter:author': '@someauthor'     
+    },
+}) %}
+```
+
 ### craft.schema
 You can access all the different schemas in the [`spatie/schema-org`](https://github.com/spatie/schema-org) 
 package through this variable endpoint. If you're using PHPStorm and the Symfony plugin, 
