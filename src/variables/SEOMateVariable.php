@@ -45,4 +45,23 @@ class SEOMateVariable
         $breadcrumbList = SEOMate::$plugin->schema->breadcrumb($breadcrumbArray);
         return Template::raw($breadcrumbList->toScript());
     }
+
+    /**
+     * @param array $config
+     * @return array
+     */
+    public function getMeta($config = [])
+    {
+        $context = ['seomate' => $config];
+        
+        $meta = SEOMate::$plugin->meta->getContextMeta($context);
+        $canonicalUrl = SEOMate::$plugin->urls->getCanonicalUrl($context);
+        $alternateUrls = SEOMate::$plugin->urls->getAlternateUrls($context);
+
+        return [
+            'meta' => $meta,
+            'canonicalUrl' => $canonicalUrl,
+            'alternateUrls' => $alternateUrls,
+        ];
+    }
 }
