@@ -52,7 +52,7 @@ class SEOMateVariable
      */
     public function getMeta($config = [])
     {
-        $context = ['seomate' => $config];
+        $context = array_merge(['seomate' => $config], \Craft::$app->getView()->getTwig()->getGlobals());
         
         $meta = SEOMate::$plugin->meta->getContextMeta($context);
         $canonicalUrl = SEOMate::$plugin->urls->getCanonicalUrl($context);
