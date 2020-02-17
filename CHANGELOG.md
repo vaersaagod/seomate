@@ -1,5 +1,13 @@
 # SEOMate Changelog
 
+## 1.1.2 - 2020-02-17
+### Added
+- Added `craft.seomate.getMeta()` template variable that returns meta data based on the current page. Takes an seomate config object for additional configuration. Fixes #31.
+- Added support for Imager X.
+
+### Fixed
+- Fixed an issue where seomate would throw an exception if a value in `defaultMeta` did not exist in the context. Fixes #24.
+
 ## 1.1.1 - 2019-09-21
 ### Fixed
 - Fixes indentation and whitespace issues in default meta template. Fixes #22.
