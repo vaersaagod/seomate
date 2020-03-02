@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.3 - 2020-03-02
+
+### Fixed
+- Fixed a caching issue with native image transforms and `generateTransformsBeforePageLoad`. Fixes #35.
+
 ## 1.1.2 - 2020-02-17
 ### Added
 - Added `craft.seomate.getMeta()` template variable that returns meta data based on the current page. Takes an seomate config object for additional configuration. Fixes #31.
