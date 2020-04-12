@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.4 - 2020-04-12
+
+### Fixed
+- Fixed an issue with encoding of meta attributes. Fixes #39.
+
 ## 1.1.3 - 2020-03-02
 
 ### Fixed
