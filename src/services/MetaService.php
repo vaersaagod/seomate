@@ -90,6 +90,9 @@ class MetaService extends Component
         if ($settings->applyRestrictions) {
             $meta = $this->applyMetaRestrictions($meta, $settings);
         }
+        
+        // Filter and encode
+        $meta = $this->applyMetaFilters($meta, $settings);
 
         // Add sitename if desirable
         if ($settings->includeSitenameInTitle) {
@@ -382,6 +385,28 @@ class MetaService extends Component
 
         return $meta;
     }
+    
+    /**
+     * Apply any filters and encoding
+     * 
+     * @param array $meta
+     * @param null $settings
+     * @return mixed
+     */
+    public function applyMetaFilters($meta, $settings = null)
+    {
+        if ($settings === null) {
+            $settings = SEOMate::$plugin->getSettings();
+        }
+        
+        foreach ($meta as $key => $value) {
+            if (is_string($value) && strpos($value, 'http') !== 0 && strpos($value, '//') !== 0) {
+                $meta[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
+            }
+        }
+
+        return $meta;
+    }
 
     /**
      * Adds sitename to meta properties that should have it, as defined
@@ -467,7 +492,7 @@ class MetaService extends Component
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
         }
-
+        
         foreach ($settings->additionalMeta as $key => $value) {
             if (\is_callable($value)) {
                 $r = $value($context);
