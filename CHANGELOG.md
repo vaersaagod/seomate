@@ -1,5 +1,13 @@
 # SEOMate Changelog
 
+## Unreleased
+
+### Fixed
+- Fixes an issue where SEOMate could neglect to include pagination info in canonical URLs
+
+### Changed  
+- SEOMate now requires Craft 3.3.6 or later  
+
 ## 1.1.4 - 2020-04-12
 
 ### Fixed

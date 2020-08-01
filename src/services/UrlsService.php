@@ -38,31 +38,51 @@ class UrlsService extends Component
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
 
-        $overrideObject = $context['seomate'] ?? null;
+        $overrideObject = $context['seomate'] ?? [];
 
-        if ($overrideObject && isset($overrideObject['config'])) {
+        if (isset($overrideObject['config'])) {
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
 
-        if ($overrideObject && isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
+        if (isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
             return $overrideObject['canonicalUrl'];
         }
 
         /** @var Element $element */
-        if ($overrideObject && isset($overrideObject['element'])) {
+        if (isset($overrideObject['element'])) {
             $element = $overrideObject['element'];
         } else {
             $element = $craft->urlManager->getMatchedElement();
         }
-        
+
         if ($element && $element->getUrl()) {
-            return $element->getUrl();
+            $siteId = $element->siteId;
+            $path = $element->getIsHomepage() ? '' : $element->uri;
+        } else {
+            $siteId = null;
+            try {
+                $currentSite = $craft->getSites()->getCurrentSite();
+                $siteId = $currentSite->id;
+            } catch (SiteNotFoundException $e) {
+                Craft::error($e->getMessage(), __METHOD__);
+            }
+            $path = strip_tags(html_entity_decode($craft->getRequest()->getPathInfo(), ENT_NOQUOTES, 'UTF-8'));
         }
-        
-        // Get the request URL, and clean it.
-        $url = strip_tags(html_entity_decode($craft->getRequest()->getFullPath(), ENT_NOQUOTES, 'UTF-8'));
-        
-        return UrlHelper::url($url);
+
+        $page = Craft::$app->getRequest()->getPageNum();
+        if ($page <= 1) {
+            return UrlHelper::siteUrl($path, null, null, $siteId);
+        }
+
+        $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
+        $useQueryParam = strpos($pageTrigger, '?') === 0;
+        if ($useQueryParam) {
+            $param = trim($pageTrigger, '?=');
+            return UrlHelper::siteUrl($path, [$param => $page], null, $siteId);
+        }
+
+        $path .= '/' . $pageTrigger . $page;
+        return UrlHelper::siteUrl($path, null, null, $siteId);
     }
 
     /**
