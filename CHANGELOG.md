@@ -1,12 +1,14 @@
 # SEOMate Changelog
 
-## Unreleased
+## 1.1.5 - 2020-08-21
+
+### Added
+- Added self-referential hreflang as alternate (fixes #43).
+- Added support for twig in sitename config setting (fixes #21).
 
 ### Fixed
-- Fixes an issue where SEOMate could neglect to include pagination info in canonical URLs
-
-### Changed  
-- SEOMate now requires Craft 3.3.6 or later  
+- Fixed an issue where alternate urls for disabled elements were output (fixes #41).
+- Fixed an issue where SEOMate could neglect to include pagination info in canonical URLs (fixes #44).
 
 ## 1.1.4 - 2020-04-12
 
