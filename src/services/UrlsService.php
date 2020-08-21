@@ -57,7 +57,7 @@ class UrlsService extends Component
 
         if ($element && $element->getUrl()) {
             $siteId = $element->siteId;
-            $path = $element->getIsHomepage() ? '' : $element->uri;
+            $path = $element->uri === '__home__' ? '' : $element->uri;
         } else {
             $siteId = null;
             try {
