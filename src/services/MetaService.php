@@ -96,7 +96,7 @@ class MetaService extends Component
 
         // Add sitename if desirable
         if ($settings->includeSitenameInTitle) {
-            $meta = $this->addSitename($meta, $settings);
+            $meta = $this->addSitename($meta, $context, $settings);
         }
         
         // Cache it
@@ -413,10 +413,11 @@ class MetaService extends Component
      * by sitenameTitleProperties config setting.
      *
      * @param array $meta
+     * @param array $context
      * @param null|Settings $settings
      * @return array
      */
-    public function addSitename($meta, $settings = null): array
+    public function addSitename($meta, $context, $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -443,6 +444,12 @@ class MetaService extends Component
         }
 
         if ($siteName !== '') {
+            try {
+                $siteName = Craft::$app->getView()->renderString($siteName, $context);
+            } catch (\Throwable $e) {
+                // Ignore, and continue with the current sitename value
+            }
+            
             $preString = $settings->sitenamePosition === 'before' ? $siteName . ' ' . $settings->sitenameSeparator . ' ' : '';
             $postString = $settings->sitenamePosition === 'after' ? ' ' . $settings->sitenameSeparator . ' ' . $siteName : '';
 
