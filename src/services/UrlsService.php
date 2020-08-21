@@ -149,20 +149,18 @@ class UrlsService extends Component
         }
 
         foreach ($craft->getSites()->getAllSites() as $site) {
-            if ($site->id !== $currentSite->id) {
-                if ($fallbackSite === null || $fallbackSite->id !== $site->id) {
-                    $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
-                    $enabledSites = $craft->getElements()->getEnabledSiteIdsForElement($element->getId());
-                    
-                    if ($url !== false && $url !== null && in_array($site->id, $enabledSites, true)) {
-                        $url = $this->prepAlternateUrlForSite($url, $site);
+            if ($fallbackSite === null || $fallbackSite->id !== $site->id) {
+                $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
+                $enabledSites = $craft->getElements()->getEnabledSiteIdsForElement($element->getId());
+                
+                if ($url !== false && $url !== null && in_array($site->id, $enabledSites, true)) {
+                    $url = $this->prepAlternateUrlForSite($url, $site);
 
-                        if ($url && $url !== '') {
-                            $alternateUrls[] = [
-                                'url' => $url,
-                                'language' => strtolower(str_replace('_', '-', $site->language))
-                            ];
-                        }
+                    if ($url && $url !== '') {
+                        $alternateUrls[] = [
+                            'url' => $url,
+                            'language' => strtolower(str_replace('_', '-', $site->language))
+                        ];
                     }
                 }
             }
