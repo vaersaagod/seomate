@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.6 - 2020-09-15
+
+### Fixed
+- Fixes issues that would occur if SEOMate was used on a site that was disabled.
+
 ## 1.1.5 - 2020-08-21
 
 ### Added
