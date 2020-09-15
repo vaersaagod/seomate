@@ -172,7 +172,8 @@ class PreviewController extends Controller
         $isCraft31 = \version_compare(Craft::$app->getVersion(), '3.1', '>=');
         if (Craft::$app->getIsMultiSite()) {
             // Make sure they have access to this site
-            $this->requirePermission('editSite:' . ($isCraft31 ? $category->getSite()->uid : $category->getSite()->id));
+            $site = Craft::$app->getSites()->getSiteById($category->siteId, true);
+            $this->requirePermission('editSite:' . ($isCraft31 ? $site->uid : $site->id));
         }
         // Make sure the user is allowed to edit categories in this group
         $this->requirePermission('editCategories:' . ($isCraft31 ? $category->getGroup()->uid : $category->getGroup()->id));
@@ -293,7 +294,8 @@ class PreviewController extends Controller
         $permissionSuffix = ':' . ($isCraft31 ? $entry->getSection()->uid : $entry->getSection()->id);
         if (Craft::$app->getIsMultiSite()) {
             // Make sure they have access to this site
-            $this->requirePermission('editSite:' . ($isCraft31 ? $entry->getSite()->uid : $entry->getSite()->id));
+            $site = Craft::$app->getSites()->getSiteById($entry->siteId, true);
+            $this->requirePermission('editSite:' . ($isCraft31 ? $site->uid : $site->id));
         }
         // Make sure the user is allowed to edit entries in this section
         $this->requirePermission('editEntries' . $permissionSuffix);

@@ -136,7 +136,7 @@ class SEOMate extends Plugin
                         CacheHelper::deleteMetaCacheForElement($element);
                     }
                     
-                    $siteId = $element->site->id ?? null;
+                    $siteId = $element->siteId ?? null;
                     CacheHelper::deleteCacheForSitemapIndex($siteId);
                     CacheHelper::deleteCacheForElementSitemapsByElement($element);
                 }

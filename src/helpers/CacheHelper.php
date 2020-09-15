@@ -206,7 +206,7 @@ class CacheHelper
     public static function deleteCacheForElementSitemapsByElement($element)
     {
         $elementClass = \get_class($element);
-        $siteId = $element->site->id ?? null;
+        $siteId = $element->siteId ?? null;
         
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::getElementSitemapTagForClass($siteId, $elementClass));
@@ -246,7 +246,8 @@ class CacheHelper
      */
     private static function getElementKey($element): string
     {
-        return self::ELEMENT_KEY_PREFIX . '_' . $element->site->handle . '_' . $element->id;
+        $site = Craft::$app->getSites()->getSiteById($element->siteId, true);
+        return self::ELEMENT_KEY_PREFIX . '_' . $site->handle . '_' . $element->id;
     }
 
     /**
