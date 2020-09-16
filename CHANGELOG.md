@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.7 - 2020-09-16
+
+### Fixed
+- Fixes an issue that prevented SEOMate from outputting alternate urls.
+
 ## 1.1.6 - 2020-09-15
 
 ### Fixed

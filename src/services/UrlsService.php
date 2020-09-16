@@ -153,7 +153,7 @@ class UrlsService extends Component
                 $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
                 $enabledSites = $craft->getElements()->getEnabledSiteIdsForElement($element->getId());
                 
-                if ($url !== false && $url !== null && in_array($site->id, $enabledSites, true)) {
+                if ($url !== false && $url !== null && in_array($site->id, $enabledSites, false)) {
                     $url = $this->prepAlternateUrlForSite($url, $site);
 
                     if ($url && $url !== '') {
