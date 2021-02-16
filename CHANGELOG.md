@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased  
+## 1.1.8 - 2021-02-16  
 
 ### Fixed  
 - Fixes an issue where an exception would be thrown if Craft was unable to transform the meta image (for example if the file did not exist). Fixes #48  
