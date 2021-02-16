@@ -312,34 +312,29 @@ class SEOMateHelper
 
     /**
      * @param string $url
-     * @return string|null
+     * @return string
      */
-    public static function ensureAbsoluteUrl($url)
+    public static function ensureAbsoluteUrl(string $url): string
     {
+
         if (UrlHelper::isAbsoluteUrl($url)) {
             return $url;
         }
 
         // Get the base url and assume it's what we want to use
-        try {
-            $siteUrl = UrlHelper::baseSiteUrl();
-            $siteUrlParts = parse_url($siteUrl);
-            $scheme = $siteUrlParts['scheme'] ?? (Craft::$app->getRequest()->isSecureConnection ? 'https' : 'http');
+        $siteUrl = UrlHelper::baseSiteUrl();
+        $siteUrlParts = parse_url($siteUrl);
+        $scheme = $siteUrlParts['scheme'] ?? (Craft::$app->getRequest()->isSecureConnection ? 'https' : 'http');
 
-            if (UrlHelper::isProtocolRelativeUrl($url)) {
-                return UrlHelper::urlWithScheme($url, $scheme);
-            }
-
-            if (strpos($url, '/') === 0) {
-                return $scheme . '://' . $siteUrlParts['host'] . $url;
-            }
-
-            // huh, relative url? Seems unlikely, but... If we've come this far.
-            return $scheme . '://' . $siteUrlParts['host'] . '/' . $url;
-        } catch (SiteNotFoundException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        if (UrlHelper::isProtocolRelativeUrl($url)) {
+            return UrlHelper::urlWithScheme($url, $scheme);
         }
 
-        return null;
+        if (strpos($url, '/') === 0) {
+            return $scheme . '://' . $siteUrlParts['host'] . $url;
+        }
+
+        // huh, relative url? Seems unlikely, but... If we've come this far.
+        return $scheme . '://' . $siteUrlParts['host'] . '/' . $url;
     }
 }

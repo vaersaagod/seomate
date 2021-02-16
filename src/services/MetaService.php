@@ -312,9 +312,11 @@ class MetaService extends Component
             Craft::$app->config->general->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
         }
 
-        $transformedUrl = SEOMateHelper::ensureAbsoluteUrl($transformedUrl);
-        
-        return $transformedUrl ?? '';
+        if (!$transformedUrl) {
+            return '';
+        }
+
+        return SEOMateHelper::ensureAbsoluteUrl($transformedUrl);
     }
 
     /**
