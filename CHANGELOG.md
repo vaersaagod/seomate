@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.9 - 2021-03-01  
+
+### Changed  
+- Changed requirement for `spatie/schema-org` to include `^3.0` for PHP versions above 7.3.   
+
 ## 1.1.8 - 2021-02-16  
 
 ### Fixed  
