@@ -247,7 +247,7 @@ class CacheHelper
     private static function getElementKey($element): string
     {
         $site = Craft::$app->getSites()->getSiteById($element->siteId, true);
-        return self::ELEMENT_KEY_PREFIX . '_' . $site->handle . '_' . $element->id;
+        return self::ELEMENT_KEY_PREFIX . '_' . $site->handle . '_' . $element->id . '_' . Craft::$app->getRequest()->getPageNum();
     }
 
     /**
