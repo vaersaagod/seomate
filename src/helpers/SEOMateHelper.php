@@ -160,8 +160,9 @@ class SEOMateHelper
                 }
 
             } else if ($type === 'image') {
-                $assets = $scope[$handle]->all() ?? null;
-
+                $elements = $scope[$handle];
+                $assets = ($elements instanceof ElementQuery) ? $elements->all() : $elements;
+                
                 if ($assets) {
                     foreach ($assets as $asset) {
                         if (self::isValidImageAsset($asset)) {
