@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed an issue where the SEOMate cache would not respect paginated requests. Fixes #52.
+- Fixed an issue where an exception would be thrown if meta images were eager-loaded. Fixes #19.
 
 ## 1.1.9 - 2021-03-01  
 
