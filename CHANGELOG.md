@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased
+## 1.1.10 - 2021-08-09
 
 ### Fixed
 - Fixed an issue where the SEOMate cache would not respect paginated requests. Fixes #52.
