@@ -281,11 +281,8 @@ class MetaService extends Component
             $settings = SEOMate::$plugin->getSettings();
         }
 
-        $imagerPlugin = Craft::$app->plugins->getPlugin('imager');
-        
-        if (!$imagerPlugin) {
-            $imagerPlugin = Craft::$app->plugins->getPlugin('imager-x');
-        }
+        $plugins = Craft::$app->getPlugins();
+        $imagerPlugin = $plugins->getPlugin('imager-x') ?? $plugins->getPlugin('imager');
         
         $transformedUrl = '';
 
@@ -392,21 +389,15 @@ class MetaService extends Component
      * Apply any filters and encoding
      * 
      * @param array $meta
-     * @param null $settings
      * @return mixed
      */
-    public function applyMetaFilters($meta, $settings = null)
+    public function applyMetaFilters($meta)
     {
-        if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
-        }
-        
         foreach ($meta as $key => $value) {
             if (is_string($value) && strpos($value, 'http') !== 0 && strpos($value, '//') !== 0) {
                 $meta[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
             }
         }
-
         return $meta;
     }
 

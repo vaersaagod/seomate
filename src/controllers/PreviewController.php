@@ -61,7 +61,7 @@ class PreviewController extends Controller
     public function actionPreview($elementId, $siteId = null): Response
     {
 
-        /** @var Element $element */
+        /** @var Element|null $element */
         $element = Craft::$app->getElements()->getElementById((int)$elementId, null, $siteId);
         if (!$element || !$element->uri) {
             return $this->asRaw('');
@@ -226,11 +226,12 @@ class PreviewController extends Controller
         $fieldsLocation = $request->getParam('fieldsLocation', 'fields');
         $category->setFieldValuesFromRequest($fieldsLocation);
         // Parent
-        if (($parentId = $request->getBodyParam('parentId')) !== null) {
+        $parentId = $request->getBodyParam('parentId', null);
+        if ($parentId) {
             if (is_array($parentId)) {
-                $parentId = reset($parentId) ?: '';
+                $parentId = $parentId[0] ?? null;
             }
-            $category->newParentId = $parentId ?: '';
+            $category->newParentId = $parentId;
         }
     }
 
@@ -300,15 +301,17 @@ class PreviewController extends Controller
         // Make sure the user is allowed to edit entries in this section
         $this->requirePermission('editEntries' . $permissionSuffix);
         // Is it a new entry?
-        if (!$entry->id || $duplicate) {
+        if ($entry->id === null || $duplicate) {
             // Make sure they have permission to create new entries in this section
             $this->requirePermission('createEntries' . $permissionSuffix);
         } else {
+            /** @var int|null $userId */
+            $userId = $userSession->getIdentity()->id;
             switch (get_class($entry)) {
                 case Entry::class:
                     // If it's another user's entry (and it's not a Single), make sure they have permission to edit those
                     if (
-                        $entry->authorId !== $userSession->getIdentity()->id &&
+                        $entry->authorId !== $userId &&
                         $entry->getSection()->type !== Section::TYPE_SINGLE
                     ) {
                         $this->requirePermission('editPeerEntries' . $permissionSuffix);
@@ -317,7 +320,7 @@ class PreviewController extends Controller
                 case EntryDraft::class:
                     // If it's another user's draft, make sure they have permission to edit those
                     /** @var EntryDraft $entry */
-                    if (!$entry->creatorId || $entry->creatorId !== $userSession->getIdentity()->id) {
+                    if (!$entry->creatorId || $entry->creatorId !== $userId) {
                         $this->requirePermission('editPeerEntryDrafts' . $permissionSuffix);
                     }
                     break;
@@ -390,11 +393,12 @@ class PreviewController extends Controller
         }
         $entry->authorId = $authorId;
         // Parent
-        if (($parentId = $request->getBodyParam('parentId')) !== null) {
+        $parentId = $request->getBodyParam('parentId', null);
+        if ($parentId) {
             if (is_array($parentId)) {
-                $parentId = reset($parentId) ?: '';
+                $parentId = $parentId[0] ?? null;
             }
-            $entry->newParentId = $parentId ?: '';
+            $entry->newParentId = $parentId ?? null;
         }
         // Revision notes
         $entry->revisionNotes = $request->getBodyParam('revisionNotes');

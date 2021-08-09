@@ -59,11 +59,10 @@ class UrlsService extends Component
             $siteId = $element->siteId;
             $path = $element->uri === '__home__' ? '' : $element->uri;
         } else {
-            $siteId = null;
             try {
-                $currentSite = $craft->getSites()->getCurrentSite();
-                $siteId = $currentSite->id;
+                $siteId = $craft->getSites()->getCurrentSite()->id;
             } catch (SiteNotFoundException $e) {
+                $siteId = null;
                 Craft::error($e->getMessage(), __METHOD__);
             }
             $path = strip_tags(html_entity_decode($craft->getRequest()->getPathInfo(), ENT_NOQUOTES, 'UTF-8'));

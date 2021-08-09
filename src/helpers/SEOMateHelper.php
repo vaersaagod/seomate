@@ -143,8 +143,8 @@ class SEOMateHelper
     }
 
     /**
-     * @param $scope
-     * @param string|null $handle
+     * @param array $scope
+     * @param string $handle
      * @param string $type
      * @return mixed
      */
