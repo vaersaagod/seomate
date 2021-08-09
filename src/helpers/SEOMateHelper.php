@@ -9,6 +9,7 @@
 namespace vaersaagod\seomate\helpers;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\db\ElementQuery;
@@ -143,7 +144,7 @@ class SEOMateHelper
     }
 
     /**
-     * @param array $scope
+     * @param ElementInterface|array $scope
      * @param string $handle
      * @param string $type
      * @return mixed

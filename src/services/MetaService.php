@@ -92,7 +92,7 @@ class MetaService extends Component
         }
         
         // Filter and encode
-        $meta = $this->applyMetaFilters($meta, $settings);
+        $meta = $this->applyMetaFilters($meta);
 
         // Add sitename if desirable
         if ($settings->includeSitenameInTitle) {

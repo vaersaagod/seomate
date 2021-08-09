@@ -96,13 +96,6 @@ class UrlsService extends Component
         $settings = SEOMate::$plugin->getSettings();
         $alternateUrls = [];
 
-        try {
-            $currentSite = $craft->getSites()->getCurrentSite();
-        } catch (SiteNotFoundException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-            return [];
-        }
-
         $overrideObject = $context['seomate'] ?? null;
 
         if ($overrideObject && isset($overrideObject['config'])) {
