@@ -11,6 +11,7 @@ namespace vaersaagod\seomate;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin;
+use craft\elements\Entry;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\UrlManager;
@@ -181,6 +182,11 @@ class SEOMate extends Plugin
                         $element = $event->sender;
                         if (!$element->getUrl()) {
                             return false;
+                        }
+                        if (\is_array($settings->previewEnabled)) {
+                            if (!$element instanceof Entry || !\in_array($element->getSection()->handle, $settings->previewEnabled)) {
+                                return false;
+                            }
                         }
                         $event->previewTargets[] = [
                             'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),

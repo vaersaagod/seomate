@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 1.1.11 - 2021-09-01
+
+### Fixed
+- Fixed an issue where it was not possible to enable SEO Preview on a per-section basis by setting the `previewEnabled` setting to an array of section handles  
+
 ## 1.1.10 - 2021-08-09
 
 ### Fixed
