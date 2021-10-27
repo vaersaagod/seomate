@@ -88,7 +88,7 @@ All the config settings are documented in the [`Configuring`](#configuring) sect
 and there're quite a few. But to get you going, start by adding a field
 profile in `fieldProfiles` and set that profile as the default with `defaultProfile`:  
 
-```
+```php
 <?php
 
 return [
@@ -115,7 +115,7 @@ Now, let's say we have a section with handle `news` that has a slightly differen
 our other sections, so we want to pull data from some other fields. We'll add another field profile to `fieldProfiles`, 
 and make a mapping between the profile and the section handle in `profileMap`:
 
-```
+```php
 <?php
 
 return [
@@ -163,7 +163,7 @@ that don't? Or, what if there is no valid image in any of those image fields in 
 where `defaultMeta` comes into play. Let's say that we have a global with handle `globalSeo`, with 
 fields that we want to fall back on if everything else fails:  
 
-```
+```php
 <?php
 
 return [
@@ -203,7 +203,7 @@ looks for objects and fields in you current Twig `context`, hence the use of glo
 Lastly, we want to add some additional meta data like `og:type` and `twitter:card`, and for 
 that we have... `additionalMeta`:
    
-```
+```php
 <?php
 
 return [
@@ -276,7 +276,7 @@ with your own template using the `metaTemplate` config setting.
 You can override the meta data and config settings directly from your templates by creating a
 `seomate` object and overriding accordingly:   
 
-```
+```twig
 {% set seomate = {
     profile: 'specialProfile',
     element: craft.entries.section('newsListing').one(),
@@ -308,7 +308,7 @@ To enable sitemaps for your site, you need to set the `sitemapEnabled` config se
 and configure the contents of your sitemaps with `sitemapConfig`. In its simplest form, you can supply 
 an array of section handles to the elements key, with the sitemap settings you want:
 
-```
+```php
 'sitemapEnabled' => true,
 'sitemapLimit' => 100,
 'sitemapConfig' => [
@@ -324,7 +324,7 @@ sitemaps for each section, split into chunks based on `sitemapLimit`.
 
 You can also do more complex element criterias, and manually add custom paths:
 
-```
+```php
 'sitemapEnabled' => true,
 'sitemapLimit' => 100,
 'sitemapConfig' => [
@@ -387,7 +387,7 @@ Defines the text label for the SEO Preview button and Preview Target (Craft 3.2.
 Defines the site name to be used in meta data. Can be a plain string, or an array
 with site handles as keys. Example:
 
-```  
+```php  
 'siteName' => 'My site'
 
 // or
@@ -418,7 +418,7 @@ the site name is only added to the `title` meta tag.
 
 Example that also adds it to `og:title` and `twitter:title` tags:
 
-``` 
+```php 
 'sitenameTitleProperties' => ['title', 'og:title', 'twitter:title']
 ```
 
@@ -471,7 +471,7 @@ from your templates.
 
 Example:
 
-```
+```php
 'defaultProfile' => 'default',
 
 'fieldProfiles' => [
@@ -502,7 +502,7 @@ The profile map provides a way to map sections and category groups to profiles
 defined in `fieldProfiles`. If a section or category group is not found in this
 map, the profile defined in `defaultProfile` will be used.
 
-```
+```php
 'profileMap' => [
     'products' => 'products',
     'frontpage' => 'landingPages',
@@ -520,7 +520,7 @@ The waterfall uses the current _context_ to search for meta data. In the example
 below, we're falling back to using fields in two globals with handle `globalSeo` 
 and `settings`:
 
-```
+```php
 'defaultMeta' => [
     'title' => ['globalSeo.seoTitle'],
     'description' => ['globalSeo.seoDescription', 'settings.companyInfo'],
@@ -544,7 +544,7 @@ In the example below, some properties are plain text (`og:type` and `twitter:car
 some contains twig (for instance `fb:profile_id`), and for `og:see_also` we provide
 a function that returns an array. 
 
-```
+```php
 'additionalMeta' => [
     'og:type' => 'website',
     'twitter:card' => 'summary_large_image',
@@ -575,7 +575,7 @@ This setting defines the type and limitations of the different meta tags. Curren
 there are two valid types, `text` and `image`. 
 
 Example/default value:
-```
+```php
 [
     'title,og:title,twitter:title' => [
         'type' => 'text',
@@ -629,7 +629,7 @@ Defines the image transforms that are to be used for the different meta image
 properties. All possible options of Imager or native Craft transforms can be used. 
 
 Default value:
-```
+```php
 [
     'image' => [
         'width' => 1200,
@@ -652,7 +652,7 @@ Default value:
 Example where the Facebook and Twitter images has been sharpened, desaturated
 and given a stylish blue tint (requires Imager):
 
-``` 
+```php 
 'imageTransformMap' => [
     'image' => [
         'width' => 1200,
@@ -688,7 +688,7 @@ Map of properties that should be automatically filled by another property,
 _if they're empty after the profile has been parsed_. 
 
 Default value:
-```
+```php
 [
     'og:title' => 'title',
     'og:description' => 'description',
@@ -704,7 +704,7 @@ Default value:
 Map of output templates for the meta properties. 
 
 Example/default value:
-```
+```php
 [
     'default' => '<meta name="{{ key }}" content="{{ value }}">',
     'title' => '<title>{{ value }}</title>',
@@ -746,7 +746,7 @@ In the example below, we get all elements from the sections with handles
 sections and all categories in group `newsCategories`. In addition to these, 
 we add two custom urls, and two additional sitemaps.
 
-```
+```php
 'sitemapConfig' => [
     'elements' => [
         'projects' => ['changefreq' => 'weekly', 'priority' => 0.5],
@@ -776,7 +776,7 @@ we add two custom urls, and two additional sitemaps.
 
 Example with site specific custom urls and additional sitemaps:
 
-```
+```php
 'sitemapConfig' => [
     /* ... */ 
     
@@ -820,7 +820,7 @@ elements and `sitemap_custom.xml` for the custom urls.
 URL patterns that your sitemaps are submitted to. 
 
 Example/default value:
-```
+```php
 'sitemapSubmitUrlPatterns' => [
     'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
     'http://www.bing.com/webmaster/ping.aspx?siteMap=',
@@ -836,7 +836,7 @@ Example/default value:
 Returns an object with the same meta data that is passed to the meta data 
 template. 
 
-```
+```twig
 {% set metaData = craft.seomate.getMeta() %}
 Meta Title: {{ metaData.meta.title }} 
 Canonical URL: {{ metaData.canonicalUrl }} 
@@ -845,7 +845,7 @@ Canonical URL: {{ metaData.canonicalUrl }}
 You can optionally pass in a config object the same way you would in your template 
 overrides, to customize the data, or use a custom element as the source:
 
-```
+```twig
 {% set metaData = craft.seomate.getMeta({
     profile: 'specialProfile',
     element: craft.entries.section('newsListing').one(),
@@ -869,7 +869,7 @@ you can get full autocompletion by assigning type hinting (see example below)
 
 Example:
 
-```   
+```twig   
 {# @var schema \Spatie\SchemaOrg\Schema #}
 {% set schema = craft.schema %}
 
@@ -919,7 +919,7 @@ array of objects with properties for `url` and `name`, and outputs a valid
 Schema.org JSON-LD data structure.
 
 Example:
-```
+```twig
 {% set breadcrumb = [
     {
         'url': siteUrl,
