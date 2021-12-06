@@ -166,7 +166,7 @@ class SEOMate extends Plugin
             $view->hook('cp.categories.edit', [$this, 'registerPreviewAssetsBundle']);
             $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
 
-            // Register Preview Target for Craft 3.2.x
+            // Register Preview Target for Craft 3.2.x (entries only)
             $craft32 = \version_compare(Craft::$app->getVersion(), '3.2', '>=');
             if ($craft32) {
 
@@ -180,13 +180,11 @@ class SEOMate extends Plugin
                     function (RegisterPreviewTargetsEvent $event) use ($settings) {
                         /** @var Element $element */
                         $element = $event->sender;
-                        if (!$element->getUrl()) {
+                        if (!$element instanceof Entry || !$element->getUrl()) {
                             return false;
                         }
-                        if (\is_array($settings->previewEnabled)) {
-                            if (!$element instanceof Entry || !\in_array($element->getSection()->handle, $settings->previewEnabled)) {
-                                return false;
-                            }
+                        if (\is_array($settings->previewEnabled) && !\in_array($element->getSection()->handle, $settings->previewEnabled)) {
+                            return false;
                         }
                         $event->previewTargets[] = [
                             'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
