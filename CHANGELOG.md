@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 1.1.12 - 2021-12-06
+### Fixed
+- Fixed an issue where Categories with URLs would display a double set of Preview/View buttons on their edit pages  
+
 ## 1.1.11 - 2021-09-01
 
 ### Fixed
