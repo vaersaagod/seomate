@@ -2,9 +2,9 @@
 <link rel="home" href="{{ siteUrl() }}"/>
 {% if craft.app.getResponse().getStatusCode() < 400 %}
 <link rel="canonical" href="{{ seomate.canonicalUrl }}">
-<meta property="og:url" content="{{ seomate.canonicalUrl }}"/>
-<meta name="twitter:url" content="{{ seomate.canonicalUrl }}"/>
-<meta property="og:locale" content="{{ craft.app.getSites().getCurrentSite().language }}"/>
+{% if meta['og:url'] is not defined %}<meta property="og:url" content="{{ seomate.canonicalUrl }}"/>{% endif %}
+{% if meta['twitter:url'] is not defined %}<meta name="twitter:url" content="{{ seomate.canonicalUrl }}"/>{% endif %}
+{% if meta['og:locale'] is not defined %}<meta property="og:locale" content="{{ craft.app.getSites().getCurrentSite().language }}"/>{% endif %}
 {% endif %}
 
 {% for key, data in meta if data != '' %}
