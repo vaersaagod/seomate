@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 1.1.13 - 2022-03-24
+### Added
+- Added conditionals to output template to be able to override url’s at the template level without overriding canonical url.
+
 ## 1.1.12 - 2021-12-06
 ### Fixed
 - Fixed an issue where Categories with URLs would display a double set of Preview/View buttons on their edit pages  
