@@ -20,6 +20,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\SyntaxError;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
+use benf\neo\elements\db\BlockQuery as NeoBlockQuery;
 
 /**
  * SEOMate Helper
@@ -175,10 +176,15 @@ class SEOMateHelper
         } else if ((bool)\strpos($handle, ':')) {
 
             // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
-            // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
+            // First, get the Matrix field's handle and check that it exists
             $matrixFieldPathSegments = \explode(':', $handle);
             $handle = \array_shift($matrixFieldPathSegments) ?: null;
-            if (!$handle || empty($matrixFieldPathSegments) || !($scope[$handle] ?? null) || !($scope[$handle] instanceof MatrixBlockQuery)) {
+            if (!$handle || empty($matrixFieldPathSegments) || !($scope[$handle] ?? null)) {
+                return null;
+            }
+
+            // Then test if that attribute actually is a MatrixBlockQuery/NeoBlockQuery instance
+            if (! $scope[$handle] instanceof MatrixBlockQuery && ! $scope[$handle] instanceof NeoBlockQuery) {
                 return null;
             }
 
