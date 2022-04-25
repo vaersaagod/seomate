@@ -22,16 +22,49 @@ use yii\caching\TagDependency;
  */
 class CacheHelper
 {
+    /**
+     * @var string
+     */
     public const SEOMATE_TAG = 'seomate_tag';
 
+    /**
+     * @var string
+     */
     public const ELEMENT_TAG = 'seomate_meta_element_tag';
+
+    /**
+     * @var string
+     */
     public const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
 
+    /**
+     * @var string
+     */
     public const SITEMAP_INDEX_KEY = 'seomate_sitemap_index';
+
+    /**
+     * @var string
+     */
     public const ELEMENT_SITEMAP_KEY_PREFIX = 'seomate_element_sitemap';
+
+    /**
+     * @var string
+     */
     public const SITEMAP_INDEX_TAG = 'seomate_sitemap_index_tag';
+
+    /**
+     * @var string
+     */
     public const SITEMAP_ELEMENT_TAG = 'seomate_sitemap_element_tag';
+
+    /**
+     * @var string
+     */
     public const ELEMENT_SITEMAP_CLASS_PREFIX = 'seomate_element_sitemap_class';
+
+    /**
+     * @var string
+     */
     public const ELEMENT_SITEMAP_HANDLE_PREFIX = 'seomate_element_sitemap_handle';
 
 
@@ -48,7 +81,6 @@ class CacheHelper
      * Checks if meta data cache for element exists
      *
      * @param $element
-     * @return bool
      */
     public static function hasMetaCacheForElement($element): bool
     {
@@ -60,7 +92,6 @@ class CacheHelper
      * Returns meta data cache for element
      *
      * @param $element
-     * @return mixed
      */
     public static function getMetaCacheForElement($element): mixed
     {
@@ -107,7 +138,6 @@ class CacheHelper
      * Checks if cache for sitemap index exists
      *
      * @param $siteId
-     * @return bool
      */
     public static function hasCacheForSitemapIndex($siteId): bool
     {
@@ -119,7 +149,6 @@ class CacheHelper
      * Returns cached sitemap index
      *
      * @param $siteId
-     * @return mixed
      */
     public static function getCacheForSitemapIndex($siteId): mixed
     {
@@ -167,7 +196,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return bool
      */
     public static function hasCacheForElementSitemap($siteId, $handle, $page): bool
     {
@@ -181,7 +209,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return mixed
      */
     public static function getCacheForElementSitemap($siteId, $handle, $page): mixed
     {
@@ -205,9 +232,9 @@ class CacheHelper
      */
     public static function deleteCacheForElementSitemapsByElement($element): void
     {
-        $elementClass = \get_class($element);
+        $elementClass = $element::class;
         $siteId = $element->siteId ?? null;
-        
+
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::getElementSitemapTagForClass($siteId, $elementClass));
     }
@@ -242,12 +269,11 @@ class CacheHelper
      * Creates key for element meta
      *
      * @param $element
-     * @return string
      */
     private static function getElementKey($element): string
     {
         $site = Craft::$app->getSites()->getSiteById($element->siteId, true);
-        $pageNum = !Craft::$app->getRequest()->getIsConsoleRequest() ? Craft::$app->getRequest()->getPageNum() : null;
+        $pageNum = Craft::$app->getRequest()->getIsConsoleRequest() ? null : Craft::$app->getRequest()->getPageNum();
         return self::ELEMENT_KEY_PREFIX . '_' . ($site->handle ?? 'unknown') . '_' . $element->id . ($pageNum ? '_' . $pageNum : '');
     }
 
@@ -257,7 +283,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return string
      */
     private static function getElementSitemapKey($siteId, $handle, $page): string
     {
@@ -270,7 +295,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $definition
-     * @return array
      */
     private static function getElementSitemapTags($siteId, $handle, $definition): array
     {
@@ -297,7 +321,6 @@ class CacheHelper
      *
      * @param $siteId
      * @param $class
-     * @return string
      */
     private static function getElementSitemapTagForClass($siteId, $class): string
     {

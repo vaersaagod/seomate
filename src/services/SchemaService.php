@@ -34,7 +34,6 @@ class SchemaService extends Component
      * and the leaf (ie, current page) is the last.
      *
      * @param array $listItems
-     * @return BreadcrumbList
      */
     public function breadcrumb(array $listItems): BreadcrumbList
     {

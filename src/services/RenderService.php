@@ -28,10 +28,6 @@ class RenderService extends Component
     /**
      * Renders meta tag by key and value.
      * Uses tag template from tagTemplateMap config setting.
-     *
-     * @param string $key
-     * @param string|array $value
-     * @return Markup
      */
     public function renderMetaTag(string $key, string|array $value): Markup
     {
@@ -63,8 +59,8 @@ class RenderService extends Component
             foreach ($value as $val) {
                 $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $val]);
             }
-        } catch (\Throwable $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (\Throwable $throwable) {
+            Craft::error($throwable->getMessage(), __METHOD__);
         }
 
         return Template::raw($r);

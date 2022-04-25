@@ -8,11 +8,13 @@
 
 namespace vaersaagod\seomate\services;
 
+use aelvan\imager\Imager;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
 use craft\errors\SiteNotFoundException;
+use spacecatninja\imagerx\ImagerX;
 
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
@@ -28,9 +30,6 @@ class MetaService extends Component
 {
     /**
      * Gets all meta data based on context
-     *
-     * @param array $context
-     * @return array
      */
     public function getContextMeta(array $context): array
     {
@@ -62,7 +61,7 @@ class MetaService extends Component
         }
 
         // Additional meta data
-        if ($settings->additionalMeta !== null && \count($settings->additionalMeta) > 0) {
+        if ($settings->additionalMeta !== null && $settings->additionalMeta !== []) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
         }
         
@@ -72,7 +71,7 @@ class MetaService extends Component
         }
 
         // Add default meta if available
-        if ($settings->defaultMeta !== null && \count($settings->defaultMeta) > 0) {
+        if ($settings->defaultMeta !== null && $settings->defaultMeta !== []) {
             $meta = $this->processDefaultMeta($meta, $context, $settings);
         }
 
@@ -108,10 +107,8 @@ class MetaService extends Component
     /**
      * Gets all element meta data
      *
-     * @param Element    $element
      * @param array|null $overrides
      *
-     * @return array
      */
     public function getElementMeta(Element $element, array $overrides = null): array
     {
@@ -144,10 +141,6 @@ class MetaService extends Component
 
     /**
      * Gets element meta data based on profile
-     *
-     * @param Element $element
-     * @param array $profile
-     * @return array
      */
     public function generateElementMetaByProfile(Element $element, array $profile): array
     {
@@ -163,11 +156,6 @@ class MetaService extends Component
 
     /**
      * Gets the value for a meta data property in *element*, from a list of fields and type.
-     *
-     * @param Element $element
-     * @param string $type
-     * @param array $fields
-     * @return string|Asset
      */
     public function getElementPropertyDataByFields(Element $element, string $type, array $fields): Asset|string
     {
@@ -184,11 +172,6 @@ class MetaService extends Component
 
     /**
      * Gets the value for a meta data property in *context*, from a list of fields and type.
-     *
-     * @param array $context
-     * @param string $type
-     * @param array $fields
-     * @return string|Asset
      */
     public function getContextPropertyDataByFields(array $context, string $type, array $fields): Asset|string
     {
@@ -209,10 +192,8 @@ class MetaService extends Component
     /**
      * Transforms meta data assets.
      *
-     * @param array         $meta
      * @param Settings|null $settings
      *
-     * @return array
      */
     public function transformMetaAssets(array $meta, Settings $settings = null): array
     {
@@ -230,8 +211,8 @@ class MetaService extends Component
                 if ($asset) {
                     try {
                         $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
-                    } catch (\Throwable $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
+                    } catch (\Throwable $throwable) {
+                        Craft::error($throwable->getMessage(), __METHOD__);
                     }
 
                     $alt = null;
@@ -244,21 +225,23 @@ class MetaService extends Component
                         if ($alt) {
                             $meta[$key . ':alt'] = $alt;
                         }
+
                         if (isset($transform['format'])) {
                             $meta[$key . ':type'] = 'image/' . ($transform['format'] === 'jpg' ? 'jpeg' : $transform['format']);
                         }
+
                         // todo: Ideally, we should get these from the final transform
                         if (isset($transform['width'])) {
                             $meta[$key . ':width'] = $transform['width'];
                         }
+
                         if (isset($transform['height'])) {
                             $meta[$key . ':height'] = $transform['height'];
                         }
                     }
-                    if ($key === 'twitter:image') {
-                        if ($alt) {
-                            $meta[$key . ':alt'] = $alt;
-                        }
+
+                    if ($key === 'twitter:image' && $alt) {
+                        $meta[$key . ':alt'] = $alt;
                     }
                 }
             }
@@ -270,11 +253,8 @@ class MetaService extends Component
     /**
      * Transforms asset and returns URL.
      *
-     * @param string|Asset  $asset
-     * @param array         $transform
      * @param null|Settings $settings
      *
-     * @return string
      * @throws SiteNotFoundException
      */
     public function getTransformedUrl(Asset|string $asset, array $transform, Settings $settings = null): string
@@ -288,15 +268,15 @@ class MetaService extends Component
         
         $transformedUrl = '';
 
-        if ($settings->useImagerIfInstalled && ($imagerPlugin instanceof \aelvan\imager\Imager || $imagerPlugin instanceof \spacecatninja\imagerx\ImagerX)) {
+        if ($settings->useImagerIfInstalled && ($imagerPlugin instanceof Imager || $imagerPlugin instanceof ImagerX)) {
             try {
                 $transformedAsset = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
 
                 if ($transformedAsset) {
                     $transformedUrl = $transformedAsset->getUrl();
                 }
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
             }
         } else {
             $generateTransformsBeforePageLoad = Craft::$app->config->general->generateTransformsBeforePageLoad;
@@ -304,8 +284,8 @@ class MetaService extends Component
 
             try {
                 $transformedUrl = $asset->getUrl($transform);
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
             }
             
             Craft::$app->config->general->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
@@ -320,9 +300,6 @@ class MetaService extends Component
 
     /**
      * Applies override meta data
-     *
-     * @param array $meta
-     * @param array $overrideMeta
      */
     public function overrideMeta(array &$meta, array $overrideMeta): void
     {
@@ -334,9 +311,7 @@ class MetaService extends Component
     /**
      * Autofills missing meta data based on autofillMap config setting
      *
-     * @param array $meta
      * @param null|Settings $settings
-     * @return array
      */
     public function autofillMeta(array $meta, Settings $settings = null): array
     {
@@ -362,7 +337,6 @@ class MetaService extends Component
      *
      * @param array $meta
      * @param null|Settings $settings
-     * @return array
      */
     public function applyMetaRestrictions(array $meta, Settings $settings = null): array
     {
@@ -376,10 +350,8 @@ class MetaService extends Component
             if (isset($restrictionsMap[$key])) {
                 $restrictions = $restrictionsMap[$key];
 
-                if ($restrictions['type'] === 'text' && isset($restrictions['maxLength'])) {
-                    if (\strlen($value) > $restrictions['maxLength']) {
-                        $meta[$key] = mb_substr($value, 0, $restrictions['maxLength'] - strlen($settings->truncateSuffix)) . $settings->truncateSuffix;
-                    }
+                if ($restrictions['type'] === 'text' && isset($restrictions['maxLength']) && \strlen($value) > $restrictions['maxLength']) {
+                    $meta[$key] = mb_substr($value, 0, $restrictions['maxLength'] - strlen($settings->truncateSuffix)) . $settings->truncateSuffix;
                 }
             }
         }
@@ -389,9 +361,6 @@ class MetaService extends Component
     
     /**
      * Apply any filters and encoding
-     *
-     * @param array $meta
-     * @return array
      */
     public function applyMetaFilters(array $meta): array
     {
@@ -400,6 +369,7 @@ class MetaService extends Component
                 $meta[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
             }
         }
+
         return $meta;
     }
 
@@ -407,10 +377,7 @@ class MetaService extends Component
      * Adds sitename to meta properties that should have it, as defined
      * by sitenameTitleProperties config setting.
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
     public function addSitename(array $meta, array $context, Settings $settings = null): array
     {
@@ -428,14 +395,14 @@ class MetaService extends Component
             } else {
                 $siteName = Craft::$app->getSites()->getCurrentSite()->name ?? '';
             }
-        } catch (SiteNotFoundException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (SiteNotFoundException $siteNotFoundException) {
+            Craft::error($siteNotFoundException->getMessage(), __METHOD__);
         }
 
         if ($siteName !== '') {
             try {
                 $siteName = Craft::$app->getView()->renderString($siteName, $context);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Ignore, and continue with the current sitename value
             }
             
@@ -444,7 +411,7 @@ class MetaService extends Component
 
             foreach ($settings->sitenameTitleProperties as $property) {
                 $metaValue = $preString . ($meta[$property] ?? '') . $postString;
-                $meta[$property] = \trim($metaValue, " {$settings->sitenameSeparator}");
+                $meta[$property] = \trim($metaValue, sprintf(' %s', $settings->sitenameSeparator));
             }
         }
 
@@ -454,10 +421,7 @@ class MetaService extends Component
     /**
      * Process and return default meta data
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
     public function processDefaultMeta(array $meta, array $context = [], Settings $settings = null): array
     {
@@ -478,10 +442,7 @@ class MetaService extends Component
     /**
      * Processes and returns additional meta data
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
     public function processAdditionalMeta(array $meta, array $context = [], Settings $settings = null): array
     {

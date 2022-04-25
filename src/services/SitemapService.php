@@ -29,7 +29,6 @@ class SitemapService extends Component
     /**
      * Returns index sitemap
      *
-     * @return string
      * @throws \Throwable
      */
     public function index(): string
@@ -54,14 +53,14 @@ class SitemapService extends Component
             $custom = $config['custom'] ?? null;
             $additionalSitemaps = $config['additionalSitemaps'] ?? null;
 
-            if ($elements && \is_array($elements) && \count($elements) > 0) {
+            if ($elements && \is_array($elements) && $elements !== []) {
                 foreach ($elements as $key => $definition) {
                     $indexSitemapUrls = SitemapHelper::getIndexSitemapUrls($key, $definition);
                     SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', $indexSitemapUrls);
                 }
             }
 
-            if ($custom && \is_array($custom) && \count($custom) > 0) {
+            if ($custom && \is_array($custom) && $custom !== []) {
                 $customUrl = SitemapHelper::getCustomIndexSitemapUrl();
 
                 if (SitemapHelper::isMultisiteConfig($custom)) {
@@ -71,15 +70,15 @@ class SitemapService extends Component
                         if (isset($custom['*']) || isset($custom[$currentSiteHandle])) {
                             SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
                         }
-                    } catch (SiteNotFoundException $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
+                    } catch (SiteNotFoundException $siteNotFoundException) {
+                        Craft::error($siteNotFoundException->getMessage(), __METHOD__);
                     }
                 } else {
                     SitemapHelper::addUrlsToSitemap($document, $topNode, 'sitemap', [$customUrl]);
                 }
             }
 
-            if ($additionalSitemaps && \is_array($additionalSitemaps) && \count($additionalSitemaps) > 0) {
+            if ($additionalSitemaps && \is_array($additionalSitemaps) && $additionalSitemaps !== []) {
                 $additionalUrls = [];
                 if (SitemapHelper::isMultisiteConfig($additionalSitemaps)) {
                     if (isset($additionalSitemaps['*'])) {
@@ -92,8 +91,8 @@ class SitemapService extends Component
                         if (isset($additionalSitemaps[$currentSiteHandle])) {
                             $additionalUrls = array_merge($additionalUrls, $additionalSitemaps[$currentSiteHandle]);
                         }
-                    } catch (SiteNotFoundException $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
+                    } catch (SiteNotFoundException $siteNotFoundException) {
+                        Craft::error($siteNotFoundException->getMessage(), __METHOD__);
                     }
                 } else {
                     $additionalUrls = array_merge($additionalUrls, $additionalSitemaps);
@@ -116,9 +115,7 @@ class SitemapService extends Component
     /**
      * Returns element sitemap by handle and page
      *
-     * @param string $handle
      * @param $page
-     * @return string
      * @throws \Throwable
      */
     public function elements(string $handle, $page): string
@@ -157,8 +154,6 @@ class SitemapService extends Component
 
     /**
      * Returns custom sitemap
-     *
-     * @return string
      */
     public function custom(): string
     {
@@ -173,7 +168,7 @@ class SitemapService extends Component
         if (!empty($config)) {
             $customUrls = $config['custom'] ?? null;
 
-            if ($customUrls && count($customUrls) > 0) {
+            if ($customUrls && (is_countable($customUrls) ? count($customUrls) : 0) > 0) {
                 if (SitemapHelper::isMultisiteConfig($customUrls)) {
                     try {
                         $currentSiteHandle = Craft::$app->getSites()->getCurrentSite()->handle;
@@ -187,8 +182,8 @@ class SitemapService extends Component
                             $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls['*']);
                             SitemapHelper::addUrlsToSitemap($document, $topNode, 'url', $customSitemapUrls);
                         }
-                    } catch (SiteNotFoundException $e) {
-                        Craft::error($e->getMessage(), __METHOD__);
+                    } catch (SiteNotFoundException $siteNotFoundException) {
+                        Craft::error($siteNotFoundException->getMessage(), __METHOD__);
                     }
                 } else {
                     $customSitemapUrls = SitemapHelper::getCustomSitemapUrls($customUrls);
@@ -225,8 +220,8 @@ class SitemapService extends Component
                     try {
                         $client->post($submitUrl);
                         Craft::info('Index sitemap for site "' . $site->name . ' submitted to: ' . $submitUrl, __METHOD__);
-                    } catch (\Exception $e) {
-                        Craft::error('Error submitting index sitemap for site "' . $site->name . '" to: ' . $submitUrl . ' :: ' . $e->getMessage(), __METHOD__);
+                    } catch (\Exception $exception) {
+                        Craft::error('Error submitting index sitemap for site "' . $site->name . '" to: ' . $submitUrl . ' :: ' . $exception->getMessage(), __METHOD__);
                     }
                 }
             }
@@ -235,13 +230,10 @@ class SitemapService extends Component
 
     /**
      * Returns the top node DOMElement for DOMDocument
-     *
-     * @param \DOMDocument $document
-     * @param string $type
-     * @return \DOMElement
      */
     private function getTopNode(\DOMDocument &$document, string $type = 'urlset'): \DOMElement
     {
+        $node = null;
         try {
             $node = $document->createElement($type);
             $node->setAttribute(

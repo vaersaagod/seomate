@@ -46,7 +46,6 @@ class PreviewController extends Controller
     protected int|bool|array $allowAnonymous = ['preview'];
 
     /**
-     * @return Response|YiiResponse
      * @throws Exception
      * @throws InvalidConfigException
      * @throws ServerErrorHttpException
@@ -55,7 +54,7 @@ class PreviewController extends Controller
     {
         $elementId = Craft::$app->getRequest()->getParam('elementId');
         $siteId = Craft::$app->getRequest()->getParam('siteId');
-        
+
         /** @var Element|null $element */
         $element = Craft::$app->getElements()->getElementById((int)$elementId, null, $siteId);
         if (!$element || !$element->uri) {
@@ -71,6 +70,7 @@ class PreviewController extends Controller
             Craft::$app->language = $site->language;
             Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($site->language));
         }
+
         // Have this element override any freshly queried elements with the same ID/site
         Craft::$app->getElements()->setPlaceholderElement($element);
 
@@ -99,7 +99,6 @@ class PreviewController extends Controller
     /**
      * Previews an Entry or a Category
      *
-     * @return Response
      * @throws BadRequestHttpException
      * @throws NotFoundHttpException if the requested entry version cannot be found
      * @throws Exception
@@ -124,8 +123,6 @@ class PreviewController extends Controller
     }
 
     /**
-     * @param Product $product
-     *
      * @throws ForbiddenHttpException|InvalidConfigException
      */
     private function _enforceProductPermissions(Product $product): void
@@ -134,8 +131,6 @@ class PreviewController extends Controller
     }
 
     /**
-     * @param Product $product
-     * @return Response|YiiResponse
      * @throws Exception
      * @throws InvalidConfigException
      * @throws ServerErrorHttpException
@@ -146,14 +141,17 @@ class PreviewController extends Controller
         if (!$productType) {
             throw new ServerErrorHttpException('Product type not found.');
         }
+
         $siteSettings = $productType->getSiteSettings();
         if (!isset($siteSettings[$product->siteId]) || !$siteSettings[$product->siteId]->hasUrls) {
-            throw new ServerErrorHttpException('The product ' . $product->id . ' doesn\'t have a URL for the site ' . $product->siteId . '.');
+            throw new ServerErrorHttpException('The product ' . $product->getId() . " doesn't have a URL for the site " . $product->siteId . '.');
         }
+
         $site = Craft::$app->getSites()->getSiteById($product->siteId);
         if (!$site) {
             throw new ServerErrorHttpException('Invalid site ID: ' . $product->siteId);
         }
+
         Craft::$app->language = $site->language;
         // Have this product override any freshly queried products with the same ID/site
         Craft::$app->getElements()->setPlaceholderElement($product);

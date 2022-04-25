@@ -31,7 +31,6 @@ class UrlsService extends Component
      * Gets the canonical URL from context
      *
      * @param $context
-     * @return null|string
      *
      * @throws \Throwable
      */
@@ -59,10 +58,11 @@ class UrlsService extends Component
         } else {
             try {
                 $siteId = $craft->getSites()->getCurrentSite()->id;
-            } catch (SiteNotFoundException $e) {
+            } catch (SiteNotFoundException $siteNotFoundException) {
                 $siteId = null;
-                Craft::error($e->getMessage(), __METHOD__);
+                Craft::error($siteNotFoundException->getMessage(), __METHOD__);
             }
+
             $path = strip_tags(html_entity_decode($craft->getRequest()->getPathInfo(), ENT_NOQUOTES, 'UTF-8'));
         }
 
@@ -86,7 +86,6 @@ class UrlsService extends Component
      * Gets the alternate URLs from context
      *
      * @param $context
-     * @return array
      */
     public function getAlternateUrls($context): array
     {
@@ -123,11 +122,7 @@ class UrlsService extends Component
             if ($fallbackSite && $fallbackSite->id !== null) {
                 $url = $craft->getElements()->getElementUriForSite($element->getId(), $fallbackSite->id);
 
-                if ($url) {
-                    $url = $this->prepAlternateUrlForSite($url, $fallbackSite);
-                } else {
-                    $url = $this->prepAlternateUrlForSite('', $fallbackSite);
-                }
+                $url = $url ? $this->prepAlternateUrlForSite($url, $fallbackSite) : $this->prepAlternateUrlForSite('', $fallbackSite);
 
                 if ($url && $url !== '') {
                     $alternateUrls[] = [
@@ -161,10 +156,6 @@ class UrlsService extends Component
 
     /**
      * Returns a fully qualified site URL from uri and site
-     *
-     * @param string $uri
-     * @param Site $site
-     * @return string
      */
     private function prepAlternateUrlForSite(string $uri, Site $site): string
     {
@@ -173,9 +164,9 @@ class UrlsService extends Component
         if (!UrlHelper::isAbsoluteUrl($url)) {
             try {
                 $url = UrlHelper::siteUrl($url, null, null, $site->id);
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 $url = '';
-                Craft::error($e->getMessage(), __METHOD__);
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 

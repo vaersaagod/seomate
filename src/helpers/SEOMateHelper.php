@@ -15,6 +15,7 @@ use craft\elements\Asset;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
+use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
@@ -30,9 +31,6 @@ class SEOMateHelper
 {
     /**
      * Updates Settings model wit override values
-     *
-     * @param Settings $settings
-     * @param array $overrides
      */
     public static function updateSettings(Settings $settings, array $overrides): void
     {
@@ -43,10 +41,6 @@ class SEOMateHelper
 
     /**
      * Gets the profile to use from element and settings
-     *
-     * @param Element $element
-     * @param Settings $settings
-     * @return mixed
      */
     public static function getElementProfile(Element $element, Settings $settings): mixed
     {
@@ -60,13 +54,10 @@ class SEOMateHelper
         if (method_exists($element, 'refHandle')) {
             $refHandle = strtolower($element->refHandle());
 
-            switch ($refHandle) {
-                case 'entry':
-                    $mapIds[] = $element->section->handle;
-                    break;
-                case 'category':
-                    $mapIds[] = $element->group->handle;
-                    break;
+            if ($refHandle == 'entry') {
+                $mapIds[] = $element->section->handle;
+            } elseif ($refHandle == 'category') {
+                $mapIds[] = $element->group->handle;
             }
         }
 
@@ -85,9 +76,6 @@ class SEOMateHelper
 
     /**
      * Returns the meta type from key
-     *
-     * @param string $key
-     * @return string
      */
     public static function getMetaTypeByKey(string $key): string
     {
@@ -108,10 +96,6 @@ class SEOMateHelper
     /**
      * Reduces a nested scope to the deepest possible target scope, and return it and
      * the remaining handle.
-     *
-     * @param array $scope
-     * @param string $handle
-     * @return array
      */
     public static function reduceScopeAndHandle(array $scope, string $handle): array
     {
@@ -123,14 +107,14 @@ class SEOMateHelper
         $handleParts = explode('.', $handle);
         $first = true; // a wee bit ugly, but it's to avoid that a wrong target is reached if one part is null.
 
-        for ($i = 0, $iMax = count($handleParts) - 1; $i < $iMax; $i++) {
+        for ($i = 0, $iMax = count($handleParts) - 1; $i < $iMax; ++$i) {
             $part = $handleParts[$i];
 
             if (strrpos($part, ':') !== false) {
-                return [$currentScope, join('.', array_slice($handleParts, $i))];
+                return [$currentScope, implode('.', array_slice($handleParts, $i))];
             }
 
-            if ($first === true) {
+            if ($first) {
                 $currentScope = $scope[$part] ?? null;
             } elseif ($currentScope !== null) {
                 $currentScope = $currentScope[$part] ?? null;
@@ -140,18 +124,11 @@ class SEOMateHelper
         return [$currentScope, $handleParts[count($handleParts) - 1]];
     }
 
-    /**
-     * @param array|ElementInterface $scope
-     * @param string                 $handle
-     * @param string                 $type
-     *
-     * @return string|Asset|null
-     */
     public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
     {
         if ($scope[$handle] ?? null) { // Root field
             if ($type === 'text') {
-                if ($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) {
+                if (($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) !== '' && ($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) !== '0') {
                     return $value;
                 }
             } elseif ($type === 'image') {
@@ -189,13 +166,13 @@ class SEOMateHelper
                 $blocks = $blockQuery->all();
 
                 foreach ($blocks as $block) {
-                    if ($block->type->handle !== $blockTypeHandle) {
+                    if ($block->getType()->handle !== $blockTypeHandle) {
                         continue;
                     }
 
                     $value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')));
 
-                    if ($value) {
+                    if ($value !== '' && $value !== '0') {
                         return $value;
                     }
                 }
@@ -203,7 +180,7 @@ class SEOMateHelper
                 if (Craft::$app->getRequest()->getIsLivePreview()) {
                     $blocks = $blockQuery->all();
                 } else {
-                    $blocks = $blockQuery->with(["{$blockTypeHandle}:{$blockFieldHandle}"])->all();
+                    $blocks = $blockQuery->with([sprintf('%s:%s', $blockTypeHandle, $blockFieldHandle)])->all();
                 }
 
                 /* @var MatrixBlock $block */
@@ -235,26 +212,16 @@ class SEOMateHelper
     /**
      * Checks if give Asset is in the list of $settings->validImageExtensions
      *
-     * @param Asset $asset
      *
-     * @return bool
      */
     public static function isValidImageAsset(Asset $asset): bool
     {
         $settings = SEOMate::$plugin->getSettings();
-
-        if (\in_array(strtolower($asset->extension), $settings->validImageExtensions, true)) {
-            return true;
-        }
-
-        return false;
+        return \in_array(strtolower($asset->getExtension()), $settings->validImageExtensions, true);
     }
 
     /**
      * Expands config setting map where key is exandable
-     *
-     * @param array $map
-     * @return array
      */
     public static function expandMap(array $map): array
     {
@@ -273,9 +240,6 @@ class SEOMateHelper
 
     /**
      * Checks if array is associative
-     *
-     * @param array $array
-     * @return bool
      */
     public static function isAssocArray(array $array): bool
     {
@@ -288,27 +252,20 @@ class SEOMateHelper
 
     /**
      * Renders a string template with context
-     *
-     * @param string $string
-     * @param array $context
-     * @return string
      */
     public static function renderString(string $string, array $context): string
     {
         try {
             return Craft::$app->getView()->renderString($string, $context);
-        } catch (\Throwable $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (\Throwable $throwable) {
+            Craft::error($throwable->getMessage(), __METHOD__);
         }
 
         return '';
     }
 
     /**
-     * @param string $url
-     *
-     * @return string
-     * @throws \craft\errors\SiteNotFoundException
+     * @throws SiteNotFoundException
      */
     public static function ensureAbsoluteUrl(string $url): string
     {

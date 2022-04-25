@@ -30,10 +30,6 @@ class SitemapHelper
 {
     /**
      * Returns urls for sitemap index
-     *
-     * @param string $handle
-     * @param array $definition
-     * @return array
      */
     public static function getIndexSitemapUrls(string $handle, array $definition): array
     {
@@ -57,14 +53,14 @@ class SitemapHelper
         $pages = ceil($count / $limit);
         $lastEntry = self::getLastEntry($query);
 
-        for ($i = 1; $i <= $pages; $i++) {
+        for ($i = 1; $i <= $pages; ++$i) {
             try {
                 $urls[] = [
                     'loc' => UrlHelper::siteUrl($settings->sitemapName . '-' . $handle . '-' . $i . '.xml'),
                     'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c'),
                 ];
-            } catch (Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (Exception $exception) {
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 
@@ -73,8 +69,6 @@ class SitemapHelper
 
     /**
      * Returns sitemap url for custom sitemap for including in sitemap index
-     *
-     * @return array
      */
     public static function getCustomIndexSitemapUrl(): array
     {
@@ -85,7 +79,6 @@ class SitemapHelper
     /**
      * Returns sitemap url for sitemap with the given name
      * @param $name
-     * @return array
      */
     public static function getSitemapUrl($name): array
     {
@@ -94,8 +87,8 @@ class SitemapHelper
                 'loc' => UrlHelper::siteUrl($name),
                 'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
             ];
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (Exception $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
         }
 
         return [];
@@ -103,11 +96,6 @@ class SitemapHelper
 
     /**
      * Returns URLs for element sitemap based on sitemap handle, definition and page
-     *
-     * @param string $handle
-     * @param array $definition
-     * @param int $page
-     * @return array
      */
     public static function getElementsSitemapUrls(string $handle, array $definition, int $page): array
     {
@@ -146,9 +134,6 @@ class SitemapHelper
 
     /**
      * Returns URLs for custom sitemap
-     *
-     * @param array $customUrls
-     * @return array
      */
     public static function getCustomSitemapUrls(array $customUrls): array
     {
@@ -160,8 +145,8 @@ class SitemapHelper
                     'loc' => UrlHelper::siteUrl($key),
                     'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
                 ], $params);
-            } catch (Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (Exception $exception) {
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 
@@ -170,11 +155,6 @@ class SitemapHelper
 
     /**
      * Helper method for adding URLs to sitemap
-     *
-     * @param \DOMDocument $document
-     * @param \DOMElement  $sitemap
-     * @param string       $nodeName
-     * @param array        $urls
      */
     public static function addUrlsToSitemap(\DOMDocument $document, \DOMElement $sitemap, string $nodeName, array $urls): void
     {
@@ -200,9 +180,7 @@ class SitemapHelper
     /**
      * Returns last entry from query
      *
-     * @param ElementQueryInterface $query
      *
-     * @return mixed
      */
     public static function getLastEntry(ElementQueryInterface $query): mixed
     {
@@ -214,7 +192,6 @@ class SitemapHelper
      * any of the keys are '*' or matches a site handle.
      *
      * @param $array
-     * @return bool
      */
     public static function isMultisiteConfig($array): bool
     {

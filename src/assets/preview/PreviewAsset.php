@@ -63,9 +63,7 @@ class PreviewAsset extends AssetBundle
                 'previewLabel' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
             ];
             $configJson = Json::encode($config, JSON_UNESCAPED_UNICODE);
-            $js = <<<JS
-                    window.Craft.SEOMatePlugin = {$configJson};
-JS;
+            $js = sprintf('window.Craft.SEOMatePlugin = %s;', $configJson);
             $view->registerJs($js, ViewBase::POS_HEAD);
         }
     }
@@ -73,9 +71,7 @@ JS;
     /**
      * Checks if we should enable live seo preview
      *
-     * @param bool|array|string $previewEnabled
      *
-     * @return bool
      */
     private function shouldPreview(bool|array|string $previewEnabled): bool
     {
@@ -101,6 +97,7 @@ JS;
             if (!\is_array($previewEnabled)) {
                 $previewEnabled = \explode(',', $previewEnabled);
             }
+
             if (!\in_array($currentSourceHandle, $previewEnabled, true)) {
                 return false;
             }

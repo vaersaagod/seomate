@@ -31,7 +31,6 @@ class SitemapController extends Controller
     /**
      * Action for returning index sitemap
      *
-     * @return Response|\yii\console\Response
      * @throws \Throwable
      */
     public function actionIndex(): Response|\yii\console\Response
@@ -44,7 +43,6 @@ class SitemapController extends Controller
     /**
      * Action for returning element sitemaps
      *
-     * @return Response|\yii\console\Response
      * @throws \Throwable
      */
     public function actionElement(): Response|\yii\console\Response
@@ -58,8 +56,6 @@ class SitemapController extends Controller
 
     /**
      * Action for returning the custom sitemap
-     *
-     * @return Response|\yii\console\Response
      */
     public function actionCustom(): Response|\yii\console\Response
     {
@@ -83,9 +79,7 @@ class SitemapController extends Controller
     /**
      * Helper function for returning an XML response
      *
-     * @param string $data
      *
-     * @return Response|\yii\console\Response
      */
     private function returnXml(string $data): Response|\yii\console\Response
     {

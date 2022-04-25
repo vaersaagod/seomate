@@ -24,25 +24,39 @@ class Settings extends Model
 
 
     public bool $cacheEnabled = true;
+
     public int|string $cacheDuration = 3600;
 
     public array|bool $previewEnabled = true;
 
     public string|null $previewLabel = null;
+
     public string|array|null $siteName = null;
+
     public string $metaTemplate = '';
+
     public bool $includeSitenameInTitle = true;
+
     public array $sitenameTitleProperties = ['title'];
+
     public string $sitenamePosition = 'after';
+
     public string $sitenameSeparator = '|';
+
     public string|null $defaultProfile = null;
+
     public bool $outputAlternate = true;
+
     public string|null $alternateFallbackSiteHandle = null;
+
     public string|null $altTextFieldHandle = null;
 
     public array $defaultMeta = [];
+
     public array $fieldProfiles = [];
+
     public array $profileMap = [];
+
     public array $additionalMeta = [];
 
     public array $metaPropertyTypes = [
@@ -62,11 +76,15 @@ class Settings extends Model
     ];
 
     public bool $applyRestrictions = false;
+
     public array $validImageExtensions = ['jpg', 'jpeg', 'gif', 'png'];
+
     public string $truncateSuffix = '...';
 
     public bool $returnImageAsset = false;
+
     public bool $useImagerIfInstalled = true;
+
     public array $imageTransformMap = [
         'image' => [
             'width' => 1200,
@@ -101,21 +119,19 @@ class Settings extends Model
     ];
 
     public bool $sitemapEnabled = false;
+
     public string $sitemapName = 'sitemap';
+
     public int $sitemapLimit = 500;
+
     public array $sitemapConfig = [];
+
     public array $sitemapSubmitUrlPatterns = [
         'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
         'http://www.bing.com/webmaster/ping.aspx?siteMap=',
     ];
 
 
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @return array
-     */
     public function rules(): array
     {
         return [

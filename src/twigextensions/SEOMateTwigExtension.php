@@ -33,21 +33,14 @@ class SEOMateTwigExtension extends AbstractExtension
     
     /**
      * Returns an array of Twig functions, used in Twig templates via:
-     *
-     * @return array
      */
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('renderMetaTag', [$this, 'renderMetaTag']),
+            new TwigFunction('renderMetaTag', fn(string $key, array|string $value): Markup => $this->renderMetaTag($key, $value)),
         ];
     }
 
-    /**
-     * @param string $key
-     * @param string|array $value
-     * @return Markup
-     */
     public function renderMetaTag(string $key, string|array $value): Markup
     {
         return SEOMate::$plugin->render->renderMetaTag($key, $value);
