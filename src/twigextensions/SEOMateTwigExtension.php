@@ -46,10 +46,10 @@ class SEOMateTwigExtension extends AbstractExtension
 
     /**
      * @param string $key
-     * @param string $value
+     * @param string|array $value
      * @return Markup
      */
-    public function renderMetaTag($key, $value): Markup
+    public function renderMetaTag(string $key, string|array $value): Markup
     {
         return SEOMate::$plugin->render->renderMetaTag($key, $value);
     }

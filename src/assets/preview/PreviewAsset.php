@@ -13,12 +13,12 @@ use craft\helpers\Json;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 use craft\web\View;
+use yii\web\View as ViewBase;
 
 use vaersaagod\seomate\SEOMate;
 
 /**
  * @author    Værsågod
- * @package   NmrCpModule
  * @since     1.0.0
  */
 class PreviewAsset extends AssetBundle
@@ -26,7 +26,7 @@ class PreviewAsset extends AssetBundle
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         $this->sourcePath = '@vaersaagod/seomate/assets/preview/dist';
 
@@ -44,7 +44,7 @@ class PreviewAsset extends AssetBundle
     /**
      * @inheritdoc
      */
-    public function registerAssetFiles($view)
+    public function registerAssetFiles($view): void
     {
         parent::registerAssetFiles($view);
 
@@ -57,10 +57,7 @@ class PreviewAsset extends AssetBundle
                 return;
             }
 
-            $previewAction = 'seomate/preview';
-            if (\version_compare(Craft::$app->getVersion(), '3.1', '>=')) {
-                $previewAction = Craft::$app->getSecurity()->hashData($previewAction);
-            }
+            $previewAction = Craft::$app->getSecurity()->hashData('seomate/preview');
 
             $config = [
                 'previewAction' => $previewAction,
@@ -70,17 +67,18 @@ class PreviewAsset extends AssetBundle
             $js = <<<JS
                     window.Craft.SEOMatePlugin = {$configJson};
 JS;
-            $view->registerJs($js, View::POS_HEAD);
+            $view->registerJs($js, ViewBase::POS_HEAD);
         }
     }
 
     /**
      * Checks if we should enable live seo preview
      *
-     * @param bool|string|array $previewEnabled
+     * @param bool|array|string $previewEnabled
+     *
      * @return bool
      */
-    private function shouldPreview($previewEnabled): bool
+    private function shouldPreview(bool|array|string $previewEnabled): bool
     {
         if ($previewEnabled === false) {
             return false;

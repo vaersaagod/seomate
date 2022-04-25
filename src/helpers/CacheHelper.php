@@ -22,23 +22,23 @@ use yii\caching\TagDependency;
  */
 class CacheHelper
 {
-    const SEOMATE_TAG = 'seomate_tag';
+    public const SEOMATE_TAG = 'seomate_tag';
 
-    const ELEMENT_TAG = 'seomate_meta_element_tag';
-    const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
+    public const ELEMENT_TAG = 'seomate_meta_element_tag';
+    public const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
 
-    const SITEMAP_INDEX_KEY = 'seomate_sitemap_index';
-    const ELEMENT_SITEMAP_KEY_PREFIX = 'seomate_element_sitemap';
-    const SITEMAP_INDEX_TAG = 'seomate_sitemap_index_tag';
-    const SITEMAP_ELEMENT_TAG = 'seomate_sitemap_element_tag';
-    const ELEMENT_SITEMAP_CLASS_PREFIX = 'seomate_element_sitemap_class';
-    const ELEMENT_SITEMAP_HANDLE_PREFIX = 'seomate_element_sitemap_handle';
+    public const SITEMAP_INDEX_KEY = 'seomate_sitemap_index';
+    public const ELEMENT_SITEMAP_KEY_PREFIX = 'seomate_element_sitemap';
+    public const SITEMAP_INDEX_TAG = 'seomate_sitemap_index_tag';
+    public const SITEMAP_ELEMENT_TAG = 'seomate_sitemap_element_tag';
+    public const ELEMENT_SITEMAP_CLASS_PREFIX = 'seomate_element_sitemap_class';
+    public const ELEMENT_SITEMAP_HANDLE_PREFIX = 'seomate_element_sitemap_handle';
 
 
     /**
      * Clears all SEOMate caches
      */
-    public static function clearAllCaches()
+    public static function clearAllCaches(): void
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::SEOMATE_TAG);
@@ -53,7 +53,7 @@ class CacheHelper
     public static function hasMetaCacheForElement($element): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementKey($element)) ? true : false;
+        return (bool)$cache->get(self::getElementKey($element));
     }
 
     /**
@@ -62,7 +62,7 @@ class CacheHelper
      * @param $element
      * @return mixed
      */
-    public static function getMetaCacheForElement($element)
+    public static function getMetaCacheForElement($element): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementKey($element));
@@ -73,7 +73,7 @@ class CacheHelper
      *
      * @param $element
      */
-    public static function deleteMetaCacheForElement($element)
+    public static function deleteMetaCacheForElement($element): void
     {
         $cache = Craft::$app->getCache();
         $cache->delete(self::getElementKey($element));
@@ -85,7 +85,7 @@ class CacheHelper
      * @param $element
      * @param $meta
      */
-    public static function setMetaCacheForElement($element, $meta)
+    public static function setMetaCacheForElement($element, $meta): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -112,7 +112,7 @@ class CacheHelper
     public static function hasCacheForSitemapIndex($siteId): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId) ? true : false;
+        return (bool)$cache->get(self::SITEMAP_INDEX_KEY.'_site'.$siteId);
     }
 
     /**
@@ -121,7 +121,7 @@ class CacheHelper
      * @param $siteId
      * @return mixed
      */
-    public static function getCacheForSitemapIndex($siteId)
+    public static function getCacheForSitemapIndex($siteId): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
@@ -132,7 +132,7 @@ class CacheHelper
      *
      * @param $siteId
      */
-    public static function deleteCacheForSitemapIndex($siteId)
+    public static function deleteCacheForSitemapIndex($siteId): void
     {
         $cache = Craft::$app->getCache();
         $cache->delete(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
@@ -144,7 +144,7 @@ class CacheHelper
      * @param $siteId
      * @param $data
      */
-    public static function setCacheForSitemapIndex($siteId, $data)
+    public static function setCacheForSitemapIndex($siteId, $data): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -172,7 +172,7 @@ class CacheHelper
     public static function hasCacheForElementSitemap($siteId, $handle, $page): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementSitemapKey($siteId, $handle, $page)) ? true : false;
+        return (bool)$cache->get(self::getElementSitemapKey($siteId, $handle, $page));
     }
 
     /**
@@ -183,7 +183,7 @@ class CacheHelper
      * @param $page
      * @return mixed
      */
-    public static function getCacheForElementSitemap($siteId, $handle, $page)
+    public static function getCacheForElementSitemap($siteId, $handle, $page): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementSitemapKey($siteId, $handle, $page));
@@ -192,7 +192,7 @@ class CacheHelper
     /**
      * Deletes all element sitemaps
      */
-    public static function deleteCacheForAllElementSitemaps()
+    public static function deleteCacheForAllElementSitemaps(): void
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::SITEMAP_ELEMENT_TAG);
@@ -203,7 +203,7 @@ class CacheHelper
      *
      * @param $element
      */
-    public static function deleteCacheForElementSitemapsByElement($element)
+    public static function deleteCacheForElementSitemapsByElement($element): void
     {
         $elementClass = \get_class($element);
         $siteId = $element->siteId ?? null;
@@ -221,7 +221,7 @@ class CacheHelper
      * @param $definition
      * @param $page
      */
-    public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page)
+    public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -248,7 +248,7 @@ class CacheHelper
     {
         $site = Craft::$app->getSites()->getSiteById($element->siteId, true);
         $pageNum = !Craft::$app->getRequest()->getIsConsoleRequest() ? Craft::$app->getRequest()->getPageNum() : null;
-        return self::ELEMENT_KEY_PREFIX . '_' . $site->handle . '_' . $element->id . ($pageNum ? '_' . $pageNum : '');
+        return self::ELEMENT_KEY_PREFIX . '_' . ($site->handle ?? 'unknown') . '_' . $element->id . ($pageNum ? '_' . $pageNum : '');
     }
 
     /**

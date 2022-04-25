@@ -16,7 +16,6 @@ use craft\helpers\UrlHelper;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SitemapHelper;
 use vaersaagod\seomate\SEOMate;
-use yii\base\Exception;
 
 
 /**
@@ -32,7 +31,7 @@ class SitemapService extends Component
      * Returns index sitemap
      *
      * @return string
-     * @throws Exception
+     * @throws \Throwable
      */
     public function index(): string
     {
@@ -124,9 +123,9 @@ class SitemapService extends Component
      * @param string $handle
      * @param $page
      * @return string
-     * @throws Exception
+     * @throws \Throwable
      */
-    public function elements($handle, $page): string
+    public function elements(string $handle, $page): string
     {
         $settings = SEOMate::$plugin->getSettings();
         $siteId = Craft::$app->getSites()->getCurrentSite()->id;
@@ -208,9 +207,9 @@ class SitemapService extends Component
     /**
      * Submits sitemap index to search engines
      *
-     * @throws Exception
+     * @throws \Throwable
      */
-    public function submit()
+    public function submit(): void
     {
         $settings = SEOMate::$plugin->getSettings();
         $pingUrls = $settings->sitemapSubmitUrlPatterns;
@@ -245,18 +244,22 @@ class SitemapService extends Component
      * @param string $type
      * @return \DOMElement
      */
-    private function getTopNode(&$document, $type = 'urlset'): \DOMElement
+    private function getTopNode(\DOMDocument &$document, string $type = 'urlset'): \DOMElement
     {
-        $node = $document->createElement($type);
-        $node->setAttribute(
-            'xmlns',
-            'http://www.sitemaps.org/schemas/sitemap/0.9'
-        );
-        $node->setAttribute(
-            'xmlns:xhtml',
-            'http://www.w3.org/1999/xhtml'
-        );
-
+        try {
+            $node = $document->createElement($type);
+            $node->setAttribute(
+                'xmlns',
+                'http://www.sitemaps.org/schemas/sitemap/0.9'
+            );
+            $node->setAttribute(
+                'xmlns:xhtml',
+                'http://www.w3.org/1999/xhtml'
+            );
+        } catch (\Throwable $throwable) {
+            Craft::error($throwable->getMessage());
+        }
+        
         return $node;
     }
 }

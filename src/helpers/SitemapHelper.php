@@ -35,7 +35,7 @@ class SitemapHelper
      * @param array $definition
      * @return array
      */
-    public static function getIndexSitemapUrls($handle, $definition): array
+    public static function getIndexSitemapUrls(string $handle, array $definition): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
@@ -45,14 +45,13 @@ class SitemapHelper
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
             $criteria = $definition['criteria'] ?? [];
-            $query = $elementClass::find();
-            Craft::configure($query, $criteria);
         } else {
             $elementClass = Entry::class;
             $criteria = ['section' => $handle];
-            $query = $elementClass::find();
-            Craft::configure($query, $criteria);
         }
+        
+        $query = $elementClass::find();
+        Craft::configure($query, $criteria);
 
         $count = $query->limit(null)->count();
         $pages = ceil($count / $limit);
@@ -107,10 +106,10 @@ class SitemapHelper
      * 
      * @param string $handle
      * @param array $definition
-     * @param $page
+     * @param int $page
      * @return array
      */
-    public static function getElementsSitemapUrls($handle, $definition, $page): array
+    public static function getElementsSitemapUrls(string $handle, array $definition, int $page): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
@@ -122,14 +121,14 @@ class SitemapHelper
             $criteria = $definition['criteria'] ?? [];
             $query = $elementClass::find();
             $params = $definition['params'] ?? [];
-            Craft::configure($query, $criteria);
         } else {
             $elementClass = Entry::class;
             $criteria = ['section' => $handle];
             $query = $elementClass::find();
             $params = $definition;
-            Craft::configure($query, $criteria);
         }
+        
+        Craft::configure($query, $criteria);
 
         $elements = $query->limit($limit)->offset(($page - 1) * $limit)->all();
 
@@ -151,7 +150,7 @@ class SitemapHelper
      * @param array $customUrls
      * @return array
      */
-    public static function getCustomSitemapUrls($customUrls): array
+    public static function getCustomSitemapUrls(array $customUrls): array
     {
         $urls = [];
 
@@ -173,19 +172,27 @@ class SitemapHelper
      * Helper method for adding URLs to sitemap 
      * 
      * @param \DOMDocument $document
-     * @param \DOMElement $sitemap
-     * @param string $nodeName
-     * @param array $urls
+     * @param \DOMElement  $sitemap
+     * @param string       $nodeName
+     * @param array        $urls
      */
-    public static function addUrlsToSitemap(&$document, &$sitemap, $nodeName, $urls)
+    public static function addUrlsToSitemap(\DOMDocument $document, \DOMElement $sitemap, string $nodeName, array $urls): void
     {
         foreach ($urls as $url) {
-            $topNode = $document->createElement($nodeName);
-            $sitemap->appendChild($topNode);
+            try {
+                $topNode = $document->createElement($nodeName);
+                $sitemap->appendChild($topNode);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+            }
 
             foreach ($url as $key => $val) {
-                $node = $document->createElement($key, $val);
-                $topNode->appendChild($node);
+                try {
+                    $node = $document->createElement($key, $val);
+                    $topNode->appendChild($node);
+                } catch (\Throwable $throwable) {
+                    Craft::error($throwable->getMessage(), __METHOD__);
+                }
             }
         }
     }
@@ -194,9 +201,10 @@ class SitemapHelper
      * Returns last entry from query
      * 
      * @param ElementQueryInterface $query
+     *
      * @return mixed
      */
-    public static function getLastEntry($query)
+    public static function getLastEntry(ElementQueryInterface $query): mixed
     {
         return $query->orderBy('elements.dateUpdated DESC')->one();
     }

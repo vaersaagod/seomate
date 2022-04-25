@@ -12,9 +12,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\Template;
 
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
-
+use Twig\Markup;
 use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 
@@ -33,9 +31,9 @@ class RenderService extends Component
      * 
      * @param string $key
      * @param string|array $value
-     * @return \Twig\Markup
+     * @return Markup
      */
-    public function renderMetaTag($key, $value) 
+    public function renderMetaTag(string $key, string|array $value): Markup
     {
         $settings = SEOMate::$plugin->getSettings();
         $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
@@ -45,10 +43,8 @@ class RenderService extends Component
 
         // Check if the key matches a regexp template key
         foreach ($tagTemplateMap as $tagTemplateKey => $tagTemplateValue) {
-            if (strpos($tagTemplateKey, '/') === 0) {
-                if (preg_match($tagTemplateKey, $key)) {
-                    $template = $tagTemplateValue;
-                }
+            if (str_starts_with($tagTemplateKey, '/') && preg_match($tagTemplateKey, $key)) {
+                $template = $tagTemplateValue;
             }
         } 
         
@@ -67,9 +63,7 @@ class RenderService extends Component
             foreach ($value as $val) {
                 $r .= Craft::$app->getView()->renderString($template, ['key' => $key, 'value' => $val]);
             }
-        } catch (LoaderError $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-        } catch (SyntaxError $e) {
+        } catch (\Throwable $e) {
             Craft::error($e->getMessage(), __METHOD__);
         }
 

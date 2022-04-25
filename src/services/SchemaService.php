@@ -36,7 +36,7 @@ class SchemaService extends Component
      * @param array $listItems
      * @return BreadcrumbList
      */
-    public function breadcrumb($listItems): BreadcrumbList
+    public function breadcrumb(array $listItems): BreadcrumbList
     {
         $breadcrumbList = new BreadcrumbList();
         $i = 1;

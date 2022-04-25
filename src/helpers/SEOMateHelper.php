@@ -9,15 +9,13 @@
 namespace vaersaagod\seomate\helpers;
 
 use Craft;
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\db\ElementQuery;
 use craft\elements\MatrixBlock;
-use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
@@ -35,9 +33,9 @@ class SEOMateHelper
      * Updates Settings model wit override values
      *
      * @param Settings $settings
-     * @param $overrides
+     * @param array $overrides
      */
-    public static function updateSettings(&$settings, $overrides)
+    public static function updateSettings(Settings $settings, array $overrides): void
     {
         foreach ($overrides as $key => $val) {
             $settings[$key] = $val;
@@ -47,11 +45,11 @@ class SEOMateHelper
     /**
      * Gets the profile to use from element and settings
      *
-     * @param $element
-     * @param $settings
-     * @return mixed|null
+     * @param Element $element
+     * @param Settings $settings
+     * @return mixed
      */
-    public static function getElementProfile($element, $settings)
+    public static function getElementProfile(Element $element, Settings $settings): mixed
     {
         if (!isset($settings->profileMap) || !\is_array($settings->profileMap)) {
             return null;
@@ -89,10 +87,10 @@ class SEOMateHelper
     /**
      * Returns the meta type from key
      *
-     * @param $key
+     * @param string $key
      * @return string
      */
-    public static function getMetaTypeByKey($key): string
+    public static function getMetaTypeByKey(string $key): string
     {
         $settings = SEOMate::$plugin->getSettings();
         $typeMap = self::expandMap($settings->metaPropertyTypes);
@@ -116,7 +114,7 @@ class SEOMateHelper
      * @param string $handle
      * @return array
      */
-    public static function reduceScopeAndHandle($scope, $handle): array
+    public static function reduceScopeAndHandle(array $scope, string $handle): array
     {
         if (strrpos($handle, '.') === false) {
             return [$scope, $handle];
@@ -144,21 +142,19 @@ class SEOMateHelper
     }
 
     /**
-     * @param ElementInterface|array $scope
-     * @param string $handle
-     * @param string $type
-     * @return mixed
+     * @param array|ElementInterface $scope
+     * @param string                 $handle
+     * @param string                 $type
+     *
+     * @return string|Asset|null
      */
-    public static function getPropertyDataByScopeAndHandle($scope, $handle, $type)
+    public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
     {
         if ($scope[$handle] ?? null) { // Root field
-
             if ($type === 'text') {
-
                 if ($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) {
                     return $value;
                 }
-
             } else if ($type === 'image') {
                 $elements = $scope[$handle];
                 $assets = ($elements instanceof ElementQuery) ? $elements->all() : $elements;
@@ -172,7 +168,7 @@ class SEOMateHelper
                 }
             }
 
-        } else if ((bool)\strpos($handle, ':')) {
+        } else if (\strpos($handle, ':')) {
 
             // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
             // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
@@ -243,9 +239,10 @@ class SEOMateHelper
      * Checks if give Asset is in the list of $settings->validImageExtensions
      *
      * @param Asset $asset
+     *
      * @return bool
      */
-    public static function isValidImageAsset($asset): bool
+    public static function isValidImageAsset(Asset $asset): bool
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -262,7 +259,7 @@ class SEOMateHelper
      * @param array $map
      * @return array
      */
-    public static function expandMap($map): array
+    public static function expandMap(array $map): array
     {
         $r = [];
 
@@ -283,7 +280,7 @@ class SEOMateHelper
      * @param array $array
      * @return bool
      */
-    public static function isAssocArray($array): bool
+    public static function isAssocArray(array $array): bool
     {
         if (array() === $array) {
             return false;
@@ -299,13 +296,11 @@ class SEOMateHelper
      * @param array $context
      * @return string
      */
-    public static function renderString($string, $context): string
+    public static function renderString(string $string, array $context): string
     {
         try {
             return Craft::$app->getView()->renderString($string, $context);
-        } catch (LoaderError $e) {
-            Craft::error($e->getMessage(), __METHOD__);
-        } catch (SyntaxError $e) {
+        } catch (\Throwable $e) {
             Craft::error($e->getMessage(), __METHOD__);
         }
 
@@ -314,7 +309,9 @@ class SEOMateHelper
 
     /**
      * @param string $url
+     *
      * @return string
+     * @throws \craft\errors\SiteNotFoundException
      */
     public static function ensureAbsoluteUrl(string $url): string
     {
@@ -332,7 +329,7 @@ class SEOMateHelper
             return UrlHelper::urlWithScheme($url, $scheme);
         }
 
-        if (strpos($url, '/') === 0) {
+        if (str_starts_with($url, '/')) {
             return $scheme . '://' . $siteUrlParts['host'] . $url;
         }
 

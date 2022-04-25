@@ -32,8 +32,10 @@ class UrlsService extends Component
      * 
      * @param $context
      * @return null|string
+     *                    
+     * @throws \Throwable                   
      */
-    public function getCanonicalUrl($context)
+    public function getCanonicalUrl($context): ?string
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -49,11 +51,7 @@ class UrlsService extends Component
         }
 
         /** @var Element $element */
-        if (isset($overrideObject['element'])) {
-            $element = $overrideObject['element'];
-        } else {
-            $element = $craft->urlManager->getMatchedElement();
-        }
+        $element = $overrideObject['element'] ?? $craft->urlManager->getMatchedElement();
 
         if ($element && $element->getUrl()) {
             $siteId = $element->siteId;
@@ -74,7 +72,7 @@ class UrlsService extends Component
         }
 
         $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
-        $useQueryParam = strpos($pageTrigger, '?') === 0;
+        $useQueryParam = str_starts_with($pageTrigger, '?');
         if ($useQueryParam) {
             $param = trim($pageTrigger, '?=');
             return UrlHelper::siteUrl($path, [$param => $page], null, $siteId);
@@ -168,7 +166,7 @@ class UrlsService extends Component
      * @param Site $site
      * @return string
      */
-    private function prepAlternateUrlForSite($uri, $site): string
+    private function prepAlternateUrlForSite(string $uri, Site $site): string
     {
         $url = ($uri === '__home__') ? '' : $uri;
         

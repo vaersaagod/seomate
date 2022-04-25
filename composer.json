@@ -2,7 +2,7 @@
     "name": "vaersaagod/seomate",
     "description": "SEO, mate! It's important.",
     "type": "craft-plugin",
-    "version": "1.1.12",
+    "version": "2.0.0-beta",
     "keywords": [
         "craft",
         "cms",
@@ -25,7 +25,8 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0",
+        "php": "^8.0",
+        "craftcms/cms": "^4.0.0-beta.1",
         "spatie/schema-org": "^2.0|^3.0"
     },
     "autoload": {

@@ -23,30 +23,29 @@ class Settings extends Model
     // =========================================================================
 
 
-    public $cacheEnabled = true;
-    public $cacheDuration = 3600;
+    public bool $cacheEnabled = true;
+    public int|string $cacheDuration = 3600;
 
-    /** @var bool|string[]|null */
-    public $previewEnabled = true;
+    public array|bool $previewEnabled = true;
 
-    public $previewLabel = null;
-    public $siteName = null;
-    public $metaTemplate = '';
-    public $includeSitenameInTitle = true;
-    public $sitenameTitleProperties = ['title'];
-    public $sitenamePosition = 'after';
-    public $sitenameSeparator = '|';
-    public $defaultProfile = null;
-    public $outputAlternate = true;
-    public $alternateFallbackSiteHandle = null;
-    public $altTextFieldHandle = null;
+    public string|null $previewLabel = null;
+    public string|array|null $siteName = null;
+    public string $metaTemplate = '';
+    public bool $includeSitenameInTitle = true;
+    public array $sitenameTitleProperties = ['title'];
+    public string $sitenamePosition = 'after';
+    public string $sitenameSeparator = '|';
+    public string|null $defaultProfile = null;
+    public bool $outputAlternate = true;
+    public string|null $alternateFallbackSiteHandle = null;
+    public string|null $altTextFieldHandle = null;
 
-    public $defaultMeta = [];
-    public $fieldProfiles = [];
-    public $profileMap = [];
-    public $additionalMeta = [];
+    public array $defaultMeta = [];
+    public array $fieldProfiles = [];
+    public array $profileMap = [];
+    public array $additionalMeta = [];
 
-    public $metaPropertyTypes = [
+    public array $metaPropertyTypes = [
         'title,og:title,twitter:title' => [
             'type' => 'text',
             'minLength' => 10,
@@ -62,14 +61,13 @@ class Settings extends Model
         ],
     ];
 
-    public $applyRestrictions = false;
-    public $validImageExtensions = ['jpg', 'jpeg', 'gif', 'png'];
-    public $truncateSuffix = '...';
-    public $truncateLength = false; // FIXME: no longer in use
+    public bool $applyRestrictions = false;
+    public array $validImageExtensions = ['jpg', 'jpeg', 'gif', 'png'];
+    public string $truncateSuffix = '...';
 
-    public $returnImageAsset = false;
-    public $useImagerIfInstalled = true;
-    public $imageTransformMap = [
+    public bool $returnImageAsset = false;
+    public bool $useImagerIfInstalled = true;
+    public array $imageTransformMap = [
         'image' => [
             'width' => 1200,
             'height' => 675,
@@ -87,7 +85,7 @@ class Settings extends Model
         ],
     ];
 
-    public $autofillMap = [
+    public array $autofillMap = [
         'og:title' => 'title',
         'og:description' => 'description',
         'og:image' => 'image',
@@ -96,17 +94,17 @@ class Settings extends Model
         'twitter:image' => 'image',
     ];
 
-    public $tagTemplateMap = [
+    public array $tagTemplateMap = [
         'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
         'title' => '<title>{{ value }}</title>',
         '/^og:/,/^fb:/' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
 
-    public $sitemapEnabled = false;
-    public $sitemapName = 'sitemap';
-    public $sitemapLimit = 500;
-    public $sitemapConfig = [];
-    public $sitemapSubmitUrlPatterns = [
+    public bool $sitemapEnabled = false;
+    public string $sitemapName = 'sitemap';
+    public int $sitemapLimit = 500;
+    public array $sitemapConfig = [];
+    public array $sitemapSubmitUrlPatterns = [
         'http://www.google.com/webmasters/sitemaps/ping?sitemap=',
         'http://www.bing.com/webmaster/ping.aspx?siteMap=',
     ];
