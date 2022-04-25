@@ -13,12 +13,12 @@ use craft\base\Component;
 use craft\helpers\Template;
 
 use Twig\Markup;
-use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\SEOMateHelper;
+use vaersaagod\seomate\SEOMate;
 
 /**
  * RenderService Service
- * 
+ *
  * @author    Værsågod
  * @package   SEOMate
  * @since     1.0.0
@@ -26,9 +26,9 @@ use vaersaagod\seomate\helpers\SEOMateHelper;
 class RenderService extends Component
 {
     /**
-     * Renders meta tag by key and value. 
+     * Renders meta tag by key and value.
      * Uses tag template from tagTemplateMap config setting.
-     * 
+     *
      * @param string $key
      * @param string|array $value
      * @return Markup
@@ -46,7 +46,7 @@ class RenderService extends Component
             if (str_starts_with($tagTemplateKey, '/') && preg_match($tagTemplateKey, $key)) {
                 $template = $tagTemplateValue;
             }
-        } 
+        }
         
         // Check if we have an exact match. This will overwrite any regexp match.
         if (isset($tagTemplateMap[$key])) {

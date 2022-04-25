@@ -8,31 +8,26 @@
 
 namespace vaersaagod\seomate\controllers;
 
-use vaersaagod\seomate\SEOMate;
-
 use Craft;
-use craft\base\Element;
-use craft\elements\Category;
-use craft\elements\Entry;
-use craft\helpers\DateTimeHelper;
-use craft\models\EntryDraft;
-use craft\models\Section;
-use craft\web\Controller;
-use craft\web\Response;
-use craft\web\View;
 
+use craft\base\Element;
 use craft\commerce\elements\Product;
 use craft\commerce\helpers\Product as ProductHelper;
+use craft\elements\Category;
+use craft\elements\Entry;
+use craft\web\Controller;
+use craft\web\Response;
 
-use yii\web\Response as YiiResponse;
+use craft\web\View;
+use vaersaagod\seomate\SEOMate;
+
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+use yii\web\Response as YiiResponse;
 use yii\web\ServerErrorHttpException;
-
-use DateTime;
 
 /**
  * Preview Controller
@@ -147,7 +142,6 @@ class PreviewController extends Controller
      */
     private function _showProduct(Product $product): Response|YiiResponse
     {
-
         $productType = $product->getType();
         if (!$productType) {
             throw new ServerErrorHttpException('Product type not found.');

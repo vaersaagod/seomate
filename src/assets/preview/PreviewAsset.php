@@ -13,9 +13,9 @@ use craft\helpers\Json;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 use craft\web\View;
-use yii\web\View as ViewBase;
-
 use vaersaagod\seomate\SEOMate;
+
+use yii\web\View as ViewBase;
 
 /**
  * @author    Værsågod
@@ -49,7 +49,6 @@ class PreviewAsset extends AssetBundle
         parent::registerAssetFiles($view);
 
         if ($view instanceof View) {
-
             $settings = SEOMate::$plugin->getSettings();
             $previewEnabled = $settings->previewEnabled;
 
@@ -109,5 +108,4 @@ JS;
 
         return true;
     }
-
 }

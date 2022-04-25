@@ -12,16 +12,16 @@ use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\helpers\Json;
-use craft\helpers\UrlHelper;
-use craft\web\UrlManager;
-use craft\web\twig\variables\CraftVariable;
 use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterPreviewTargetsEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\utilities\ClearCaches;
+use craft\web\twig\variables\CraftVariable;
+use craft\web\UrlManager;
 use craft\web\View;
 
 use Twig\Error\LoaderError;
@@ -31,15 +31,15 @@ use Twig\Error\SyntaxError;
 use vaersaagod\seomate\assets\preview\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
+use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\services\MetaService;
 use vaersaagod\seomate\services\RenderService;
 use vaersaagod\seomate\services\SchemaService;
 use vaersaagod\seomate\services\SitemapService;
 use vaersaagod\seomate\services\UrlsService;
+use vaersaagod\seomate\twigextensions\SEOMateTwigExtension;
 use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
-use vaersaagod\seomate\twigextensions\SEOMateTwigExtension;
-use vaersaagod\seomate\models\Settings;
 
 use yii\base\Event;
 use yii\base\InvalidConfigException;
@@ -99,7 +99,7 @@ class SEOMate extends Plugin
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
-            static function (Event $event) {
+            static function(Event $event) {
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('schema', SchemaVariable::class);
@@ -118,7 +118,7 @@ class SEOMate extends Plugin
 
         // Adds SEOMate to the Clear Caches tool
         Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS,
-            static function (RegisterCacheOptionsEvent $event) {
+            static function(RegisterCacheOptionsEvent $event) {
                 $event->options[] = [
                     'key' => 'seomate-cache',
                     'label' => Craft::t('seomate', 'SEOMate cache'),
@@ -129,7 +129,7 @@ class SEOMate extends Plugin
 
         // After save element event handler
         Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT,
-            static function (ElementEvent $event) {
+            static function(ElementEvent $event) {
                 $element = $event->element;
                 
                 if ($element instanceof Element) {
@@ -149,7 +149,7 @@ class SEOMate extends Plugin
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-                static function (RegisterUrlRulesEvent $event) use ($settings) {
+                static function(RegisterUrlRulesEvent $event) use ($settings) {
                     $sitemapName = $settings->sitemapName;
 
                     $event->rules[$sitemapName . '.xml'] = 'seomate/sitemap/index';
@@ -170,7 +170,7 @@ class SEOMate extends Plugin
             Event::on(
                 Element::class,
                 Element::EVENT_REGISTER_PREVIEW_TARGETS,
-                static function (RegisterPreviewTargetsEvent $event) use ($settings) {
+                static function(RegisterPreviewTargetsEvent $event) use ($settings) {
                     /** @var Element $element */
                     $element = $event->sender;
                     if (!$element->getUrl()) {
@@ -195,12 +195,11 @@ class SEOMate extends Plugin
                 Event::on(
                     UrlManager::class,
                     UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-                    static function (RegisterUrlRulesEvent $event) {
+                    static function(RegisterUrlRulesEvent $event) {
                         $event->rules['seomate/preview'] = 'seomate/preview/preview';
                     }
                 );
             }
-            
         }
     }
 

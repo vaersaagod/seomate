@@ -13,9 +13,7 @@ use craft\web\Controller;
 
 use craft\web\Response;
 use vaersaagod\seomate\SEOMate;
-use yii\base\Exception;
 use yii\base\ExitException;
-
 
 /**
  * Sitemap Controller
@@ -28,12 +26,11 @@ use yii\base\ExitException;
  */
 class SitemapController extends Controller
 {
-
     protected int|bool|array $allowAnonymous = true;
 
     /**
-     * Action for returning index sitemap 
-     * 
+     * Action for returning index sitemap
+     *
      * @return Response|\yii\console\Response
      * @throws \Throwable
      */
@@ -45,8 +42,8 @@ class SitemapController extends Controller
     }
 
     /**
-     * Action for returning element sitemaps 
-     * 
+     * Action for returning element sitemaps
+     *
      * @return Response|\yii\console\Response
      * @throws \Throwable
      */
@@ -60,8 +57,8 @@ class SitemapController extends Controller
     }
 
     /**
-     * Action for returning the custom sitemap 
-     * 
+     * Action for returning the custom sitemap
+     *
      * @return Response|\yii\console\Response
      */
     public function actionCustom(): Response|\yii\console\Response
@@ -73,7 +70,7 @@ class SitemapController extends Controller
 
     /**
      * Action for submitting sitemap to search engines
-     * 
+     *
      * @throws ExitException
      * @throws \Throwable
      */
@@ -85,7 +82,7 @@ class SitemapController extends Controller
 
     /**
      * Helper function for returning an XML response
-     * 
+     *
      * @param string $data
      *
      * @return Response|\yii\console\Response

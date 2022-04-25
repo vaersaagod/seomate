@@ -47,7 +47,7 @@ class SchemaService extends Component
             $breadcrumbListItem->position($i++);
             $breadcrumbListItem->item([
                 '@id' => $listItem['url'],
-                'name' => $listItem['name']
+                'name' => $listItem['name'],
             ]);
 
             $elements[] = $breadcrumbListItem;

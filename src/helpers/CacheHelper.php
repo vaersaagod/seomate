@@ -112,7 +112,7 @@ class CacheHelper
     public static function hasCacheForSitemapIndex($siteId): bool
     {
         $cache = Craft::$app->getCache();
-        return (bool)$cache->get(self::SITEMAP_INDEX_KEY.'_site'.$siteId);
+        return (bool)$cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
     }
 
     /**
@@ -278,7 +278,7 @@ class CacheHelper
 
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
-            //$criteria = $definition['criteria'] ?? [];
+        //$criteria = $definition['criteria'] ?? [];
         } else {
             $elementClass = Entry::class;
             //$criteria = ['section' => $handle];
@@ -303,5 +303,4 @@ class CacheHelper
     {
         return self::ELEMENT_SITEMAP_CLASS_PREFIX . '_' . str_replace('\\', '-', $class) . '_site' . $siteId;
     }
-
 }

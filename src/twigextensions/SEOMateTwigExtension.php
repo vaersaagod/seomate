@@ -14,7 +14,6 @@ use Twig\TwigFunction;
 
 use vaersaagod\seomate\SEOMate;
 
-
 /**
  * @author    Værsågod
  * @package   SEOMate

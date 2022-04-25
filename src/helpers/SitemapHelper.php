@@ -30,7 +30,7 @@ class SitemapHelper
 {
     /**
      * Returns urls for sitemap index
-     * 
+     *
      * @param string $handle
      * @param array $definition
      * @return array
@@ -61,7 +61,7 @@ class SitemapHelper
             try {
                 $urls[] = [
                     'loc' => UrlHelper::siteUrl($settings->sitemapName . '-' . $handle . '-' . $i . '.xml'),
-                    'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c')
+                    'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c'),
                 ];
             } catch (Exception $e) {
                 Craft::error($e->getMessage(), __METHOD__);
@@ -92,7 +92,7 @@ class SitemapHelper
         try {
             return [
                 'loc' => UrlHelper::siteUrl($name),
-                'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c')
+                'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
             ];
         } catch (Exception $e) {
             Craft::error($e->getMessage(), __METHOD__);
@@ -103,7 +103,7 @@ class SitemapHelper
 
     /**
      * Returns URLs for element sitemap based on sitemap handle, definition and page
-     * 
+     *
      * @param string $handle
      * @param array $definition
      * @param int $page
@@ -146,7 +146,7 @@ class SitemapHelper
 
     /**
      * Returns URLs for custom sitemap
-     * 
+     *
      * @param array $customUrls
      * @return array
      */
@@ -169,8 +169,8 @@ class SitemapHelper
     }
 
     /**
-     * Helper method for adding URLs to sitemap 
-     * 
+     * Helper method for adding URLs to sitemap
+     *
      * @param \DOMDocument $document
      * @param \DOMElement  $sitemap
      * @param string       $nodeName
@@ -199,7 +199,7 @@ class SitemapHelper
 
     /**
      * Returns last entry from query
-     * 
+     *
      * @param ElementQueryInterface $query
      *
      * @return mixed
@@ -212,11 +212,11 @@ class SitemapHelper
     /**
      * Checks if the supplied config array is a multi-site config. Returns true if
      * any of the keys are '*' or matches a site handle.
-     * 
+     *
      * @param $array
      * @return bool
      */
-    public static function isMultisiteConfig($array): bool 
+    public static function isMultisiteConfig($array): bool
     {
         if (isset($array['*'])) {
             return true;

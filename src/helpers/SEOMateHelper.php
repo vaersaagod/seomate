@@ -12,8 +12,8 @@ use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
-use craft\elements\db\MatrixBlockQuery;
 use craft\elements\db\ElementQuery;
+use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
 use craft\helpers\UrlHelper;
 use vaersaagod\seomate\models\Settings;
@@ -28,7 +28,6 @@ use vaersaagod\seomate\SEOMate;
  */
 class SEOMateHelper
 {
-
     /**
      * Updates Settings model wit override values
      *
@@ -133,7 +132,7 @@ class SEOMateHelper
 
             if ($first === true) {
                 $currentScope = $scope[$part] ?? null;
-            } else if ($currentScope !== null) {
+            } elseif ($currentScope !== null) {
                 $currentScope = $currentScope[$part] ?? null;
             }
         }
@@ -155,7 +154,7 @@ class SEOMateHelper
                 if ($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) {
                     return $value;
                 }
-            } else if ($type === 'image') {
+            } elseif ($type === 'image') {
                 $elements = $scope[$handle];
                 $assets = ($elements instanceof ElementQuery) ? $elements->all() : $elements;
 
@@ -167,8 +166,7 @@ class SEOMateHelper
                     }
                 }
             }
-
-        } else if (\strpos($handle, ':')) {
+        } elseif (\strpos($handle, ':')) {
 
             // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
             // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
@@ -201,8 +199,7 @@ class SEOMateHelper
                         return $value;
                     }
                 }
-
-            } else if ($type === 'image') {
+            } elseif ($type === 'image') {
                 if (Craft::$app->getRequest()->getIsLivePreview()) {
                     $blocks = $blockQuery->all();
                 } else {
@@ -315,7 +312,6 @@ class SEOMateHelper
      */
     public static function ensureAbsoluteUrl(string $url): string
     {
-
         if (UrlHelper::isAbsoluteUrl($url)) {
             return $url;
         }

@@ -14,11 +14,10 @@ use craft\base\Element;
 use craft\elements\Asset;
 use craft\errors\SiteNotFoundException;
 
-use vaersaagod\seomate\models\Settings;
-use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
-
+use vaersaagod\seomate\models\Settings;
+use vaersaagod\seomate\SEOMate;
 
 /**
  * @author    Værsågod
@@ -27,7 +26,6 @@ use vaersaagod\seomate\helpers\SEOMateHelper;
  */
 class MetaService extends Component
 {
-
     /**
      * Gets all meta data based on context
      *
@@ -262,7 +260,6 @@ class MetaService extends Component
                             $meta[$key . ':alt'] = $alt;
                         }
                     }
-
                 }
             }
         }
@@ -392,7 +389,7 @@ class MetaService extends Component
     
     /**
      * Apply any filters and encoding
-     * 
+     *
      * @param array $meta
      * @return array
      */
@@ -426,7 +423,7 @@ class MetaService extends Component
         try {
             if (\is_array($settings->siteName)) {
                 $siteName = $settings->siteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? '';
-            } else if ($settings->siteName && \is_string($settings->siteName)) {
+            } elseif ($settings->siteName && \is_string($settings->siteName)) {
                 $siteName = $settings->siteName;
             } else {
                 $siteName = Craft::$app->getSites()->getCurrentSite()->name ?? '';

@@ -17,7 +17,6 @@ use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SitemapHelper;
 use vaersaagod\seomate\SEOMate;
 
-
 /**
  * SitemapService Service
  *
@@ -83,7 +82,6 @@ class SitemapService extends Component
             if ($additionalSitemaps && \is_array($additionalSitemaps) && \count($additionalSitemaps) > 0) {
                 $additionalUrls = [];
                 if (SitemapHelper::isMultisiteConfig($additionalSitemaps)) {
-                    
                     if (isset($additionalSitemaps['*'])) {
                         $additionalUrls = array_merge($additionalUrls, $additionalSitemaps['*']);
                     }
@@ -97,8 +95,6 @@ class SitemapService extends Component
                     } catch (SiteNotFoundException $e) {
                         Craft::error($e->getMessage(), __METHOD__);
                     }
-                    
-                    
                 } else {
                     $additionalUrls = array_merge($additionalUrls, $additionalSitemaps);
                 }

@@ -15,8 +15,8 @@ use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 
-use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\SEOMateHelper;
+use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
 
@@ -29,11 +29,11 @@ class UrlsService extends Component
 {
     /**
      * Gets the canonical URL from context
-     * 
+     *
      * @param $context
      * @return null|string
-     *                    
-     * @throws \Throwable                   
+     *
+     * @throws \Throwable
      */
     public function getCanonicalUrl($context): ?string
     {
@@ -84,7 +84,7 @@ class UrlsService extends Component
 
     /**
      * Gets the alternate URLs from context
-     * 
+     *
      * @param $context
      * @return array
      */
@@ -132,7 +132,7 @@ class UrlsService extends Component
                 if ($url && $url !== '') {
                     $alternateUrls[] = [
                         'url' => $url,
-                        'language' => 'x-default'
+                        'language' => 'x-default',
                     ];
                 }
             }
@@ -149,7 +149,7 @@ class UrlsService extends Component
                     if ($url && $url !== '') {
                         $alternateUrls[] = [
                             'url' => $url,
-                            'language' => strtolower(str_replace('_', '-', $site->language))
+                            'language' => strtolower(str_replace('_', '-', $site->language)),
                         ];
                     }
                 }
@@ -161,7 +161,7 @@ class UrlsService extends Component
 
     /**
      * Returns a fully qualified site URL from uri and site
-     * 
+     *
      * @param string $uri
      * @param Site $site
      * @return string

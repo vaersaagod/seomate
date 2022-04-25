@@ -49,15 +49,15 @@ class Settings extends Model
         'title,og:title,twitter:title' => [
             'type' => 'text',
             'minLength' => 10,
-            'maxLength' => 60
+            'maxLength' => 60,
         ],
         'description,og:description,twitter:description' => [
             'type' => 'text',
             'minLength' => 50,
-            'maxLength' => 300
+            'maxLength' => 300,
         ],
         'image,og:image,twitter:image' => [
-            'type' => 'image'
+            'type' => 'image',
         ],
     ];
 
