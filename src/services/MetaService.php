@@ -8,17 +8,18 @@
 
 namespace vaersaagod\seomate\services;
 
+use aelvan\imager\Imager;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
 use craft\errors\SiteNotFoundException;
+use spacecatninja\imagerx\ImagerX;
 
-use vaersaagod\seomate\models\Settings;
-use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
-
+use vaersaagod\seomate\models\Settings;
+use vaersaagod\seomate\SEOMate;
 
 /**
  * @author    Værsågod
@@ -27,14 +28,10 @@ use vaersaagod\seomate\helpers\SEOMateHelper;
  */
 class MetaService extends Component
 {
-
     /**
      * Gets all meta data based on context
-     *
-     * @param array $context
-     * @return array
      */
-    public function getContextMeta($context): array
+    public function getContextMeta(array $context): array
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -64,7 +61,7 @@ class MetaService extends Component
         }
 
         // Additional meta data
-        if ($settings->additionalMeta !== null && \count($settings->additionalMeta) > 0) {
+        if ($settings->additionalMeta !== null && $settings->additionalMeta !== []) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
         }
         
@@ -74,7 +71,7 @@ class MetaService extends Component
         }
 
         // Add default meta if available
-        if ($settings->defaultMeta !== null && \count($settings->defaultMeta) > 0) {
+        if ($settings->defaultMeta !== null && $settings->defaultMeta !== []) {
             $meta = $this->processDefaultMeta($meta, $context, $settings);
         }
 
@@ -110,19 +107,16 @@ class MetaService extends Component
     /**
      * Gets all element meta data
      *
-     * @param Element $element
-     * @param null|array $overrides
-     * @return array
+     * @param array|null $overrides
+     *
      */
-    public function getElementMeta($element, $overrides = null): array
+    public function getElementMeta(Element $element, array $overrides = null): array
     {
         $settings = SEOMate::$plugin->getSettings();
 
         if ($overrides && isset($overrides['config'])) {
             SEOMateHelper::updateSettings($settings, $overrides['config']);
         }
-
-        $profile = null;
 
         if ($overrides && isset($overrides['profile'])) {
             $profile = $overrides['profile'];
@@ -147,12 +141,8 @@ class MetaService extends Component
 
     /**
      * Gets element meta data based on profile
-     *
-     * @param Element $element
-     * @param array $profile
-     * @return array
      */
-    public function generateElementMetaByProfile($element, $profile): array
+    public function generateElementMetaByProfile(Element $element, array $profile): array
     {
         $r = [];
 
@@ -166,13 +156,8 @@ class MetaService extends Component
 
     /**
      * Gets the value for a meta data property in *element*, from a list of fields and type.
-     *
-     * @param Element $element
-     * @param string $type
-     * @param array $fields
-     * @return mixed
      */
-    public function getElementPropertyDataByFields($element, $type, $fields)
+    public function getElementPropertyDataByFields(Element $element, string $type, array $fields): Asset|string
     {
         foreach ($fields as $fieldHandle) {
             $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($element, $fieldHandle, $type);
@@ -187,17 +172,12 @@ class MetaService extends Component
 
     /**
      * Gets the value for a meta data property in *context*, from a list of fields and type.
-     *
-     * @param $context
-     * @param string $type
-     * @param array $fields
-     * @return mixed
      */
-    public function getContextPropertyDataByFields($context, $type, $fields)
+    public function getContextPropertyDataByFields(array $context, string $type, array $fields): Asset|string
     {
         foreach ($fields as $fieldName) {
             // Get the deepest scope possible, and the remaining field handle.
-            list($primaryScope, $fieldHandle) = SEOMateHelper::reduceScopeAndHandle($context, $fieldName);
+            [$primaryScope, $fieldHandle] = SEOMateHelper::reduceScopeAndHandle($context, $fieldName);
             
             $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($primaryScope, $fieldHandle, $type);
             
@@ -212,11 +192,10 @@ class MetaService extends Component
     /**
      * Transforms meta data assets.
      *
-     * @param array $meta
-     * @param null|Settings $settings
-     * @return array
+     * @param Settings|null $settings
+     *
      */
-    public function transformMetaAssets($meta, $settings = null): array
+    public function transformMetaAssets(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -225,13 +204,16 @@ class MetaService extends Component
         $imageTransformMap = $settings->imageTransformMap;
 
         foreach ($imageTransformMap as $key => $value) {
-            if (isset($meta[$key]) && $meta[$key] !== null && $meta[$key] !== '') {
-
-                $transform = $imageTransformMap[$key];
+            if (isset($meta[$key]) && $meta[$key] !== '') {
+                $transform = $value;
                 $asset = $meta[$key] ?? null;
 
                 if ($asset) {
-                    $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
+                    try {
+                        $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
+                    } catch (\Throwable $throwable) {
+                        Craft::error($throwable->getMessage(), __METHOD__);
+                    }
 
                     $alt = null;
 
@@ -243,23 +225,24 @@ class MetaService extends Component
                         if ($alt) {
                             $meta[$key . ':alt'] = $alt;
                         }
+
                         if (isset($transform['format'])) {
                             $meta[$key . ':type'] = 'image/' . ($transform['format'] === 'jpg' ? 'jpeg' : $transform['format']);
                         }
+
                         // todo: Ideally, we should get these from the final transform
                         if (isset($transform['width'])) {
                             $meta[$key . ':width'] = $transform['width'];
                         }
+
                         if (isset($transform['height'])) {
                             $meta[$key . ':height'] = $transform['height'];
                         }
                     }
-                    if ($key === 'twitter:image') {
-                        if ($alt) {
-                            $meta[$key . ':alt'] = $alt;
-                        }
-                    }
 
+                    if ($key === 'twitter:image' && $alt) {
+                        $meta[$key . ':alt'] = $alt;
+                    }
                 }
             }
         }
@@ -270,12 +253,11 @@ class MetaService extends Component
     /**
      * Transforms asset and returns URL.
      *
-     * @param Asset|string $asset
-     * @param array $transform
      * @param null|Settings $settings
-     * @return string
+     *
+     * @throws SiteNotFoundException
      */
-    public function getTransformedUrl($asset, $transform, $settings = null): string
+    public function getTransformedUrl(Asset|string $asset, array $transform, Settings $settings = null): string
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -286,25 +268,25 @@ class MetaService extends Component
         
         $transformedUrl = '';
 
-        if ($settings->useImagerIfInstalled && $imagerPlugin && ($imagerPlugin instanceof \aelvan\imager\Imager || $imagerPlugin instanceof \spacecatninja\imagerx\ImagerX)) {
-            if (!\is_string($asset) && !isset($transform['position']) && isset($asset['focalPoint'])) {
-                $transform['position'] = $asset['focalPoint'];
-            }
-
+        if ($settings->useImagerIfInstalled && ($imagerPlugin instanceof Imager || $imagerPlugin instanceof ImagerX)) {
             try {
                 $transformedAsset = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
 
                 if ($transformedAsset) {
                     $transformedUrl = $transformedAsset->getUrl();
                 }
-            } catch (\Throwable $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
             }
         } else {
             $generateTransformsBeforePageLoad = Craft::$app->config->general->generateTransformsBeforePageLoad;
             Craft::$app->config->general->generateTransformsBeforePageLoad = true;
-            
-            $transformedUrl = $asset->getUrl($transform);
+
+            try {
+                $transformedUrl = $asset->getUrl($transform);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+            }
             
             Craft::$app->config->general->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
         }
@@ -318,11 +300,8 @@ class MetaService extends Component
 
     /**
      * Applies override meta data
-     *
-     * @param array $meta
-     * @param array $overrideMeta
      */
-    public function overrideMeta(&$meta, $overrideMeta)
+    public function overrideMeta(array &$meta, array $overrideMeta): void
     {
         foreach ($overrideMeta as $key => $value) {
             $meta[$key] = $value;
@@ -332,11 +311,9 @@ class MetaService extends Component
     /**
      * Autofills missing meta data based on autofillMap config setting
      *
-     * @param array $meta
      * @param null|Settings $settings
-     * @return array
      */
-    public function autofillMeta($meta, $settings = null): array
+    public function autofillMeta(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -345,7 +322,7 @@ class MetaService extends Component
         $autofillMap = SEOMateHelper::expandMap($settings->autofillMap);
 
         foreach ($autofillMap as $key => $value) {
-            if ((!isset($meta[$key]) || $meta[$key] === null) && isset($meta[$value])) {
+            if (!isset($meta[$key]) && isset($meta[$value])) {
                 $meta[$key] = $meta[$value];
             }
         }
@@ -360,9 +337,8 @@ class MetaService extends Component
      *
      * @param array $meta
      * @param null|Settings $settings
-     * @return mixed
      */
-    public function applyMetaRestrictions($meta, $settings = null)
+    public function applyMetaRestrictions(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -374,10 +350,8 @@ class MetaService extends Component
             if (isset($restrictionsMap[$key])) {
                 $restrictions = $restrictionsMap[$key];
 
-                if ($restrictions['type'] === 'text' && isset($restrictions['maxLength'])) {
-                    if (\strlen($value) > $restrictions['maxLength']) {
-                        $meta[$key] = mb_substr($value, 0, $restrictions['maxLength'] - strlen($settings->truncateSuffix)) . $settings->truncateSuffix;
-                    }
+                if ($restrictions['type'] === 'text' && isset($restrictions['maxLength']) && \strlen($value) > $restrictions['maxLength']) {
+                    $meta[$key] = mb_substr($value, 0, $restrictions['maxLength'] - strlen($settings->truncateSuffix)) . $settings->truncateSuffix;
                 }
             }
         }
@@ -387,17 +361,15 @@ class MetaService extends Component
     
     /**
      * Apply any filters and encoding
-     * 
-     * @param array $meta
-     * @return mixed
      */
-    public function applyMetaFilters($meta)
+    public function applyMetaFilters(array $meta): array
     {
         foreach ($meta as $key => $value) {
-            if (is_string($value) && strpos($value, 'http') !== 0 && strpos($value, '//') !== 0) {
+            if (is_string($value) && !str_starts_with($value, 'http') && !str_starts_with($value, '//')) {
                 $meta[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
             }
         }
+
         return $meta;
     }
 
@@ -405,12 +377,9 @@ class MetaService extends Component
      * Adds sitename to meta properties that should have it, as defined
      * by sitenameTitleProperties config setting.
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
-    public function addSitename($meta, $context, $settings = null): array
+    public function addSitename(array $meta, array $context, Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -421,25 +390,19 @@ class MetaService extends Component
         try {
             if (\is_array($settings->siteName)) {
                 $siteName = $settings->siteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? '';
-            } else if ($settings->siteName && \is_string($settings->siteName)) {
+            } elseif ($settings->siteName && \is_string($settings->siteName)) {
                 $siteName = $settings->siteName;
             } else {
-                $configSiteName = Craft::$app->getConfig()->getGeneral()->siteName;
-
-                if (\is_array($configSiteName)) {
-                    $configSiteName = $configSiteName[Craft::$app->getSites()->getCurrentSite()->handle] ?? reset($configSiteName);
-                }
-
-                $siteName = $configSiteName ?? Craft::$app->getSites()->getCurrentSite()->name ?? '';
+                $siteName = Craft::$app->getSites()->getCurrentSite()->name ?? '';
             }
-        } catch (SiteNotFoundException $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (SiteNotFoundException $siteNotFoundException) {
+            Craft::error($siteNotFoundException->getMessage(), __METHOD__);
         }
 
         if ($siteName !== '') {
             try {
                 $siteName = Craft::$app->getView()->renderString($siteName, $context);
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // Ignore, and continue with the current sitename value
             }
             
@@ -448,7 +411,7 @@ class MetaService extends Component
 
             foreach ($settings->sitenameTitleProperties as $property) {
                 $metaValue = $preString . ($meta[$property] ?? '') . $postString;
-                $meta[$property] = \trim($metaValue, " {$settings->sitenameSeparator}");
+                $meta[$property] = \trim($metaValue, sprintf(' %s', $settings->sitenameSeparator));
             }
         }
 
@@ -458,12 +421,9 @@ class MetaService extends Component
     /**
      * Process and return default meta data
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
-    public function processDefaultMeta($meta, $context = [], $settings = null): array
+    public function processDefaultMeta(array $meta, array $context = [], Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();
@@ -482,12 +442,9 @@ class MetaService extends Component
     /**
      * Processes and returns additional meta data
      *
-     * @param array $meta
-     * @param array $context
      * @param null|Settings $settings
-     * @return array
      */
-    public function processAdditionalMeta($meta, $context = [], $settings = null): array
+    public function processAdditionalMeta(array $meta, array $context = [], Settings $settings = null): array
     {
         if ($settings === null) {
             $settings = SEOMate::$plugin->getSettings();

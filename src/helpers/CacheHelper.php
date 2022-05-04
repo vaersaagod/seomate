@@ -22,23 +22,56 @@ use yii\caching\TagDependency;
  */
 class CacheHelper
 {
-    const SEOMATE_TAG = 'seomate_tag';
+    /**
+     * @var string
+     */
+    public const SEOMATE_TAG = 'seomate_tag';
 
-    const ELEMENT_TAG = 'seomate_meta_element_tag';
-    const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
+    /**
+     * @var string
+     */
+    public const ELEMENT_TAG = 'seomate_meta_element_tag';
 
-    const SITEMAP_INDEX_KEY = 'seomate_sitemap_index';
-    const ELEMENT_SITEMAP_KEY_PREFIX = 'seomate_element_sitemap';
-    const SITEMAP_INDEX_TAG = 'seomate_sitemap_index_tag';
-    const SITEMAP_ELEMENT_TAG = 'seomate_sitemap_element_tag';
-    const ELEMENT_SITEMAP_CLASS_PREFIX = 'seomate_element_sitemap_class';
-    const ELEMENT_SITEMAP_HANDLE_PREFIX = 'seomate_element_sitemap_handle';
+    /**
+     * @var string
+     */
+    public const ELEMENT_KEY_PREFIX = 'seomate_meta_element';
+
+    /**
+     * @var string
+     */
+    public const SITEMAP_INDEX_KEY = 'seomate_sitemap_index';
+
+    /**
+     * @var string
+     */
+    public const ELEMENT_SITEMAP_KEY_PREFIX = 'seomate_element_sitemap';
+
+    /**
+     * @var string
+     */
+    public const SITEMAP_INDEX_TAG = 'seomate_sitemap_index_tag';
+
+    /**
+     * @var string
+     */
+    public const SITEMAP_ELEMENT_TAG = 'seomate_sitemap_element_tag';
+
+    /**
+     * @var string
+     */
+    public const ELEMENT_SITEMAP_CLASS_PREFIX = 'seomate_element_sitemap_class';
+
+    /**
+     * @var string
+     */
+    public const ELEMENT_SITEMAP_HANDLE_PREFIX = 'seomate_element_sitemap_handle';
 
 
     /**
      * Clears all SEOMate caches
      */
-    public static function clearAllCaches()
+    public static function clearAllCaches(): void
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::SEOMATE_TAG);
@@ -48,21 +81,19 @@ class CacheHelper
      * Checks if meta data cache for element exists
      *
      * @param $element
-     * @return bool
      */
     public static function hasMetaCacheForElement($element): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementKey($element)) ? true : false;
+        return (bool)$cache->get(self::getElementKey($element));
     }
 
     /**
      * Returns meta data cache for element
      *
      * @param $element
-     * @return mixed
      */
-    public static function getMetaCacheForElement($element)
+    public static function getMetaCacheForElement($element): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementKey($element));
@@ -73,7 +104,7 @@ class CacheHelper
      *
      * @param $element
      */
-    public static function deleteMetaCacheForElement($element)
+    public static function deleteMetaCacheForElement($element): void
     {
         $cache = Craft::$app->getCache();
         $cache->delete(self::getElementKey($element));
@@ -85,7 +116,7 @@ class CacheHelper
      * @param $element
      * @param $meta
      */
-    public static function setMetaCacheForElement($element, $meta)
+    public static function setMetaCacheForElement($element, $meta): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -107,21 +138,19 @@ class CacheHelper
      * Checks if cache for sitemap index exists
      *
      * @param $siteId
-     * @return bool
      */
     public static function hasCacheForSitemapIndex($siteId): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId) ? true : false;
+        return (bool)$cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
     }
 
     /**
      * Returns cached sitemap index
      *
      * @param $siteId
-     * @return mixed
      */
-    public static function getCacheForSitemapIndex($siteId)
+    public static function getCacheForSitemapIndex($siteId): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
@@ -132,7 +161,7 @@ class CacheHelper
      *
      * @param $siteId
      */
-    public static function deleteCacheForSitemapIndex($siteId)
+    public static function deleteCacheForSitemapIndex($siteId): void
     {
         $cache = Craft::$app->getCache();
         $cache->delete(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
@@ -144,7 +173,7 @@ class CacheHelper
      * @param $siteId
      * @param $data
      */
-    public static function setCacheForSitemapIndex($siteId, $data)
+    public static function setCacheForSitemapIndex($siteId, $data): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -167,12 +196,11 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return bool
      */
     public static function hasCacheForElementSitemap($siteId, $handle, $page): bool
     {
         $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementSitemapKey($siteId, $handle, $page)) ? true : false;
+        return (bool)$cache->get(self::getElementSitemapKey($siteId, $handle, $page));
     }
 
     /**
@@ -181,9 +209,8 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return mixed
      */
-    public static function getCacheForElementSitemap($siteId, $handle, $page)
+    public static function getCacheForElementSitemap($siteId, $handle, $page): mixed
     {
         $cache = Craft::$app->getCache();
         return $cache->get(self::getElementSitemapKey($siteId, $handle, $page));
@@ -192,7 +219,7 @@ class CacheHelper
     /**
      * Deletes all element sitemaps
      */
-    public static function deleteCacheForAllElementSitemaps()
+    public static function deleteCacheForAllElementSitemaps(): void
     {
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::SITEMAP_ELEMENT_TAG);
@@ -203,11 +230,11 @@ class CacheHelper
      *
      * @param $element
      */
-    public static function deleteCacheForElementSitemapsByElement($element)
+    public static function deleteCacheForElementSitemapsByElement($element): void
     {
-        $elementClass = \get_class($element);
+        $elementClass = $element::class;
         $siteId = $element->siteId ?? null;
-        
+
         $cache = Craft::$app->getCache();
         TagDependency::invalidate($cache, self::getElementSitemapTagForClass($siteId, $elementClass));
     }
@@ -221,7 +248,7 @@ class CacheHelper
      * @param $definition
      * @param $page
      */
-    public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page)
+    public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
@@ -242,13 +269,12 @@ class CacheHelper
      * Creates key for element meta
      *
      * @param $element
-     * @return string
      */
     private static function getElementKey($element): string
     {
         $site = Craft::$app->getSites()->getSiteById($element->siteId, true);
-        $pageNum = !Craft::$app->getRequest()->getIsConsoleRequest() ? Craft::$app->getRequest()->getPageNum() : null;
-        return self::ELEMENT_KEY_PREFIX . '_' . $site->handle . '_' . $element->id . ($pageNum ? '_' . $pageNum : '');
+        $pageNum = Craft::$app->getRequest()->getIsConsoleRequest() ? null : Craft::$app->getRequest()->getPageNum();
+        return self::ELEMENT_KEY_PREFIX . '_' . ($site->handle ?? 'unknown') . '_' . $element->id . ($pageNum ? '_' . $pageNum : '');
     }
 
     /**
@@ -257,7 +283,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
-     * @return string
      */
     private static function getElementSitemapKey($siteId, $handle, $page): string
     {
@@ -270,7 +295,6 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $definition
-     * @return array
      */
     private static function getElementSitemapTags($siteId, $handle, $definition): array
     {
@@ -278,7 +302,7 @@ class CacheHelper
 
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
-            //$criteria = $definition['criteria'] ?? [];
+        //$criteria = $definition['criteria'] ?? [];
         } else {
             $elementClass = Entry::class;
             //$criteria = ['section' => $handle];
@@ -297,11 +321,9 @@ class CacheHelper
      *
      * @param $siteId
      * @param $class
-     * @return string
      */
     private static function getElementSitemapTagForClass($siteId, $class): string
     {
         return self::ELEMENT_SITEMAP_CLASS_PREFIX . '_' . str_replace('\\', '-', $class) . '_site' . $siteId;
     }
-
 }

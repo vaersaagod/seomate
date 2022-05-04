@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 4.0.0 - 2022-05-04
+### Added
+- Added Craft 4 support.  
+
 ## 1.1.13 - 2022-03-24
 ### Added
 - Added conditionals to output template to be able to override url’s at the template level without overriding canonical url.

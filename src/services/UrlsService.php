@@ -15,8 +15,8 @@ use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 
-use vaersaagod\seomate\SEOMate;
 use vaersaagod\seomate\helpers\SEOMateHelper;
+use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
 
@@ -29,11 +29,12 @@ class UrlsService extends Component
 {
     /**
      * Gets the canonical URL from context
-     * 
+     *
      * @param $context
-     * @return null|string
+     *
+     * @throws \Throwable
      */
-    public function getCanonicalUrl($context)
+    public function getCanonicalUrl($context): ?string
     {
         $craft = Craft::$app;
         $settings = SEOMate::$plugin->getSettings();
@@ -49,11 +50,7 @@ class UrlsService extends Component
         }
 
         /** @var Element $element */
-        if (isset($overrideObject['element'])) {
-            $element = $overrideObject['element'];
-        } else {
-            $element = $craft->urlManager->getMatchedElement();
-        }
+        $element = $overrideObject['element'] ?? $craft->urlManager->getMatchedElement();
 
         if ($element && $element->getUrl()) {
             $siteId = $element->siteId;
@@ -61,10 +58,11 @@ class UrlsService extends Component
         } else {
             try {
                 $siteId = $craft->getSites()->getCurrentSite()->id;
-            } catch (SiteNotFoundException $e) {
+            } catch (SiteNotFoundException $siteNotFoundException) {
                 $siteId = null;
-                Craft::error($e->getMessage(), __METHOD__);
+                Craft::error($siteNotFoundException->getMessage(), __METHOD__);
             }
+
             $path = strip_tags(html_entity_decode($craft->getRequest()->getPathInfo(), ENT_NOQUOTES, 'UTF-8'));
         }
 
@@ -74,7 +72,7 @@ class UrlsService extends Component
         }
 
         $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
-        $useQueryParam = strpos($pageTrigger, '?') === 0;
+        $useQueryParam = str_starts_with($pageTrigger, '?');
         if ($useQueryParam) {
             $param = trim($pageTrigger, '?=');
             return UrlHelper::siteUrl($path, [$param => $page], null, $siteId);
@@ -86,9 +84,8 @@ class UrlsService extends Component
 
     /**
      * Gets the alternate URLs from context
-     * 
+     *
      * @param $context
-     * @return array
      */
     public function getAlternateUrls($context): array
     {
@@ -125,16 +122,12 @@ class UrlsService extends Component
             if ($fallbackSite && $fallbackSite->id !== null) {
                 $url = $craft->getElements()->getElementUriForSite($element->getId(), $fallbackSite->id);
 
-                if ($url) {
-                    $url = $this->prepAlternateUrlForSite($url, $fallbackSite);
-                } else {
-                    $url = $this->prepAlternateUrlForSite('', $fallbackSite);
-                }
+                $url = $url ? $this->prepAlternateUrlForSite($url, $fallbackSite) : $this->prepAlternateUrlForSite('', $fallbackSite);
 
                 if ($url && $url !== '') {
                     $alternateUrls[] = [
                         'url' => $url,
-                        'language' => 'x-default'
+                        'language' => 'x-default',
                     ];
                 }
             }
@@ -151,7 +144,7 @@ class UrlsService extends Component
                     if ($url && $url !== '') {
                         $alternateUrls[] = [
                             'url' => $url,
-                            'language' => strtolower(str_replace('_', '-', $site->language))
+                            'language' => strtolower(str_replace('_', '-', $site->language)),
                         ];
                     }
                 }
@@ -163,21 +156,17 @@ class UrlsService extends Component
 
     /**
      * Returns a fully qualified site URL from uri and site
-     * 
-     * @param string $uri
-     * @param Site $site
-     * @return string
      */
-    private function prepAlternateUrlForSite($uri, $site): string
+    private function prepAlternateUrlForSite(string $uri, Site $site): string
     {
         $url = ($uri === '__home__') ? '' : $uri;
         
         if (!UrlHelper::isAbsoluteUrl($url)) {
             try {
                 $url = UrlHelper::siteUrl($url, null, null, $site->id);
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 $url = '';
-                Craft::error($e->getMessage(), __METHOD__);
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 

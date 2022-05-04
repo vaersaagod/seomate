@@ -34,9 +34,8 @@ class SchemaService extends Component
      * and the leaf (ie, current page) is the last.
      *
      * @param array $listItems
-     * @return BreadcrumbList
      */
-    public function breadcrumb($listItems): BreadcrumbList
+    public function breadcrumb(array $listItems): BreadcrumbList
     {
         $breadcrumbList = new BreadcrumbList();
         $i = 1;
@@ -47,7 +46,7 @@ class SchemaService extends Component
             $breadcrumbListItem->position($i++);
             $breadcrumbListItem->item([
                 '@id' => $listItem['url'],
-                'name' => $listItem['name']
+                'name' => $listItem['name'],
             ]);
 
             $elements[] = $breadcrumbListItem;

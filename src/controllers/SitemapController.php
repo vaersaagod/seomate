@@ -13,9 +13,7 @@ use craft\web\Controller;
 
 use craft\web\Response;
 use vaersaagod\seomate\SEOMate;
-use yii\base\Exception;
 use yii\base\ExitException;
-
 
 /**
  * Sitemap Controller
@@ -28,16 +26,14 @@ use yii\base\ExitException;
  */
 class SitemapController extends Controller
 {
-
-    protected $allowAnonymous = true;
+    protected int|bool|array $allowAnonymous = true;
 
     /**
-     * Action for returning index sitemap 
-     * 
-     * @return Response|\yii\console\Response
-     * @throws Exception
+     * Action for returning index sitemap
+     *
+     * @throws \Throwable
      */
-    public function actionIndex()
+    public function actionIndex(): Response|\yii\console\Response
     {
         return $this->returnXml(
             SEOMate::$plugin->sitemap->index()
@@ -45,12 +41,11 @@ class SitemapController extends Controller
     }
 
     /**
-     * Action for returning element sitemaps 
-     * 
-     * @return Response|\yii\console\Response
-     * @throws Exception
+     * Action for returning element sitemaps
+     *
+     * @throws \Throwable
      */
-    public function actionElement()
+    public function actionElement(): Response|\yii\console\Response
     {
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
@@ -60,11 +55,9 @@ class SitemapController extends Controller
     }
 
     /**
-     * Action for returning the custom sitemap 
-     * 
-     * @return Response|\yii\console\Response
+     * Action for returning the custom sitemap
      */
-    public function actionCustom()
+    public function actionCustom(): Response|\yii\console\Response
     {
         return $this->returnXml(
             SEOMate::$plugin->sitemap->custom()
@@ -73,11 +66,11 @@ class SitemapController extends Controller
 
     /**
      * Action for submitting sitemap to search engines
-     * 
+     *
      * @throws ExitException
-     * @throws Exception
+     * @throws \Throwable
      */
-    public function actionSubmit()
+    public function actionSubmit(): void
     {
         SEOMate::$plugin->sitemap->submit();
         Craft::$app->end();
@@ -85,15 +78,14 @@ class SitemapController extends Controller
 
     /**
      * Helper function for returning an XML response
-     * 
-     * @param string $data
-     * @return Response|\yii\console\Response
+     *
+     *
      */
-    private function returnXml($data)
+    private function returnXml(string $data): Response|\yii\console\Response
     {
         $response = Craft::$app->getResponse();
         $response->content = $data;
-        $response->format = Response::FORMAT_XML;
+        $response->format = \yii\web\Response::FORMAT_XML;
         return $response;
     }
 }

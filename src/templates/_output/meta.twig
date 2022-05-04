@@ -7,11 +7,15 @@
 {% if meta['og:locale'] is not defined %}<meta property="og:locale" content="{{ craft.app.getSites().getCurrentSite().language }}"/>{% endif %}
 {% endif %}
 
-{% for key, data in meta if data != '' %}
+{% for key, data in meta %}
+    {%- if data != '' %}
     {{- renderMetaTag(key, data) }}
+    {% endif %}
 {% endfor %}
 
 {% set alternateUrls = seomate.alternateUrls ?? null %}
-{% for alternateUrl in alternateUrls if alternateUrls -%}
-    <link rel="alternate" href="{{ alternateUrl.url }}" hreflang="{{ alternateUrl.language }}"/>
-{% endfor %}
+{% if alternateUrls %}
+    {% for alternateUrl in alternateUrls -%}
+        <link rel="alternate" href="{{ alternateUrl.url }}" hreflang="{{ alternateUrl.language }}"/>
+    {% endfor %}
+{% endif %}

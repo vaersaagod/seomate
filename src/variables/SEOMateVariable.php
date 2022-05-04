@@ -23,34 +23,21 @@ use vaersaagod\seomate\SEOMate;
  */
 class SEOMateVariable
 {
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @param string $key
-     * @param string $value
-     * @return Markup
-     */
-    public function renderMetaTag($key, $value): Markup
+    public function renderMetaTag(string $key, string|array $value): Markup
     {
         return SEOMate::$plugin->render->renderMetaTag($key, $value);
     }
 
-    /**
-     * @param array $breadcrumbArray
-     * @return Markup
-     */
-    public function breadcrumbSchema($breadcrumbArray): Markup
+    public function breadcrumbSchema(array $breadcrumbArray): Markup
     {
         $breadcrumbList = SEOMate::$plugin->schema->breadcrumb($breadcrumbArray);
         return Template::raw($breadcrumbList->toScript());
     }
 
     /**
-     * @param array $config
-     * @return array
+     * @throws \Throwable
      */
-    public function getMeta($config = [])
+    public function getMeta(array $config = []): array
     {
         $context = array_merge(['seomate' => $config], \Craft::$app->getView()->getTwig()->getGlobals());
         

@@ -12,7 +12,7 @@ configuration. All the data is pulled from native Craft fields, which makes for 
 maintenance over time, _and keeps you in control of your data_. 
 
 Additionally, SEOMate adds a super-awesome SEO/social media preview to your Control Panel. The SEO preview taps into
-Craft's native Live Preview (and/or the new Preview Targets feature, on Craft 3.2+ installs), giving your clients a nice and familiar interface for previewing how their content will appear on Google, Facebook and Twitter.  
+Craft's native Preview Targets, giving your clients a nice and familiar interface for previewing how their content will appear on Google, Facebook and Twitter.  
 
   
 ![Screenshot](resources/plugin_logo.png)
@@ -68,10 +68,6 @@ If you're only looking for a way to output JSON-LD, we suggest you use that plug
 
 ### Things that SEOMate doesn't do...
 So much! 
-
-### SEO Preview on Craft 3.2
-
-Note that for Craft CMS 3.2+, SEO previews are implemented as a custom **[Preview Target](https://docs.craftcms.com/v3/sections-and-entries.html#preview-targets)** (Entries only, Categories and Commerce Products still use the legacy Live Preview functionalty). Preview Targets being a Craft Pro feature only, this means that SEOMate's SEO preview functionality is *not* available for Entries in Craft Solo 3.2+ installs.  
 
 ---
 
@@ -369,7 +365,7 @@ Enables/disables caching of generated meta data. The cached data will be automat
 cleared when an element is saved, but it can also be completely deleted through Craft's
 clear cache tool.
 
-### cacheDuration [int]
+### cacheDuration [int|string]
 *Default: `3600`*  
 Duration of meta cache in seconds.
 
@@ -378,7 +374,7 @@ Duration of meta cache in seconds.
 Enable SEO previews in the Control Panel for everything (true), 
 nothing (false) or an array of section and/or category group handles.  
 
-### previewLabel [string]
+### previewLabel [string|null]
 *Default: "SEO Preview"*  
 Defines the text label for the SEO Preview button and Preview Target (Craft 3.2.x only) inside the Control Panel.  
 
@@ -815,7 +811,7 @@ according to the `sitemapName` config setting (`sitemap.xml` by default). The ac
 sitemaps will be named using the pattern `sitemap_<elementKey>_<page>.xml` for 
 elements and `sitemap_custom.xml` for the custom urls.
 
-### sitemapSubmitUrlPatterns [int]
+### sitemapSubmitUrlPatterns [array]
 *Default: (see below)*
 URL patterns that your sitemaps are submitted to. 
 

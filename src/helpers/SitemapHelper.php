@@ -30,12 +30,8 @@ class SitemapHelper
 {
     /**
      * Returns urls for sitemap index
-     * 
-     * @param string $handle
-     * @param array $definition
-     * @return array
      */
-    public static function getIndexSitemapUrls($handle, $definition): array
+    public static function getIndexSitemapUrls(string $handle, array $definition): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
@@ -45,27 +41,26 @@ class SitemapHelper
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
             $criteria = $definition['criteria'] ?? [];
-            $query = $elementClass::find();
-            Craft::configure($query, $criteria);
         } else {
             $elementClass = Entry::class;
             $criteria = ['section' => $handle];
-            $query = $elementClass::find();
-            Craft::configure($query, $criteria);
         }
+        
+        $query = $elementClass::find();
+        Craft::configure($query, $criteria);
 
         $count = $query->limit(null)->count();
         $pages = ceil($count / $limit);
         $lastEntry = self::getLastEntry($query);
 
-        for ($i = 1; $i <= $pages; $i++) {
+        for ($i = 1; $i <= $pages; ++$i) {
             try {
                 $urls[] = [
                     'loc' => UrlHelper::siteUrl($settings->sitemapName . '-' . $handle . '-' . $i . '.xml'),
-                    'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c')
+                    'lastmod' => $lastEntry ? $lastEntry->dateUpdated->format('c') : DateTimeHelper::currentUTCDateTime()->format('c'),
                 ];
-            } catch (Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (Exception $exception) {
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 
@@ -74,8 +69,6 @@ class SitemapHelper
 
     /**
      * Returns sitemap url for custom sitemap for including in sitemap index
-     *
-     * @return array
      */
     public static function getCustomIndexSitemapUrl(): array
     {
@@ -86,17 +79,16 @@ class SitemapHelper
     /**
      * Returns sitemap url for sitemap with the given name
      * @param $name
-     * @return array
      */
     public static function getSitemapUrl($name): array
     {
         try {
             return [
                 'loc' => UrlHelper::siteUrl($name),
-                'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c')
+                'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
             ];
-        } catch (Exception $e) {
-            Craft::error($e->getMessage(), __METHOD__);
+        } catch (Exception $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
         }
 
         return [];
@@ -104,13 +96,8 @@ class SitemapHelper
 
     /**
      * Returns URLs for element sitemap based on sitemap handle, definition and page
-     * 
-     * @param string $handle
-     * @param array $definition
-     * @param $page
-     * @return array
      */
-    public static function getElementsSitemapUrls($handle, $definition, $page): array
+    public static function getElementsSitemapUrls(string $handle, array $definition, int $page): array
     {
         $settings = SEOMate::$plugin->getSettings();
         $limit = $settings->sitemapLimit;
@@ -122,14 +109,14 @@ class SitemapHelper
             $criteria = $definition['criteria'] ?? [];
             $query = $elementClass::find();
             $params = $definition['params'] ?? [];
-            Craft::configure($query, $criteria);
         } else {
             $elementClass = Entry::class;
             $criteria = ['section' => $handle];
             $query = $elementClass::find();
             $params = $definition;
-            Craft::configure($query, $criteria);
         }
+        
+        Craft::configure($query, $criteria);
 
         $elements = $query->limit($limit)->offset(($page - 1) * $limit)->all();
 
@@ -147,11 +134,8 @@ class SitemapHelper
 
     /**
      * Returns URLs for custom sitemap
-     * 
-     * @param array $customUrls
-     * @return array
      */
-    public static function getCustomSitemapUrls($customUrls): array
+    public static function getCustomSitemapUrls(array $customUrls): array
     {
         $urls = [];
 
@@ -161,8 +145,8 @@ class SitemapHelper
                     'loc' => UrlHelper::siteUrl($key),
                     'lastmod' => DateTimeHelper::currentUTCDateTime()->format('c'),
                 ], $params);
-            } catch (Exception $e) {
-                Craft::error($e->getMessage(), __METHOD__);
+            } catch (Exception $exception) {
+                Craft::error($exception->getMessage(), __METHOD__);
             }
         }
 
@@ -170,33 +154,35 @@ class SitemapHelper
     }
 
     /**
-     * Helper method for adding URLs to sitemap 
-     * 
-     * @param \DOMDocument $document
-     * @param \DOMElement $sitemap
-     * @param string $nodeName
-     * @param array $urls
+     * Helper method for adding URLs to sitemap
      */
-    public static function addUrlsToSitemap(&$document, &$sitemap, $nodeName, $urls)
+    public static function addUrlsToSitemap(\DOMDocument $document, \DOMElement $sitemap, string $nodeName, array $urls): void
     {
         foreach ($urls as $url) {
-            $topNode = $document->createElement($nodeName);
-            $sitemap->appendChild($topNode);
+            try {
+                $topNode = $document->createElement($nodeName);
+                $sitemap->appendChild($topNode);
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable->getMessage(), __METHOD__);
+            }
 
             foreach ($url as $key => $val) {
-                $node = $document->createElement($key, $val);
-                $topNode->appendChild($node);
+                try {
+                    $node = $document->createElement($key, $val);
+                    $topNode->appendChild($node);
+                } catch (\Throwable $throwable) {
+                    Craft::error($throwable->getMessage(), __METHOD__);
+                }
             }
         }
     }
 
     /**
      * Returns last entry from query
-     * 
-     * @param ElementQueryInterface $query
-     * @return mixed
+     *
+     *
      */
-    public static function getLastEntry($query)
+    public static function getLastEntry(ElementQueryInterface $query): mixed
     {
         return $query->orderBy('elements.dateUpdated DESC')->one();
     }
@@ -204,11 +190,10 @@ class SitemapHelper
     /**
      * Checks if the supplied config array is a multi-site config. Returns true if
      * any of the keys are '*' or matches a site handle.
-     * 
+     *
      * @param $array
-     * @return bool
      */
-    public static function isMultisiteConfig($array): bool 
+    public static function isMultisiteConfig($array): bool
     {
         if (isset($array['*'])) {
             return true;
