@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased
+## 2.0.1 - 2022-05-10
 ### Fixed  
 - Fixes an issue where eager-loaded assets or Matrix sub field values would not be included in element meta.  
 
