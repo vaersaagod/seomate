@@ -12,11 +12,13 @@ use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
+use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
+use Illuminate\Support\Collection;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
@@ -124,100 +126,142 @@ class SEOMateHelper
         return [$currentScope, $handleParts[count($handleParts) - 1]];
     }
 
+    /**
+     * @param ElementInterface|array $scope
+     * @param string $handle
+     * @param string $type
+     * @return Asset|string|null
+     * @throws \yii\base\InvalidConfigException
+     */
     public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
     {
-        if ($scope[$handle] ?? null) { // Root field
+
+        if ($scope[$handle] ?? null) {
+
+            // Simple field
             if ($type === 'text') {
-                if (($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) !== '' && ($value = \trim(\strip_tags((string)($scope[$handle] ?? '')))) !== '0') {
-                    return $value;
-                }
+
+                return static::getStringPropertyValue($scope[$handle]);
+
             } elseif ($type === 'image') {
-                $elements = $scope[$handle];
-                $assets = ($elements instanceof ElementQuery) ? $elements->all() : $elements;
 
-                if (is_array($assets) && !empty($assets)) {
-                    foreach ($assets as $asset) {
-                        if (self::isValidImageAsset($asset)) {
-                            return $asset;
-                        }
-                    }
+                return static::getImagePropertyValue($scope[$handle]);
+
+            }
+
+        } elseif (strpos($handle, ':')) {
+
+            // Assume Matrix sub field, in the format matrixFieldHandle.blockTypeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
+            $delimiters = preg_replace('/[^\\.:]+/', '', $handle);
+            if ($delimiters !== '.:') {
+                if ($delimiters === ':.') {
+                    // Old syntax "matrixFieldHandle:blockTypeHandle.subFieldHandle" is used. We kind of messed up when we built SEOmate initially by not using the same syntax as Craft does when eager-loading Matrix sub fields.
+                    // We still allow the old format, but we might need to remove support for it later – so let's log a deprecation message
+                    Craft::$app->getDeprecator()->log(__METHOD__, 'Support for the `matrixFieldHandle:blockTypeHandle.subFieldHandle` Matrix sub field syntax in `config/seomate.php` has been deprecated. Use the syntax `matrixFieldHandle.blockTypeHandle:subFieldHandle` instead.');
+                } else {
+                    // This is not something we can work with :/
+                    Craft::warning("Invalid syntax encountered for Matrix sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"matrixFieldHandle.blockTypeHandle:subFieldHandle\"");
+                    return null;
                 }
             }
-        } elseif (\strpos($handle, ':')) {
 
-            // Assume Matrix field, in the config format $fieldHandle:$blockTypeHandle.$fieldHandle
-            // First, get the Matrix field's handle, and test if that attribute actually is a MatrixBlockQuery instance
-            $matrixFieldPathSegments = \explode(':', $handle);
-            $handle = \array_shift($matrixFieldPathSegments) ?: null;
-            if (!$handle || empty($matrixFieldPathSegments) || !($scope[$handle] ?? null) || !($scope[$handle] instanceof MatrixBlockQuery)) {
+            // Get field, block type and sub field handles
+            [$matrixFieldHandle, $blockTypeHandle, $subFieldHandle] = explode('.', str_replace(':', '.', $handle));
+            if (!$matrixFieldHandle || !$blockTypeHandle || !$subFieldHandle) {
                 return null;
             }
 
-            // Nice one, there's actually a Matrix field for that attribute.
-            // Now get the block type and field handles
-            $blockPathSegments = \explode('.', $matrixFieldPathSegments[0]);
-            if (!($blockTypeHandle = $blockPathSegments[0] ?? null) || !($blockFieldHandle = $blockPathSegments[1] ?? null)) {
+            // Make sure that the Matrix field is in scope, in some form or another
+            $value = $scope[$matrixFieldHandle] ?? null;
+            if (empty($value)) {
                 return null;
             }
 
-            $blockQuery = clone $scope[$handle];
+            // Fetch the blocks
+            if ($value instanceof MatrixBlockQuery) {
+                $query = (clone $value)->type($blockTypeHandle);
+                if ($type === 'image') {
+                    $query->with([sprintf('%s:%s', $blockTypeHandle, $subFieldHandle)]);
+                }
+                $blocks = $query->all();
+            } else {
+                $blocks = Collection::make($value)
+                    ->filter(static function (mixed $block) use ($blockTypeHandle) {
+                        return $block instanceof MatrixBlock && $block->getType()->handle === $blockTypeHandle;
+                    })
+                    ->all();
+            }
 
-            if ($type === 'text') {
-                $blocks = $blockQuery->all();
+            if (empty($blocks)) {
+                return null;
+            }
 
-                foreach ($blocks as $block) {
-                    if ($block->getType()->handle !== $blockTypeHandle) {
-                        continue;
-                    }
+            /** @var MatrixBlock[] $blocks */
+            foreach ($blocks as $block) {
 
-                    $value = \trim(\strip_tags((string)($block[$blockFieldHandle] ?? '')));
+                if ($type === 'text') {
 
-                    if ($value !== '' && $value !== '0') {
+                    if ($value = static::getStringPropertyValue($block->$subFieldHandle ?? null)) {
                         return $value;
                     }
-                }
-            } elseif ($type === 'image') {
-                if (Craft::$app->getRequest()->getIsLivePreview()) {
-                    $blocks = $blockQuery->all();
-                } else {
-                    $blocks = $blockQuery->with([sprintf('%s:%s', $blockTypeHandle, $blockFieldHandle)])->all();
-                }
 
-                /* @var MatrixBlock $block */
-                foreach ($blocks as $block) {
-                    if ($block->type->handle !== $blockTypeHandle || !($assets = $block[$blockFieldHandle] ?? null)) {
-                        continue;
+                } else if ($type === 'image') {
+
+                    if ($asset = static::getImagePropertyValue($block->$subFieldHandle ?? null)) {
+                        return $asset;
                     }
 
-                    if ($assets instanceof ElementQuery) {
-                        $assets = $assets->all();
-                    }
-
-                    if (!$assets || !\is_array($assets)) {
-                        continue;
-                    }
-                    
-                    foreach ($assets as $asset) {
-                        if (self::isValidImageAsset($asset)) {
-                            return $asset;
-                        }
-                    }
                 }
             }
+
         }
 
         return null;
     }
 
     /**
-     * Checks if give Asset is in the list of $settings->validImageExtensions
+     * Return a meta-safe image asset from raw input
      *
-     *
+     * @param mixed $input
+     * @return string|null
      */
-    public static function isValidImageAsset(Asset $asset): bool
+    public static function getStringPropertyValue(mixed $input): ?string
     {
-        $settings = SEOMate::$plugin->getSettings();
-        return \in_array(strtolower($asset->getExtension()), $settings->validImageExtensions, true);
+        $value = trim(strip_tags((string)$input));
+        if ((bool)$value) {
+            return $value;
+        }
+        return null;
+    }
+
+    /**
+     * Return a meta-safe image asset from raw input
+     *
+     * @param mixed $input
+     * @return Asset|null
+     */
+    public static function getImagePropertyValue(mixed $input): ?Asset
+    {
+
+        if (empty($input)) {
+            return null;
+        }
+
+        if ($input instanceof AssetQuery) {
+            $collection = (clone $input)->kind(Asset::KIND_IMAGE)->collect();
+        } else {
+            $collection = Collection::make($input);
+        }
+
+        if ($collection->isEmpty()) {
+            return null;
+        }
+
+        $settings = SEOMate::getInstance()->getSettings();
+
+        return $collection->first(static function (mixed $asset) use ($settings) {
+            return $asset instanceof Asset && $asset->kind === Asset::KIND_IMAGE && in_array(strtolower($asset->getExtension()), $settings->validImageExtensions, true);
+        });
     }
 
     /**

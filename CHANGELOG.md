@@ -1,5 +1,13 @@
 # SEOMate Changelog
 
+## Unreleased
+### Fixed  
+- Fixes an issue where eager-loaded assets or Matrix sub field values would not be included in element meta.  
+
+### Changed
+- The syntax for using Matrix sub fields in config field profiles has been changed to `'matrixFieldHandle.blockTypeHandle:subFieldHandle'`. The old syntax (`'matrixFieldHandle:blockTypeHandle.subFieldHandle'`) is deprecated.
+- SEOMate now logs a warning if invalid syntax is used for Matrix sub fields in config field profiles.  
+
 ## 2.0.0 - 2022-05-04
 ### Added
 - Added Craft 4 support.  

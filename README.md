@@ -151,8 +151,8 @@ defines that if no value are set for `og:title` and `twitter:title`, we want to 
 meta tags with the value  from `title`. So in the `standard` profile, those values will be 
 autofilled, while in the `newsprofile` we choose to customize some of them.
 
-Secondly, we can specify to pull a value from a matrix field by using the syntax 
-`matrixBlock:blockHandle.fieldHandle`.
+Secondly, we can specify to pull a value from a Matrix sub field by using the syntax 
+`matrixFieldHandle.blockTypeHandle:subFieldHandle`.
 
 This is all fine for templates that have an element associated with them. But what about the ones
 that don't? Or, what if there is no valid image in any of those image fields in the profile? That's
