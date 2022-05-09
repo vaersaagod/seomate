@@ -19,7 +19,7 @@ Craft's native Preview Targets, giving your clients a nice and familiar interfac
 
 ## Requirements
 
-This plugin requires Craft CMS 3.0.0 or later. 
+This plugin requires Craft CMS 4.0.0 or later.  
 
 ## Installation
 
@@ -127,9 +127,9 @@ return [
             'title' => ['seoTitle', 'heading', 'title'],
             'og:title' => ['ogTitle', 'heading', 'title'],
             'description' => ['seoDescription', 'newsExcerpt', 'introText'],
-            'image' => ['seoImage', 'heroImage', 'newsBlocks:image.image']
-            'og:image' => ['ogImage', 'heroImage', 'newsBlocks:image.image']
-            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks:image.image']
+            'image' => ['seoImage', 'heroImage', 'newsBlocks.image:image']
+            'og:image' => ['ogImage', 'heroImage', 'newsBlocks.image:image']
+            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks.image:image']
         ]
     ],
     
@@ -181,9 +181,9 @@ return [
             'title' => ['seoTitle', 'heading', 'title'],
             'og:title' => ['ogTitle', 'heading', 'title'],
             'description' => ['seoDescription', 'newsExcerpt', 'introText'],
-            'image' => ['seoImage', 'heroImage', 'newsBlocks:image.image']
-            'og:image' => ['ogImage', 'heroImage', 'newsBlocks:image.image']
-            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks:image.image']
+            'image' => ['seoImage', 'heroImage', 'newsBlocks.image:image']
+            'og:image' => ['ogImage', 'heroImage', 'newsBlocks.image:image']
+            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks.image:image']
         ]
     ],
     
@@ -221,9 +221,9 @@ return [
             'title' => ['seoTitle', 'heading', 'title'],
             'og:title' => ['ogTitle', 'heading', 'title'],
             'description' => ['seoDescription', 'newsExcerpt', 'introText'],
-            'image' => ['seoImage', 'heroImage', 'newsBlocks:image.image']
-            'og:image' => ['ogImage', 'heroImage', 'newsBlocks:image.image']
-            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks:image.image']
+            'image' => ['seoImage', 'heroImage', 'newsBlocks.image:image']
+            'og:image' => ['ogImage', 'heroImage', 'newsBlocks.image:image']
+            'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks.image:image']
         ]
     ],
     
@@ -242,9 +242,9 @@ return [
         
         'og:see_also' => function ($context) {
             $someLinks = [];
-            $matrixBlocks = $context['globalSeo']->someLinks->all() ?? null;
+            $matrixBlocks = $context['globalSeo']?->someLinks?->all();
             
-            if ($matrixBlocks && count($matrixBlocks) > 0) {
+            if (!empty($matrixBlocks)) {
                 foreach ($matrixBlocks as $matrixBlock) {
                     $someLinks[] = $matrixBlock->someLinkUrl ?? '';
                 }
