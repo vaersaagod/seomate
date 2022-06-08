@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 2.0.2 - 2022-06-08
+### Fixed  
+- Fixed use of `->getAttributes()` on asset model when getting alt text.  
+
 ## 2.0.1 - 2022-05-10
 ### Fixed  
 - Fixes an issue where eager-loaded assets or Matrix sub field values would not be included in element meta.  
