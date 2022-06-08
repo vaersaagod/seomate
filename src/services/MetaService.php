@@ -218,7 +218,7 @@ class MetaService extends Component
                     $alt = null;
 
                     if ($settings->altTextFieldHandle && $asset[$settings->altTextFieldHandle] && ((string)$asset[$settings->altTextFieldHandle] !== '')) {
-                        $alt = $asset->getAttributes()[$settings->altTextFieldHandle];
+                        $alt = $asset[$settings->altTextFieldHandle];
                     }
 
                     if ($key === 'og:image') {
