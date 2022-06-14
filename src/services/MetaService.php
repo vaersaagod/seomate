@@ -179,6 +179,10 @@ class MetaService extends Component
             // Get the deepest scope possible, and the remaining field handle.
             [$primaryScope, $fieldHandle] = SEOMateHelper::reduceScopeAndHandle($context, $fieldName);
             
+            if ($primaryScope === null) {
+                continue;
+            }
+            
             $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($primaryScope, $fieldHandle, $type);
             
             if ($fieldValue !== null) {
