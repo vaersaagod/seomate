@@ -1,5 +1,11 @@
 # SEOMate Changelog
 
+## 2.0.3 - 2022-06-14
+### Fixed  
+- Fixed an issue that could occur if a non-existing scope was used in field profiles.  
+
+# SEOMate Changelog
+
 ## 2.0.2 - 2022-06-08
 ### Fixed  
 - Fixed use of `->getAttributes()` on asset model when getting alt text.  
