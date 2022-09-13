@@ -113,7 +113,7 @@ class Settings extends Model
     ];
 
     public array $tagTemplateMap = [
-        'default' => '<meta name="{{ key }}" content="{{ value }}"/>',
+        'default' => '<meta name="{{ key }}" content="{{ value }}">',
         'title' => '<title>{{ value }}</title>',
         '/^og:/,/^fb:/' => '<meta property="{{ key }}" content="{{ value }}">',
     ];
