@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased
+## 2.1.0
 ### Added  
 - Custom meta templates and template overrides are now supported in SEO previews (#28)  
 
