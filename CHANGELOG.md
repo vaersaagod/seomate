@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 2.1.1 - 2023-02-27
+### Fixed  
+- Fixes a template exception that could be thrown when rendering SEO previews   
+
 ## 2.1.0 - 2023-02-15
 ### Added  
 - Custom meta templates and template overrides are now supported in SEO previews (#28)  
