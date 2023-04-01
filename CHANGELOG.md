@@ -3,8 +3,9 @@
 ## Unreleased
 ### Added  
 - Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`.  
+- Sitemaps are now styled using an XSLT stylesheet.  
 ### Changed  
-- Elements without URIs are now explictly excluded from sitemaps.  
+- Elements without URIs are now explictly excluded from sitemaps.
 
 ## 2.1.1 - 2023-02-27
 ### Fixed  
