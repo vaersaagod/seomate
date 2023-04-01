@@ -10,10 +10,11 @@ namespace vaersaagod\seomate\controllers;
 
 use Craft;
 use craft\web\Controller;
-
 use craft\web\Response;
 use craft\web\View;
+
 use vaersaagod\seomate\SEOMate;
+
 use yii\base\ExitException;
 
 /**
@@ -32,9 +33,10 @@ class SitemapController extends Controller
     /**
      * Action for returning index sitemap
      *
+     * @return Response
      * @throws \Throwable
      */
-    public function actionIndex(): Response|\yii\console\Response
+    public function actionIndex(): Response
     {
         return $this->returnXml(
             SEOMate::$plugin->sitemap->index()
@@ -44,9 +46,10 @@ class SitemapController extends Controller
     /**
      * Action for returning element sitemaps
      *
+     * @return Response
      * @throws \Throwable
      */
-    public function actionElement(): Response|\yii\console\Response
+    public function actionElement(): Response
     {
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
@@ -56,9 +59,11 @@ class SitemapController extends Controller
     }
 
     /**
-     * Action for returning the custom sitemap
+     * Action for returning custom sitemaps
+     *
+     * @return Response
      */
-    public function actionCustom(): Response|\yii\console\Response
+    public function actionCustom(): Response
     {
         return $this->returnXml(
             SEOMate::$plugin->sitemap->custom()
@@ -68,6 +73,7 @@ class SitemapController extends Controller
     /**
      * Action for submitting sitemap to search engines
      *
+     * @return void
      * @throws ExitException
      * @throws \Throwable
      */
@@ -78,33 +84,31 @@ class SitemapController extends Controller
     }
 
     /**
-     * @return Response|\yii\console\Response
+     * Action for returning the XSLT sitemap stylesheet
+     *
+     * @return Response
      * @throws \Twig\Error\LoaderError
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      * @throws \yii\base\Exception
      */
-    public function actionXsl(): Response|\yii\console\Response
+    public function actionXsl(): Response
     {
-        $xml = \Craft::$app->getView()->renderTemplate('seomate/_sitemaps/xsl.twig', [], View::TEMPLATE_MODE_CP);
-
-        $headers = Craft::$app->response->headers;
-        $headers->add('Content-Type', 'text/xml; charset=utf-8');
-        $headers->add('X-Robots-Tag', 'noindex');
-
-        return $this->asRaw($xml);
+        $xml = Craft::$app->getView()->renderTemplate('seomate/_sitemaps/xsl.twig', [], View::TEMPLATE_MODE_CP);
+        $this->response->headers->set('X-Robots-Tag', 'noindex');
+        return $this->returnXml($xml);
     }
 
     /**
      * Helper function for returning an XML response
      *
-     *
+     * @param string $data
+     * @return Response
      */
-    private function returnXml(string $data): Response|\yii\console\Response
+    private function returnXml(string $data): Response
     {
-        $response = Craft::$app->getResponse();
-        $response->content = $data;
-        $response->format = \yii\web\Response::FORMAT_XML;
-        return $response;
+        $this->response->content = $data;
+        $this->response->format = \yii\web\Response::FORMAT_XML;
+        return $this->response;
     }
 }
