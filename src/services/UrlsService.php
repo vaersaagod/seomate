@@ -11,6 +11,7 @@ namespace vaersaagod\seomate\services;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
@@ -86,6 +87,7 @@ class UrlsService extends Component
      * Gets the alternate URLs from context
      *
      * @param $context
+     * @return array
      */
     public function getAlternateUrls($context): array
     {
@@ -99,77 +101,50 @@ class UrlsService extends Component
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
 
-        if (!$settings->outputAlternate) {
+        if (!$settings->outputAlternate || !Craft::$app->isMultiSite) {
             return [];
         }
 
-        /** @var Element $element */
         if ($overrideObject && isset($overrideObject['element'])) {
             $element = $overrideObject['element'];
         } else {
             $element = $craft->urlManager->getMatchedElement();
         }
 
-        if (!$element) {
+        if (!$element instanceof ElementInterface) {
             return [];
         }
 
-        $fallbackSite = null;
+        $siteElements = $element::find()
+            ->id($element->id)
+            ->siteId('*')
+            ->collect()
+            ->filter(static fn(ElementInterface $element) => !empty($element->getUrl()));
 
-        if (is_string($settings->alternateFallbackSiteHandle) && !empty($settings->alternateFallbackSiteHandle)) {
-            $fallbackSite = $craft->getSites()->getSiteByHandle($settings->alternateFallbackSiteHandle);
-
-            if ($fallbackSite && $fallbackSite->id !== null) {
-                $url = $craft->getElements()->getElementUriForSite($element->getId(), $fallbackSite->id);
-
-                $url = $url ? $this->prepAlternateUrlForSite($url, $fallbackSite) : $this->prepAlternateUrlForSite('', $fallbackSite);
-
-                if ($url && $url !== '') {
-                    $alternateUrls[] = [
-                        'url' => $url,
-                        'language' => 'x-default',
-                    ];
-                }
+        if (
+            !empty($settings->alternateFallbackSiteHandle) &&
+            $fallbackSite = Craft::$app->getSites()->getSiteByHandle($settings->alternateFallbackSiteHandle, false)
+        ) {
+            /** @var ElementInterface $fallbackSiteElement */
+            $fallbackSiteElement = $siteElements->firstWhere('siteId', $fallbackSite->id);
+            if ($fallbackSiteElement) {
+                $alternateUrls[] = [
+                    'url' => $fallbackSiteElement->getUrl(),
+                    'language' => 'x-default',
+                ];
+                $siteElements = $siteElements->where('siteId', '!=', $fallbackSite->id);
             }
         }
 
-        foreach ($craft->getSites()->getAllSites() as $site) {
-            if ($fallbackSite === null || $fallbackSite->id !== $site->id) {
-                $url = $craft->getElements()->getElementUriForSite($element->getId(), $site->id);
-                $enabledSites = $craft->getElements()->getEnabledSiteIdsForElement($element->getId());
-                
-                if ($url !== false && $url !== null && in_array($site->id, $enabledSites, false)) {
-                    $url = $this->prepAlternateUrlForSite($url, $site);
-
-                    if ($url && $url !== '') {
-                        $alternateUrls[] = [
-                            'url' => $url,
-                            'language' => strtolower(str_replace('_', '-', $site->language)),
-                        ];
-                    }
-                }
-            }
+        /** @var ElementInterface $siteElement */
+        foreach ($siteElements->all() as $siteElement) {
+            $alternateUrls[] = [
+                'url' => $siteElement->getUrl(),
+                'language' => strtolower(str_replace('_', '-', $siteElement->getLanguage())),
+            ];
         }
 
         return $alternateUrls;
     }
 
-    /**
-     * Returns a fully qualified site URL from uri and site
-     */
-    private function prepAlternateUrlForSite(string $uri, Site $site): string
-    {
-        $url = ($uri === '__home__') ? '' : $uri;
-        
-        if (!UrlHelper::isAbsoluteUrl($url)) {
-            try {
-                $url = UrlHelper::siteUrl($url, null, null, $site->id);
-            } catch (Exception $exception) {
-                $url = '';
-                Craft::error($exception->getMessage(), __METHOD__);
-            }
-        }
-
-        return $url;
-    }
 }
