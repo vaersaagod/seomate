@@ -1,5 +1,11 @@
 # SEOMate Changelog
 
+## Unreleased
+### Added  
+- Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`.  
+### Changed  
+- Elements without URIs are now explictly excluded from sitemaps.  
+
 ## 2.1.1 - 2023-02-27
 ### Fixed  
 - Fixes a template exception that could be thrown when rendering SEO previews   

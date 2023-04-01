@@ -12,6 +12,7 @@ use Craft;
 use craft\web\Controller;
 
 use craft\web\Response;
+use craft\web\View;
 use vaersaagod\seomate\SEOMate;
 use yii\base\ExitException;
 
@@ -74,6 +75,24 @@ class SitemapController extends Controller
     {
         SEOMate::$plugin->sitemap->submit();
         Craft::$app->end();
+    }
+
+    /**
+     * @return Response|\yii\console\Response
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
+     */
+    public function actionXsl(): Response|\yii\console\Response
+    {
+        $xml = \Craft::$app->getView()->renderTemplate('seomate/_sitemaps/xsl.twig', [], View::TEMPLATE_MODE_CP);
+
+        $headers = Craft::$app->response->headers;
+        $headers->add('Content-Type', 'text/xml; charset=utf-8');
+        $headers->add('X-Robots-Tag', 'noindex');
+
+        return $this->asRaw($xml);
     }
 
     /**

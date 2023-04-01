@@ -40,7 +40,7 @@ class SitemapService extends Component
             return CacheHelper::getCacheForSitemapIndex($siteId);
         }
 
-        $document = new \DOMDocument('1.0', 'utf-8');
+        $document = $this->getSitemapDocument();
         $topNode = $this->getTopNode($document, 'sitemapindex');
         $document->appendChild($topNode);
         $comment = $document->createComment('Created on: ' . date('Y-m-d H:i:s'));
@@ -123,7 +123,7 @@ class SitemapService extends Component
         $settings = SEOMate::$plugin->getSettings();
         $siteId = Craft::$app->getSites()->getCurrentSite()->id;
 
-        $document = new \DOMDocument('1.0', 'utf-8');
+        $document = $this->getSitemapDocument();
         $topNode = $this->getTopNode($document);
         $document->appendChild($topNode);
         $comment = $document->createComment('Created on: ' . date('Y-m-d H:i:s'));
@@ -159,7 +159,7 @@ class SitemapService extends Component
     {
         $settings = SEOMate::$plugin->getSettings();
 
-        $document = new \DOMDocument('1.0', 'utf-8');
+        $document = $this->getSitemapDocument();
         $topNode = $this->getTopNode($document);
         $document->appendChild($topNode);
 
@@ -249,5 +249,16 @@ class SitemapService extends Component
         }
         
         return $node;
+    }
+
+    /**
+     * @return \DOMDocument
+     */
+    private function getSitemapDocument(): \DOMDocument
+    {
+        $document = new \DOMDocument('1.0', 'utf-8');
+        $xsl = $document->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="sitemap.xsl"');
+        $document->appendChild($xsl);
+        return $document;
     }
 }

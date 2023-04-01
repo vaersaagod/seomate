@@ -10,11 +10,13 @@ namespace vaersaagod\seomate\helpers;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 
+use Illuminate\Support\Collection;
 use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
@@ -115,18 +117,38 @@ class SitemapHelper
             $query = $elementClass::find();
             $params = $definition;
         }
+
+        $criteria['uri'] = ':notempty:';
         
         Craft::configure($query, $criteria);
 
-        $elements = $query->limit($limit)->offset(($page - 1) * $limit)->all();
+        $offset = ($page - 1) * $limit;
 
-        if ($elements) {
-            foreach ($elements as $element) {
-                $urls[] = array_merge([
-                    'loc' => $element->url,
-                    'lastmod' => $element->dateUpdated->format('c'),
-                ], $params);
-            }
+        if ($settings->outputAlternate && Craft::$app->isMultiSite) {
+            $elementIds = (clone($query))->limit($limit)->offset($offset)->ids();
+            /** @var Collection $siteElements */
+            $siteElements = $query->id($elementIds)->siteId('*')->collect()
+                ->filter(static fn (ElementInterface $element) => !empty($element->getUrl()));
+            $elements = $siteElements->where('siteId', \Craft::$app->getSites()->getCurrentSite()->id);
+        } else {
+            $siteElements = null;
+            $elements = $query->limit($limit)->offset($offset)->all();
+        }
+
+        foreach ($elements as $element) {
+
+            $alternates = $siteElements
+                ?->where('id', $element->getId())
+                ->all() ?? [];
+
+            $urls[] = array_merge([
+                'loc' => $element->url,
+                'lastmod' => $element->dateUpdated->format('c'),
+                'alternate' => array_map(static fn(ElementInterface $alternate) => [
+                    'hreflang' => strtolower(str_replace('_', '-', $alternate->getLanguage())),
+                    'href' => $alternate->getUrl(),
+                ], $alternates),
+            ], $params);
         }
 
         return $urls;
@@ -167,6 +189,9 @@ class SitemapHelper
             }
 
             foreach ($url as $key => $val) {
+                if ($key === 'alternate') {
+                    continue;
+                }
                 try {
                     $node = $document->createElement($key, $val);
                     $topNode->appendChild($node);
@@ -174,6 +199,15 @@ class SitemapHelper
                     Craft::error($throwable->getMessage(), __METHOD__);
                 }
             }
+
+            foreach ($url['alternate'] ?? [] as $alternate) {
+                $node = $document->createElement('xhtml:link');
+                $node->setAttribute('rel', 'alternate');
+                $node->setAttribute('hreflang', $alternate['hreflang']);
+                $node->setAttribute('href', $alternate['href']);
+                $topNode->appendChild($node);
+            }
+
         }
     }
 
