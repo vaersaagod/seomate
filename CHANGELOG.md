@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 2.1.2 - 2023-06-18
+### Fixed
+- Fixes a  PHP 8.0 compatibility issue
+
 ## 2.1.1 - 2023-02-27
 ### Fixed  
 - Fixes a template exception that could be thrown when rendering SEO previews   
