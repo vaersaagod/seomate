@@ -92,11 +92,11 @@ class PreviewController extends Controller
             // This ensures that custom meta templates and template overrides will be rendered
             try {
                 $template = $element->getSection()->getSiteSettings()[$element->siteId]['template'];
-                $html = $view->renderTemplate($template, [
-                    ...$context,
+                $variables = array_merge($context, [
                     'entry' => $element,
                     'seomatePreviewElement' => $element,
                 ]);
+                $html = $view->renderTemplate($template, $variables);
                 $meta = $this->_getMetaFromHtml($html);
             } catch (\Throwable $e) {
                 \Craft::error($e, __METHOD__);
@@ -105,8 +105,7 @@ class PreviewController extends Controller
 
         if (!$meta) {
             // Fall back to getting the metadata directly from the meta service
-            $meta = SEOMate::getInstance()->meta->getContextMeta([
-                ...$context,
+            $context = array_merge($context, [
                 'seomate' => [
                     'element' => $element,
                     'config' => [
@@ -114,6 +113,7 @@ class PreviewController extends Controller
                     ],
                 ],
             ]);
+            $meta = SEOMate::getInstance()->meta->getContextMeta($context);
         }
 
         // Render previews
