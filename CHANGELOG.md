@@ -8,6 +8,7 @@
 - Improved performance when outputting alternate URLs.  
 ### Changed  
 - Elements without URIs are now explictly excluded from sitemaps.
+- The `cacheDuration` config setting now works with PHP duration interval strings.  
 
 ## 2.1.2 - 2023-06-18
 ### Fixed

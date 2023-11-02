@@ -10,7 +10,11 @@ namespace vaersaagod\seomate\helpers;
 
 use Craft;
 use craft\elements\Entry;
+use craft\helpers\ConfigHelper;
+
 use vaersaagod\seomate\SEOMate;
+
+use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
 
 /**
@@ -81,6 +85,7 @@ class CacheHelper
      * Checks if meta data cache for element exists
      *
      * @param $element
+     * @return bool
      */
     public static function hasMetaCacheForElement($element): bool
     {
@@ -92,6 +97,7 @@ class CacheHelper
      * Returns meta data cache for element
      *
      * @param $element
+     * @return mixed
      */
     public static function getMetaCacheForElement($element): mixed
     {
@@ -111,17 +117,17 @@ class CacheHelper
     }
 
     /**
-     * Creates cache for element meta data
-     *
      * @param $element
      * @param $meta
+     * @return void
+     * @throws \yii\base\InvalidConfigException
      */
     public static function setMetaCacheForElement($element, $meta): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
         $cache = Craft::$app->getCache();
-        $cacheDuration = $settings->cacheDuration;
+        $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $dependency = new TagDependency([
             'tags' => [
@@ -138,6 +144,7 @@ class CacheHelper
      * Checks if cache for sitemap index exists
      *
      * @param $siteId
+     * @return bool
      */
     public static function hasCacheForSitemapIndex($siteId): bool
     {
@@ -149,6 +156,7 @@ class CacheHelper
      * Returns cached sitemap index
      *
      * @param $siteId
+     * @return mixed
      */
     public static function getCacheForSitemapIndex($siteId): mixed
     {
@@ -172,13 +180,14 @@ class CacheHelper
      *
      * @param $siteId
      * @param $data
+     * @throws InvalidConfigException
      */
     public static function setCacheForSitemapIndex($siteId, $data): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
         $cache = Craft::$app->getCache();
-        $cacheDuration = $settings->cacheDuration;
+        $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $dependency = new TagDependency([
             'tags' => [
