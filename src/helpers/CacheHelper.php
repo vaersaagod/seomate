@@ -256,13 +256,14 @@ class CacheHelper
      * @param $handle
      * @param $definition
      * @param $page
+     * @throws InvalidConfigException
      */
     public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page): void
     {
         $settings = SEOMate::$plugin->getSettings();
 
         $cache = Craft::$app->getCache();
-        $cacheDuration = $settings->cacheDuration;
+        $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $tags = array_merge([self::SEOMATE_TAG, self::SITEMAP_ELEMENT_TAG], self::getElementSitemapTags($siteId, $handle, $definition));
 
