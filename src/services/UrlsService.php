@@ -14,12 +14,12 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
-use craft\models\Site;
 
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
 
 /**
  * @author    Værsågod
@@ -33,7 +33,9 @@ class UrlsService extends Component
      *
      * @param $context
      *
-     * @throws \Throwable
+     * @return string|null
+     * @throws Exception
+     * @throws InvalidConfigException
      */
     public function getCanonicalUrl($context): ?string
     {
@@ -125,7 +127,7 @@ class UrlsService extends Component
             !empty($settings->alternateFallbackSiteHandle) &&
             $fallbackSite = Craft::$app->getSites()->getSiteByHandle($settings->alternateFallbackSiteHandle, false)
         ) {
-            /** @var ElementInterface $fallbackSiteElement */
+            /** @var ElementInterface|null $fallbackSiteElement */
             $fallbackSiteElement = $siteElements->firstWhere('siteId', $fallbackSite->id);
             if ($fallbackSiteElement) {
                 $alternateUrls[] = [

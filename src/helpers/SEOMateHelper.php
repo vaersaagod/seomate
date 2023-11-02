@@ -13,12 +13,13 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\elements\db\ElementQuery;
 use craft\elements\db\MatrixBlockQuery;
 use craft\elements\MatrixBlock;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
+
 use Illuminate\Support\Collection;
+
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
@@ -131,7 +132,7 @@ class SEOMateHelper
      * @param string $handle
      * @param string $type
      * @return Asset|string|null
-     * @throws \yii\base\InvalidConfigException
+     * @throws \craft\errors\DeprecationException
      */
     public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
     {

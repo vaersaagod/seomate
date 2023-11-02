@@ -180,8 +180,13 @@ class SitemapHelper
     /**
      * Returns URLs for custom sitemap
      */
-    public static function getCustomSitemapUrls(array $customUrls): array
+    public static function getCustomSitemapUrls(?array $customUrls): array
     {
+
+        if (empty($customUrls)) {
+            return [];
+        }
+
         $urls = [];
 
         foreach ($customUrls as $key => $params) {

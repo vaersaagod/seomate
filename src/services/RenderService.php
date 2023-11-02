@@ -13,6 +13,7 @@ use craft\base\Component;
 use craft\helpers\Template;
 
 use Twig\Markup;
+
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\SEOMate;
 
@@ -51,7 +52,7 @@ class RenderService extends Component
 
         $r = '';
 
-        if (!\is_array($value)) {
+        if (!is_array($value)) {
             $value = [$value];
         }
         
