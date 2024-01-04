@@ -1,12 +1,16 @@
 # SEOMate Changelog
 
+## 2.1.3 - 2024-01-04
+### Fixed
+- Fixed an issue that could occur when using native Craft image transforms if an invalid image transform attribute was passed to imageTransformMap.
+
 ## 2.1.2 - 2023-06-18
 ### Fixed
-- Fixes a  PHP 8.0 compatibility issue
+- Fixed a  PHP 8.0 compatibility issue
 
 ## 2.1.1 - 2023-02-27
 ### Fixed  
-- Fixes a template exception that could be thrown when rendering SEO previews   
+- Fixed a template exception that could be thrown when rendering SEO previews   
 
 ## 2.1.0 - 2023-02-15
 ### Added  
@@ -22,7 +26,7 @@
 
 ## 2.0.1 - 2022-05-10
 ### Fixed  
-- Fixes an issue where eager-loaded assets or Matrix sub field values would not be included in element meta.  
+- Fixed an issue where eager-loaded assets or Matrix sub field values would not be included in element meta.  
 
 ### Changed
 - Deprecated the syntax `'matrixFieldHandle:blockTypeHandle.subFieldHandle'` for using Matrix sub field values in element meta. The syntax `'matrixFieldHandle.blockTypeHandle:subFieldHandle'` should be used instead.
