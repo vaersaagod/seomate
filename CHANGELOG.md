@@ -1,10 +1,20 @@
 # SEOMate Changelog
 
+## 2.1.2 - 2023-06-18
+### Fixed
+- Fixes a  PHP 8.0 compatibility issue
+
+## 2.1.1 - 2023-02-27
+### Fixed  
+- Fixes a template exception that could be thrown when rendering SEO previews   
+
+## 2.1.0 - 2023-02-15
+### Added  
+- Custom meta templates and template overrides are now supported in SEO previews (#28)  
+
 ## 2.0.3 - 2022-06-14
 ### Fixed  
-- Fixed an issue that could occur if a non-existing scope was used in field profiles.  
-
-# SEOMate Changelog
+- Fixed an issue that could occur if a non-existing scope was used in field profiles.
 
 ## 2.0.2 - 2022-06-08
 ### Fixed  

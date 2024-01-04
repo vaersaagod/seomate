@@ -1,12 +1,22 @@
+{% set title = meta.title|default %}
+{% set url = meta.url|default %}
+{% set description = meta.description|default %}
+
 <div class="Google__default">
     <div class="Google__title">
-        {{ meta.title|striptags|raw }}
+        {% if title %}
+            {{ title|striptags|raw }}
+        {% endif %}
     </div>
     <div class="Google__url">
-        {{ entry.url | length > 85 ? entry.url[:85] ~ '...' : entry.url }}
+        {% if url %}
+            {{ url | length > 85 ? url[:85] ~ '...' : url }}
+        {% endif %}
     </div>
 
     <div class="Google__description">
-        {{ (meta.description | length > 150 ? meta.description[:150] ~ '...' : meta.description)|striptags|raw }}
+        {% if description %}
+            {{ (description | length > 150 ? description[:150] ~ '...' : description)|striptags|raw }}
+        {% endif %}
     </div>
 </div>

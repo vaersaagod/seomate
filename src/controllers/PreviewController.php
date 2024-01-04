@@ -19,6 +19,7 @@ use craft\web\Controller;
 use craft\web\Response;
 
 use craft\web\View;
+use vaersaagod\redirectmate\helpers\UrlHelper;
 use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
@@ -74,22 +75,50 @@ class PreviewController extends Controller
         // Have this element override any freshly queried elements with the same ID/site
         Craft::$app->getElements()->setPlaceholderElement($element);
 
+        // Disable caching
+        \Craft::$app->getConfig()->getGeneral()->enableTemplateCaching = false;
+        SEOMate::getInstance()->settings->cacheEnabled = false;
+
         // Get meta
         $view = $this->getView();
         $view->getTwig()->disableStrictVariables();
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
+        $context = $view->getTwig()->getGlobals();
 
-        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
-            'seomate' => [
-                'element' => $element,
-                'config' => [
-                    'cacheEnabled' => false,
+        $meta = null;
+
+        if ($element instanceof Entry) {
+            // If this is an entry, get the metadata from the rendered entry template
+            // This ensures that custom meta templates and template overrides will be rendered
+            try {
+                $template = $element->getSection()->getSiteSettings()[$element->siteId]['template'];
+                $variables = array_merge($context, [
+                    'entry' => $element,
+                    'seomatePreviewElement' => $element,
+                ]);
+                $html = $view->renderTemplate($template, $variables);
+                $meta = $this->_getMetaFromHtml($html);
+            } catch (\Throwable $e) {
+                \Craft::error($e, __METHOD__);
+            }
+        }
+
+        if (!$meta) {
+            // Fall back to getting the metadata directly from the meta service
+            $context = array_merge($context, [
+                'seomate' => [
+                    'element' => $element,
+                    'config' => [
+                        'cacheEnabled' => false,
+                    ],
                 ],
-            ],
-        ]));
+            ]);
+            $meta = SEOMate::getInstance()->meta->getContextMeta($context);
+        }
 
         // Render previews
         $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+
         return $this->renderTemplate('seomate/preview', [
             'element' => $element,
             'meta' => $meta,
@@ -176,5 +205,36 @@ class PreviewController extends Controller
             'product' => $product,
             'meta' => $meta,
         ]);
+    }
+
+    /**
+     * @param string|null $html
+     * @return array|null
+     */
+    private function _getMetaFromHtml(?string $html): ?array
+    {
+        if (!$html) {
+            return null;
+        }
+        $tags = [];
+        $libxmlUseInternalErrors = \libxml_use_internal_errors(true);
+        $html = \mb_convert_encoding($html, 'HTML-ENTITIES', Craft::$app->getView()->getTwig()->getCharset());
+        $doc = new \DOMDocument();
+        $doc->loadHTML($html);
+        $xpath = new \DOMXPath($doc);
+        $nodes = $xpath->query('//head/meta');
+        /** @var \DOMElement $node */
+        foreach ($nodes as $node) {
+            $key = $node->getAttribute('name') ?: $node->getAttribute('property');
+            $value = $node->getAttribute('content');
+            if ($key && $value) {
+                $tags[$key] = $value;
+            }
+        }
+        if ($title = $doc->getElementsByTagName('title')->item(0)?->nodeValue) {
+            $tags['title'] = $title;
+        }
+        \libxml_use_internal_errors($libxmlUseInternalErrors);
+        return $tags;
     }
 }

@@ -225,8 +225,13 @@ class SEOMate extends Plugin
      */
     public function onRegisterMetaHook(array &$context): string
     {
+
         $craft = Craft::$app;
         $settings = $this->getSettings();
+
+        if (isset($context['seomatePreviewElement'])) {
+            $context['seomate']['element'] = $context['seomate']['element'] ?? $context['seomatePreviewElement'];
+        }
 
         $meta = $this->meta->getContextMeta($context);
         $canonicalUrl = $this->urls->getCanonicalUrl($context);
