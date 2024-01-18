@@ -27,7 +27,7 @@ class Settings extends Model
 
     public int|string $cacheDuration = 3600;
 
-    public array|bool $previewEnabled = true;
+    public array|bool|string $previewEnabled = true;
 
     public string|null $previewLabel = null;
 

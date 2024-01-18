@@ -17,9 +17,8 @@ use craft\elements\Category;
 use craft\elements\Entry;
 use craft\web\Controller;
 use craft\web\Response;
-
 use craft\web\View;
-use vaersaagod\redirectmate\helpers\UrlHelper;
+
 use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
@@ -213,12 +212,15 @@ class PreviewController extends Controller
      */
     private function _getMetaFromHtml(?string $html): ?array
     {
-        if (!$html) {
+        if (empty($html)) {
             return null;
         }
         $tags = [];
-        $libxmlUseInternalErrors = \libxml_use_internal_errors(true);
-        $html = \mb_convert_encoding($html, 'HTML-ENTITIES', Craft::$app->getView()->getTwig()->getCharset());
+        $libxmlUseInternalErrors = libxml_use_internal_errors(true);
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', Craft::$app->getView()->getTwig()->getCharset());
+        if (!is_string($html)) {
+            return null;
+        }
         $doc = new \DOMDocument();
         $doc->loadHTML($html);
         $xpath = new \DOMXPath($doc);
@@ -234,7 +236,7 @@ class PreviewController extends Controller
         if ($title = $doc->getElementsByTagName('title')->item(0)?->nodeValue) {
             $tags['title'] = $title;
         }
-        \libxml_use_internal_errors($libxmlUseInternalErrors);
+        libxml_use_internal_errors($libxmlUseInternalErrors);
         return $tags;
     }
 }

@@ -1,5 +1,18 @@
 # SEOMate Changelog
 
+## Unreleased  
+
+### Added  
+- Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`.  
+- Sitemaps are now styled using an XSLT stylesheet.  
+
+### Improved  
+- Improved performance when outputting alternate URLs.  
+- The `cacheDuration` config setting now works with PHP duration interval strings.  
+
+### Changed  
+- Elements without URIs are now explicitly excluded from sitemaps.
+
 ## 2.1.3 - 2024-01-04
 ### Fixed
 - Fixed an issue that could occur when using native Craft image transforms if an invalid image transform attribute was passed to imageTransformMap.

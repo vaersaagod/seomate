@@ -10,10 +10,13 @@ namespace vaersaagod\seomate\helpers;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
+
+use Illuminate\Support\Collection;
 
 use vaersaagod\seomate\SEOMate;
 
@@ -103,7 +106,7 @@ class SitemapHelper
         $limit = $settings->sitemapLimit;
         $urls = [];
 
-        /** @var Element $elementClass */
+        /** @var ElementInterface $elementClass */
         if (isset($definition['elementType']) && class_exists($definition['elementType'])) {
             $elementClass = $definition['elementType'];
             $criteria = $definition['criteria'] ?? [];
@@ -115,18 +118,60 @@ class SitemapHelper
             $query = $elementClass::find();
             $params = $definition;
         }
-        
+
+        $criteria['uri'] = ':notempty:';
+
         Craft::configure($query, $criteria);
 
-        $elements = $query->limit($limit)->offset(($page - 1) * $limit)->all();
+        $elements = (clone($query))
+            ->limit($limit)
+            ->offset(($page - 1) * $limit)
+            ->collect();
 
-        if ($elements) {
-            foreach ($elements as $element) {
-                $urls[] = array_merge([
-                    'loc' => $element->url,
-                    'lastmod' => $element->dateUpdated->format('c'),
-                ], $params);
+        $siteElements = null;
+        $fallbackSite = null;
+
+        if ($settings->outputAlternate && Craft::$app->isMultiSite) {
+            $elementIds = $elements->pluck('id')->all();
+            /** @var Collection $siteElements */
+            $siteElements = (clone($query))
+                ->id($elementIds)
+                ->siteId('*')
+                ->collect()
+                ->filter(static fn (ElementInterface $element) => !empty($element->getUrl()));
+            if (!empty($settings->alternateFallbackSiteHandle)) {
+                $fallbackSite = Craft::$app->getSites()->getSiteByHandle($settings->alternateFallbackSiteHandle, false);
             }
+        }
+
+        foreach ($elements->all() as $element) {
+
+            $url = array_merge([
+                'loc' => $element->url,
+                'lastmod' => $element->dateUpdated->format('c'),
+            ], $params);
+
+            if ($siteElements) {
+                $alternates = $siteElements
+                    ->where('id', $element->getId())
+                    ->collect();
+                if ($fallbackSite && $fallbackAlternate = $alternates->firstWhere('siteId', $fallbackSite->id)) {
+                    $url['alternate'][] = [
+                        'hreflang' => 'x-default',
+                        'href' => $fallbackAlternate->getUrl(),
+                    ];
+                    $alternates = $alternates->where('siteId', '!=', $fallbackSite->id);
+                }
+                /** @var ElementInterface $alternate */
+                foreach ($alternates->all() as $alternate) {
+                    $url['alternate'][] = [
+                        'hreflang' => strtolower(str_replace('_', '-', $alternate->getLanguage())),
+                        'href' => $alternate->getUrl(),
+                    ];
+                }
+            }
+
+            $urls[] = $url;
         }
 
         return $urls;
@@ -135,8 +180,13 @@ class SitemapHelper
     /**
      * Returns URLs for custom sitemap
      */
-    public static function getCustomSitemapUrls(array $customUrls): array
+    public static function getCustomSitemapUrls(?array $customUrls): array
     {
+
+        if (empty($customUrls)) {
+            return [];
+        }
+
         $urls = [];
 
         foreach ($customUrls as $key => $params) {
@@ -159,21 +209,32 @@ class SitemapHelper
     public static function addUrlsToSitemap(\DOMDocument $document, \DOMElement $sitemap, string $nodeName, array $urls): void
     {
         foreach ($urls as $url) {
+
             try {
+
                 $topNode = $document->createElement($nodeName);
                 $sitemap->appendChild($topNode);
-            } catch (\Throwable $throwable) {
-                Craft::error($throwable->getMessage(), __METHOD__);
-            }
 
-            foreach ($url as $key => $val) {
-                try {
+                $alternates = $url['alternate'] ?? [];
+                unset($url['alternate']);
+
+                foreach ($url as $key => $val) {
                     $node = $document->createElement($key, $val);
                     $topNode->appendChild($node);
-                } catch (\Throwable $throwable) {
-                    Craft::error($throwable->getMessage(), __METHOD__);
                 }
+
+                foreach ($alternates as $alternate) {
+                    $node = $document->createElement('xhtml:link');
+                    $node->setAttribute('rel', 'alternate');
+                    $node->setAttribute('hreflang', $alternate['hreflang']);
+                    $node->setAttribute('href', $alternate['href']);
+                    $topNode->appendChild($node);
+                }
+
+            } catch (\Throwable $throwable) {
+                Craft::error($throwable, __METHOD__);
             }
+
         }
     }
 

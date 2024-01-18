@@ -49,14 +49,15 @@ class PreviewAsset extends AssetBundle
         parent::registerAssetFiles($view);
 
         if ($view instanceof View) {
-            $settings = SEOMate::$plugin->getSettings();
-            $previewEnabled = $settings->previewEnabled;
 
-            if (!$this->shouldPreview($previewEnabled)) {
+
+            if (!$this->shouldPreview()) {
                 return;
             }
 
             $previewAction = Craft::$app->getSecurity()->hashData('seomate/preview');
+
+            $settings = SEOMate::$plugin->getSettings();
 
             $config = [
                 'previewAction' => $previewAction,
@@ -73,9 +74,12 @@ class PreviewAsset extends AssetBundle
      *
      *
      */
-    private function shouldPreview(bool|array|string $previewEnabled): bool
+    private function shouldPreview(): bool
     {
-        if ($previewEnabled === false) {
+
+        $settings = SEOMate::$plugin->getSettings();
+        $previewEnabled = $settings->previewEnabled;
+        if (!$previewEnabled) {
             return false;
         }
 
@@ -85,20 +89,19 @@ class PreviewAsset extends AssetBundle
         }
 
         if ($segments[0] === 'commerce') {
-            \array_shift($segments);
+            array_shift($segments);
         }
 
-        $currentSourceHandle = \in_array($segments[0], ['entries', 'categories', 'products']) ? $segments[1] ?? null : null;
+        $currentSourceHandle = in_array($segments[0], ['entries', 'categories', 'products']) ? $segments[1] ?? null : null;
         if (!$currentSourceHandle) {
             return false;
         }
 
-        if ($previewEnabled !== true) {
-            if (!\is_array($previewEnabled)) {
-                $previewEnabled = \explode(',', $previewEnabled);
+        if (!is_bool($previewEnabled)) {
+            if (!is_array($previewEnabled)) {
+                $previewEnabled = \explode(',', preg_replace('/\s+/', '', $previewEnabled));
             }
-
-            if (!\in_array($currentSourceHandle, $previewEnabled, true)) {
+            if (!in_array($currentSourceHandle, $previewEnabled, true)) {
                 return false;
             }
         }
