@@ -221,18 +221,28 @@ class SEOMateHelper
     }
 
     /**
-     * Return a meta-safe image asset from raw input
+     * Return a meta-safe string value from raw input
      *
      * @param mixed $input
      * @return string|null
      */
     public static function getStringPropertyValue(mixed $input): ?string
     {
-        $value = trim(strip_tags((string)$input));
-        if ((bool)$value) {
-            return $value;
+        if (empty($input)) {
+            return null;
         }
-        return null;
+
+        $value = (string)$input;
+
+        // Replace all control characters, newlines and returns with a literal space
+        $value = preg_replace('/[[:cntrl:]](?! )/', ' ', $value);
+        $value = preg_replace('/[[:cntrl:]]/', '', $value);
+
+        // Add literal spaces after linebreak elements and closing paragraph tags, to avoid words being joined together after stripping tags
+        $value = preg_replace('/((<\/p>|<br( ?)(\/?)>)(?=\S))/iu', '$1 ', $value);
+
+        // Strip tags, trim and return
+        return trim(strip_tags($value)) ?: null;
     }
 
     /**
@@ -243,7 +253,6 @@ class SEOMateHelper
      */
     public static function getImagePropertyValue(mixed $input): ?Asset
     {
-
         if (empty($input)) {
             return null;
         }
