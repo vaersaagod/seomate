@@ -235,7 +235,7 @@ class SEOMateHelper
         $value = (string)$input;
 
         // Replace all control characters, newlines and returns with a literal space
-        $value = preg_replace('/[[:cntrl:]](?! )/', ' ', $value);
+        $value = preg_replace('/(?<!\s)[[:cntrl:]]|(?<=[[:cntrl:]])\s/', ' ', $value);
         $value = preg_replace('/[[:cntrl:]]/', '', $value);
 
         // Add literal spaces after linebreak elements and closing paragraph tags, to avoid words being joined together after stripping tags
