@@ -14,6 +14,7 @@ use craft\base\Component;
 use craft\base\Element;
 use craft\elements\Asset;
 use craft\errors\SiteNotFoundException;
+use craft\models\ImageTransform;
 use spacecatninja\imagerx\ImagerX;
 
 use vaersaagod\seomate\helpers\CacheHelper;
@@ -287,6 +288,13 @@ class MetaService extends Component
             Craft::$app->config->general->generateTransformsBeforePageLoad = true;
 
             try {
+                $imageTransform = new ImageTransform();
+                $validKeys = array_keys($imageTransform->getAttributes());
+                
+                $transform = array_filter($transform, static function($k) use ($validKeys) {
+                    return in_array($k, $validKeys, true);
+                }, ARRAY_FILTER_USE_KEY);
+
                 $transformedUrl = $asset->getUrl($transform);
             } catch (\Throwable $throwable) {
                 Craft::error($throwable->getMessage(), __METHOD__);
