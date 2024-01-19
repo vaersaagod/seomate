@@ -1,7 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased  
-
+## 2.2.0 - 2024-01-19  
 ### Added  
 - Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`. [#79](https://github.com/vaersaagod/seomate/pull/79)  
 - Sitemaps are now styled using an XSLT stylesheet. [#79](https://github.com/vaersaagod/seomate/pull/79)
