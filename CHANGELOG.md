@@ -8,12 +8,12 @@
 - Added a LinkedIn card to the SEO preview  
 
 ### Improved  
-- Improved performance when outputting alternate URLs.  
+- Improved performance when outputting alternate URLs. [#79](https://github.com/vaersaagod/seomate/pull/79)
 - The `cacheDuration` config setting now works with PHP duration interval strings.
 - Updated and improved the SEO Preview design
 
 ### Changed  
-- Elements without URIs are now explicitly excluded from sitemaps.
+- Elements without URIs are now explicitly excluded from sitemaps. [#79](https://github.com/vaersaagod/seomate/pull/79)
 - Newlines, returns and other control characters in meta text values are now replaced with a literal space. [#80](https://github.com/vaersaagod/seomate/issues/80)
 - SEOMate no longer adds closing slashes to meta tags. [#66](https://github.com/vaersaagod/seomate/pull/66)
 

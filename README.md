@@ -352,6 +352,11 @@ You can also do more complex element criterias, and manually add custom paths:
 
 Using the expanded criteria syntax, you can add whatever elements to your sitemaps.
 
+### Multi-site sitemaps  
+
+For multi-site installs, SEOMate will automatically create sitemaps for each site. 
+If the [`outputAlternate`](#outputalternate-bool) config setting is enabled, sitemaps will include alternate URLs in <xhtml:link> entries.    
+
 ---
 
 ## Configuring
@@ -361,18 +366,18 @@ and overriding settings as needed.
 
 ### cacheEnabled [bool]
 *Default: `'true'`*  
-Enables/disables caching of generated meta data. The cached data will be automatically
-cleared when an element is saved, but it can also be completely deleted through Craft's
-clear cache tool.
+Enables/disables caching of generated meta data. **The cached data will be automatically
+cleared when an element is saved**. To clear the meta data cache manually, Craft's "Clear Caches" CP utility can be used, or the core `clear-caches` CLI command.  
 
 ### cacheDuration [int|string]
 *Default: `3600`*  
-Duration of meta cache in seconds.
+Duration of meta cache in seconds. Can be set to an integer (seconds), or a valid PHP date interval string (e.g. 'PT1H').  
 
 ### previewEnabled [bool|array]
 *Default: `true`*  
-Enable SEO previews in the Control Panel for everything (true), 
-nothing (false) or an array of section and/or category group handles.  
+Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections and category groups (array of section and/or category group handles; e.g. `['news', 'events', 'homepage']`).  
+_Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._     
+_Preview targets is a Craft Pro feature only. Nothing we can do about that._  
 
 ### previewLabel [string|null]
 *Default: "SEO Preview"*  
@@ -434,7 +439,7 @@ search engines with alternate URLs _for localized versions of the current page's
 
 If you have a normal multi-locale website, you'll probably want to leave this setting
 enabled. If you're running a multi-site website, where the sites are distinct, you'll
-probably want to disable this. 
+probably want to disable this.  
 
 For more information about alternate URLs, (refer to this article)[https://support.google.com/webmasters/answer/189077].   
 
