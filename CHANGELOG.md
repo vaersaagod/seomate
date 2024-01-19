@@ -15,6 +15,7 @@
 ### Changed  
 - Elements without URIs are now explicitly excluded from sitemaps.
 - Newlines, returns and other control characters in meta text values are now replaced with a literal space. #80
+- SEOMate no longer adds closing slashes to meta tags. #66
 
 ## 2.1.3 - 2024-01-04
 ### Fixed
