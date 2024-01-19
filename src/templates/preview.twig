@@ -20,21 +20,28 @@
             <div class="Google">
                 <h2><div class="l-wrap"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div></h2>
                 <div class="l-wrap">
-                    {% include 'seomate/_previews/google/default' %}
+                    {{ include('seomate/_previews/google/default.twig') }}
                 </div>
             </div>
 
             <div class="Facebook">
                 <h2><div class="l-wrap">Facebook</div></h2>
                 <div class="l-wrap">
-                    {% include 'seomate/_previews/facebook' %}
+                    {{ include('seomate/_previews/facebook.twig') }}
                 </div>
             </div>
 
             <div class="Twitter">
-                <h2><div class="l-wrap">Twitter</div></h2>
+                <h2><div class="l-wrap">X (Twitter)</div></h2>
                 <div class="l-wrap">
-                    {% include 'seomate/_previews/twitter' %}
+                    {{ include('seomate/_previews/twitter.twig') }}
+                </div>
+            </div>
+
+            <div class="LinkedIn">
+                <h2><div class="l-wrap">LinkedIn</div></h2>
+                <div class="l-wrap">
+                    {{ include('seomate/_previews/linkedin.twig') }}
                 </div>
             </div>
 

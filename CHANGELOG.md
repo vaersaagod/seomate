@@ -4,11 +4,13 @@
 
 ### Added  
 - Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`.  
-- Sitemaps are now styled using an XSLT stylesheet.  
+- Sitemaps are now styled using an XSLT stylesheet.
+- Added a LinkedIn card to the SEO preview  
 
 ### Improved  
 - Improved performance when outputting alternate URLs.  
-- The `cacheDuration` config setting now works with PHP duration interval strings.  
+- The `cacheDuration` config setting now works with PHP duration interval strings.
+- Updated and improved the SEO Preview design
 
 ### Changed  
 - Elements without URIs are now explicitly excluded from sitemaps.
