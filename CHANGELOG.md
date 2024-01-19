@@ -3,8 +3,8 @@
 ## Unreleased  
 
 ### Added  
-- Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`.  
-- Sitemaps are now styled using an XSLT stylesheet.
+- Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`. [#79](https://github.com/vaersaagod/seomate/pull/79)  
+- Sitemaps are now styled using an XSLT stylesheet. [#79](https://github.com/vaersaagod/seomate/pull/79)
 - Added a LinkedIn card to the SEO preview  
 
 ### Improved  
