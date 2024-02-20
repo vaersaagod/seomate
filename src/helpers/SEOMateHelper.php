@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\helpers;
@@ -13,8 +13,8 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\elements\db\MatrixBlockQuery;
-use craft\elements\MatrixBlock;
+use craft\elements\db\EntryQuery;
+use craft\elements\Entry;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 
@@ -57,9 +57,9 @@ class SEOMateHelper
         if (method_exists($element, 'refHandle')) {
             $refHandle = strtolower($element->refHandle());
 
-            if ($refHandle == 'entry') {
+            if ($refHandle === 'entry') {
                 $mapIds[] = $element->section->handle;
-            } elseif ($refHandle == 'category') {
+            } elseif ($refHandle === 'category') {
                 $mapIds[] = $element->group->handle;
             }
         }
@@ -132,54 +132,43 @@ class SEOMateHelper
      * @param string $handle
      * @param string $type
      * @return Asset|string|null
-     * @throws \craft\errors\DeprecationException
      */
     public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
     {
-
         if ($scope[$handle] ?? null) {
-
-            // Simple field
+            
             if ($type === 'text') {
-
                 return static::getStringPropertyValue($scope[$handle]);
-
-            } elseif ($type === 'image') {
-
-                return static::getImagePropertyValue($scope[$handle]);
-
             }
 
+            if ($type === 'image') {
+                return static::getImagePropertyValue($scope[$handle]);
+            }
+            
         } elseif (strpos($handle, ':')) {
 
-            // Assume Matrix sub field, in the format matrixFieldHandle.blockTypeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
+            // Assume subfield, in the format fieldHandle.typeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
             $delimiters = preg_replace('/[^\\.:]+/', '', $handle);
             if ($delimiters !== '.:') {
-                if ($delimiters === ':.') {
-                    // Old syntax "matrixFieldHandle:blockTypeHandle.subFieldHandle" is used. We kind of messed up when we built SEOmate initially by not using the same syntax as Craft does when eager-loading Matrix sub fields.
-                    // We still allow the old format, but we might need to remove support for it later – so let's log a deprecation message
-                    Craft::$app->getDeprecator()->log(__METHOD__, 'Support for the `matrixFieldHandle:blockTypeHandle.subFieldHandle` Matrix sub field syntax in `config/seomate.php` has been deprecated. Use the syntax `matrixFieldHandle.blockTypeHandle:subFieldHandle` instead.');
-                } else {
-                    // This is not something we can work with :/
-                    Craft::warning("Invalid syntax encountered for Matrix sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"matrixFieldHandle.blockTypeHandle:subFieldHandle\"");
-                    return null;
-                }
-            }
-
-            // Get field, block type and sub field handles
-            [$matrixFieldHandle, $blockTypeHandle, $subFieldHandle] = explode('.', str_replace(':', '.', $handle));
-            if (!$matrixFieldHandle || !$blockTypeHandle || !$subFieldHandle) {
+                // This is not something we can work with :/
+                Craft::warning("Invalid syntax encountered for sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"fieldHandle.typeHandle:subFieldHandle\"");
                 return null;
             }
 
-            // Make sure that the Matrix field is in scope, in some form or another
-            $value = $scope[$matrixFieldHandle] ?? null;
+            // Get field, block type and subfield handles
+            [$fieldHandle, $blockTypeHandle, $subFieldHandle] = explode('.', str_replace(':', '.', $handle));
+            if (!$fieldHandle || !$blockTypeHandle || !$subFieldHandle) {
+                return null;
+            }
+
+            // Make sure that the field is in scope, in some form or another
+            $value = $scope[$fieldHandle] ?? null;
             if (empty($value)) {
                 return null;
             }
-
+            
             // Fetch the blocks
-            if ($value instanceof MatrixBlockQuery) {
+            if ($value instanceof EntryQuery) {
                 $query = (clone $value)->type($blockTypeHandle);
                 if ($type === 'image') {
                     $query->with([sprintf('%s:%s', $blockTypeHandle, $subFieldHandle)]);
@@ -188,7 +177,7 @@ class SEOMateHelper
             } else {
                 $blocks = Collection::make($value)
                     ->filter(static function (mixed $block) use ($blockTypeHandle) {
-                        return $block instanceof MatrixBlock && $block->getType()->handle === $blockTypeHandle;
+                        return $block instanceof Entry && $block->getType()->handle === $blockTypeHandle;
                     })
                     ->all();
             }
@@ -197,7 +186,7 @@ class SEOMateHelper
                 return null;
             }
 
-            /** @var MatrixBlock[] $blocks */
+            /** @var Entry[] $blocks */
             foreach ($blocks as $block) {
 
                 if ($type === 'text') {

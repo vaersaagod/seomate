@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\services;

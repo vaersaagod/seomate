@@ -3,7 +3,7 @@
  * SEOMate for Craft CMS 3.x
  *
  * @link      https://vaersaagod.no
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\assets\preview;

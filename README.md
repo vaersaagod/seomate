@@ -19,7 +19,7 @@ Craft's native Preview Targets, giving your clients a nice and familiar interfac
 
 ## Requirements
 
-This plugin requires Craft CMS 4.0.0 or later.  
+This plugin requires Craft CMS 5.0.0 or later.  
 
 ## Installation
 
