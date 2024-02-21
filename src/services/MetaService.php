@@ -62,7 +62,7 @@ class MetaService extends Component
         }
 
         // Additional meta data
-        if ($settings->additionalMeta !== null && $settings->additionalMeta !== []) {
+        if (!empty($settings->additionalMeta)) {
             $meta = $this->processAdditionalMeta($meta, $context, $settings);
         }
         
@@ -72,7 +72,7 @@ class MetaService extends Component
         }
 
         // Add default meta if available
-        if ($settings->defaultMeta !== null && $settings->defaultMeta !== []) {
+        if (!empty($settings->defaultMeta)) {
             $meta = $this->processDefaultMeta($meta, $context, $settings);
         }
 
@@ -156,15 +156,15 @@ class MetaService extends Component
     }
 
     /**
-     * Gets the value for a meta data property in *element*, from a list of fields and type.
+     * Gets the value for a metadata property in *element*, from a list of fields and type.
      */
     public function getElementPropertyDataByFields(Element $element, string $type, array $fields): Asset|string
     {
-        foreach ($fields as $fieldHandle) {
-            $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($element, $fieldHandle, $type);
+        foreach ($fields as $fieldDef) {
+            $value = SEOMateHelper::getPropertyDataByScopeAndHandle($element, $fieldDef, $type);
             
-            if ($fieldValue !== null) {
-                return $fieldValue;
+            if (!empty($value)) {
+                return $value;
             }
         }
 
@@ -172,22 +172,26 @@ class MetaService extends Component
     }
 
     /**
-     * Gets the value for a meta data property in *context*, from a list of fields and type.
+     * Gets the value for a metadata property in *context*, from a list of fields and type.
      */
     public function getContextPropertyDataByFields(array $context, string $type, array $fields): Asset|string
     {
-        foreach ($fields as $fieldName) {
-            // Get the deepest scope possible, and the remaining field handle.
-            [$primaryScope, $fieldHandle] = SEOMateHelper::reduceScopeAndHandle($context, $fieldName);
-            
-            if ($primaryScope === null) {
-                continue;
+        foreach ($fields as $fieldDef) {
+            if (!\is_callable($fieldDef) && !\str_contains(trim($fieldDef), '{')) {
+                // Get the deepest scope possible, and the remaining field handle.
+                [$primaryScope, $fieldDef] = SEOMateHelper::reduceScopeAndHandle($context, $fieldDef);
+                
+                if ($primaryScope === null) {
+                    continue;
+                }
+            } else {
+                $primaryScope = $context;
             }
             
-            $fieldValue = SEOMateHelper::getPropertyDataByScopeAndHandle($primaryScope, $fieldHandle, $type);
+            $value = SEOMateHelper::getPropertyDataByScopeAndHandle($primaryScope, $fieldDef, $type);
             
-            if ($fieldValue !== null) {
-                return $fieldValue;
+            if (!empty($value)) {
+                return $value;
             }
         }
 
@@ -211,8 +215,8 @@ class MetaService extends Component
         foreach ($imageTransformMap as $key => $value) {
             if (isset($meta[$key]) && $meta[$key] !== '') {
                 $transform = $value;
-                $asset = $meta[$key] ?? null;
-
+                $asset = $meta[$key];
+                
                 if ($asset) {
                     try {
                         $meta[$key] = $this->getTransformedUrl($asset, $transform, $settings);
@@ -269,13 +273,13 @@ class MetaService extends Component
         }
 
         $plugins = Craft::$app->getPlugins();
-        $imagerPlugin = $plugins->getPlugin('imager-x') ?? $plugins->getPlugin('imager');
+        $imagerPlugin = $plugins->getPlugin('imager-x');
         
         $transformedUrl = '';
 
-        if ($settings->useImagerIfInstalled && ($imagerPlugin instanceof Imager || $imagerPlugin instanceof ImagerX)) {
+        if ($settings->useImagerIfInstalled && $imagerPlugin instanceof ImagerX) {
             try {
-                $transformedAsset = $imagerPlugin->imager->transformImage($asset, $transform, [], []);
+                $transformedAsset = $imagerPlugin->imagerx->transformImage($asset, $transform, [], []);
 
                 if ($transformedAsset) {
                     $transformedUrl = $transformedAsset->getUrl();
@@ -442,7 +446,7 @@ class MetaService extends Component
         }
 
         foreach ($settings->defaultMeta as $key => $value) {
-            if (!isset($meta[$key]) || $meta[$key] === null || $meta[$key] === '') {
+            if (!isset($meta[$key]) || $meta[$key] === '') {
                 $keyType = SEOMateHelper::getMetaTypeByKey($key);
                 $meta[$key] = $this->getContextPropertyDataByFields($context, $keyType, $value);
             }

@@ -119,6 +119,7 @@ class SEOMateHelper
 
             if ($first) {
                 $currentScope = $scope[$part] ?? null;
+                $first = false;
             } elseif ($currentScope !== null) {
                 $currentScope = $currentScope[$part] ?? null;
             }
@@ -129,22 +130,33 @@ class SEOMateHelper
 
     /**
      * @param ElementInterface|array $scope
-     * @param string $handle
-     * @param string $type
+     * @param string|\Closure        $handle
+     * @param string                 $type
+     *
      * @return Asset|string|null
      */
-    public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
+    public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string|\Closure $handle, string $type): Asset|string|null
     {
+        if (\is_callable($handle)) {
+            return $handle($scope);
+        }
+
+        if (\str_contains(trim($handle), '{')) {
+            try {
+                return Craft::$app->getView()->renderObjectTemplate($handle, $scope);
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occurred when trying to render object template: '.$throwable->getMessage(), __METHOD__);
+                return null;
+            }
+        }
+
         if ($scope[$handle] ?? null) {
-            
             if ($type === 'text') {
                 return static::getStringPropertyValue($scope[$handle]);
             }
-
             if ($type === 'image') {
                 return static::getImagePropertyValue($scope[$handle]);
             }
-            
         } elseif (strpos($handle, ':')) {
 
             // Assume subfield, in the format fieldHandle.typeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
@@ -152,6 +164,7 @@ class SEOMateHelper
             if ($delimiters !== '.:') {
                 // This is not something we can work with :/
                 Craft::warning("Invalid syntax encountered for sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"fieldHandle.typeHandle:subFieldHandle\"");
+
                 return null;
             }
 
@@ -166,7 +179,7 @@ class SEOMateHelper
             if (empty($value)) {
                 return null;
             }
-            
+
             // Fetch the blocks
             if ($value instanceof EntryQuery) {
                 $query = (clone $value)->type($blockTypeHandle);
@@ -176,7 +189,7 @@ class SEOMateHelper
                 $blocks = $query->all();
             } else {
                 $blocks = Collection::make($value)
-                    ->filter(static function (mixed $block) use ($blockTypeHandle) {
+                    ->filter(static function(mixed $block) use ($blockTypeHandle) {
                         return $block instanceof Entry && $block->getType()->handle === $blockTypeHandle;
                     })
                     ->all();
@@ -194,16 +207,13 @@ class SEOMateHelper
                     if ($value = static::getStringPropertyValue($block->$subFieldHandle ?? null)) {
                         return $value;
                     }
-
                 } else if ($type === 'image') {
 
                     if ($asset = static::getImagePropertyValue($block->$subFieldHandle ?? null)) {
                         return $asset;
                     }
-
                 }
             }
-
         }
 
         return null;
@@ -213,6 +223,7 @@ class SEOMateHelper
      * Return a meta-safe string value from raw input
      *
      * @param mixed $input
+     *
      * @return string|null
      */
     public static function getStringPropertyValue(mixed $input): ?string
@@ -238,6 +249,7 @@ class SEOMateHelper
      * Return a meta-safe image asset from raw input
      *
      * @param mixed $input
+     *
      * @return Asset|null
      */
     public static function getImagePropertyValue(mixed $input): ?Asset
@@ -258,7 +270,7 @@ class SEOMateHelper
 
         $settings = SEOMate::getInstance()->getSettings();
 
-        return $collection->first(static function (mixed $asset) use ($settings) {
+        return $collection->first(static function(mixed $asset) use ($settings) {
             return $asset instanceof Asset && $asset->kind === Asset::KIND_IMAGE && in_array(strtolower($asset->getExtension()), $settings->validImageExtensions, true);
         });
     }
@@ -286,7 +298,7 @@ class SEOMateHelper
      */
     public static function isAssocArray(array $array): bool
     {
-        if (array() === $array) {
+        if ([] === $array) {
             return false;
         }
 
@@ -326,10 +338,10 @@ class SEOMateHelper
         }
 
         if (str_starts_with($url, '/')) {
-            return $scheme . '://' . $siteUrlParts['host'] . $url;
+            return $scheme.'://'.$siteUrlParts['host'].$url;
         }
 
         // huh, relative url? Seems unlikely, but... If we've come this far.
-        return $scheme . '://' . $siteUrlParts['host'] . '/' . $url;
+        return $scheme.'://'.$siteUrlParts['host'].'/'.$url;
     }
 }
