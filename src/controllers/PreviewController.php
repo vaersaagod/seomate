@@ -90,13 +90,14 @@ class PreviewController extends Controller
             // If this is an entry, get the metadata from the rendered entry template
             // This ensures that custom meta templates and template overrides will be rendered
             try {
-                $template = $element->getSection()->getSiteSettings()[$element->siteId]['template'];
-                $variables = array_merge($context, [
-                    'entry' => $element,
-                    'seomatePreviewElement' => $element,
-                ]);
-                $html = $view->renderTemplate($template, $variables);
-                $meta = $this->_getMetaFromHtml($html);
+                if ($template = $element->getSection()?->getSiteSettings()[$element->siteId]['template'] ?? null) {
+                    $variables = array_merge($context, [
+                        'entry' => $element,
+                        'seomatePreviewElement' => $element,
+                    ]);
+                    $html = $view->renderTemplate($template, $variables);
+                    $meta = $this->_getMetaFromHtml($html);
+                }
             } catch (\Throwable $e) {
                 \Craft::error($e, __METHOD__);
             }

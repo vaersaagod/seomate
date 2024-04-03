@@ -12,6 +12,8 @@ use Craft;
 use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\elements\Category;
+use craft\elements\Entry;
 use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterPreviewTargetsEvent;
@@ -177,8 +179,16 @@ class SEOMate extends Plugin
                     if (!$element->getUrl()) {
                         return;
                     }
-                    if (\is_array($settings->previewEnabled) && !\in_array($element->getSection()->handle, $settings->previewEnabled, true)) {
-                        return;
+                    if (is_array($settings->previewEnabled)) {
+                        $sourceHandle = null;
+                        if ($element instanceof Entry) {
+                            $sourceHandle = $element->getSection()?->handle;
+                        } else if ($element instanceof Category) {
+                            $sourceHandle = $element->getGroup()->handle;
+                        }
+                        if (!empty($sourceHandle) && !in_array($sourceHandle, $settings->previewEnabled, true)) {
+                            return;
+                        }
                     }
                     $event->previewTargets[] = [
                         'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
