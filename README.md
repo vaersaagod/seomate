@@ -37,17 +37,16 @@ SEOMate focuses on providing developers with the tools they need to craft their
 site's SEO in three main areas; **meta data**, **sitemaps**, and **JSON-LD microdata**.
 
 ### Meta data
-SEOMate doesn't provide any field types or custom tables that store your meta data.
-Instead, you use the native field types that comes with Craft, and just tell SEOMate
-where to look for meta data. 
+SEOMate doesn't provide any custom field types for entering meta data.
+Instead, you use native field types that come with Craft, and just tell SEOMate
+which fields to use.   
 
-You do this by configuring profiles for the different field setups in your site, and 
-then map sections and category groups to these profiles, or set the desired profile from 
-your templates.
+You do this by configuring _field profiles_ for the different field setups in your site. Sections and category groups 
+can be mapped to these profiles, or the desired profile can be set at the template level.  
 
 The key config settings for meta data is `fieldProfiles`, `profileMap`, `defaultProfile`, 
 `defaultMeta` and `additionalMeta`. Refer to the ["Adding meta data"](#adding-meta-data) 
-section on how to include the meta data in your page, and override it at the template level.
+section on how to include the meta data in your page, and how to (optionally) override it at the template level.
 
 ### Sitemaps
 SEOMate lets you create completely configuration based sitemaps for all your content.
@@ -65,6 +64,16 @@ template variable, that directly ties into the fluent [Schema API](https://githu
 
 _This method uses the exact same approach and signature as [Rias' Schema plugin](https://github.com/Rias500/craft-schema).
 If you're only looking for a way to output JSON-LD, we suggest you use that plugin instead_.  
+
+### SEO preview  
+SEOMate provides a fancy "SEO Preview" preview target, for any and all elements with URLs, featuring 
+_photo realistic approximations_ of how your content will appear in Google SERPs, or when shared on Facebook, 
+Twitter/X and LinkedIn.  
+
+![img.png](resources/seo-preview.png)
+
+_If you don't like the SEO preview, or if you'd like it to only appear for entries in specific sections, check 
+out the [previewEnabled](`#previewenabled-boolarray`) config setting._     
 
 ### Things that SEOMate doesn't do...
 So much! 
@@ -100,12 +109,14 @@ return [
 ];
 ```
 
-This tells SEOMate to use the field profile `standard` to get element meta data from
-by default. So, everytime a template that has an element (ie. `entry` or `category`) is loaded,
-SEOMate will start by checking if there is a field named `seoTitle` that has a value that it
-can use for the title meta tag. If there a field named `seoTitle` does not exist, or there is one and
-it's empty, SEOMate continues to check if there is a field named `heading`, and does the same thing.
-If `heading` is empty, it checks for `title`. And so on, for every key in the field profile.
+This tells SEOMate to use the field profile `standard` to get element meta data from, as a default. So, everytime a 
+template that has an element (ie. `entry` or `category`) is loaded, SEOMate will start by checking if there is a field
+named `seoTitle` that has a value that it can use for the title meta tag. If a field named `seoTitle` does not exist, 
+or if it's empty, SEOMate continues to check if there is a field named `heading`, and does the same thing.
+If `heading` is empty, it checks for `title`. And so on, for every key in the field profile.  
+
+_💡 In addition to field handles, field profiles can also contain **functions** (i.e. closures), and/or **Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html)**.  
+For documentation and examples for closures and object templates, see the [`fieldProfiles` setting](#fieldprofiles-array)!_  
 
 Now, let's say we have a section with handle `news` that has a slightly different field setup than
 our other sections, so we want to pull data from some other fields. We'll add another field profile to `fieldProfiles`, 
@@ -376,8 +387,7 @@ Duration of meta cache in seconds. Can be set to an integer (seconds), or a vali
 ### previewEnabled [bool|array]
 *Default: `true`*  
 Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections and category groups (array of section and/or category group handles; e.g. `['news', 'events', 'homepage']`).  
-_Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._     
-_Preview targets is a Craft Pro feature only. Nothing we can do about that._  
+_Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._  
 
 ### previewLabel [string|null]
 *Default: "SEO Preview"*  
@@ -495,7 +505,34 @@ Example:
 ```  
 
 Field waterfalls are parsed from left to right. Empty or missing fields are ignored, 
-and SEOMate continues to look for a valid value in the next field.
+and SEOMate continues to look for a valid value in the next field.  
+
+In addition to field handle references, field profiles can also contain functions (i.e. _closures_) 
+and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html). These work exactly the same 
+as field references, i.e. if SEOMate encounters a closure or object template in the config it will call/render it; if 
+that doesn't yield a non-empty value SEOMate will proceed to look at the next item in the field profile array, etc.    
+
+Field profile closures receive a single argument `$element` (i.e. the element SEOMate is rendering meta data for).  
+Here's how a closure can look inside a field profile:  
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'title' => [static function ($element) { return "$element->title - ($element->productCode)"; }],
+    ],
+]
+```
+
+Object templates are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+Here's how they can be used in field profiles (the two examples are using short- and longhand syntaxes, respectively):     
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'title' => ['{title} - ({productCode})', '{{ object.title }} - ({{ object.productCode }})'],
+    ],
+]
+```
 
 ### profileMap [array]
 *Default: `[]`*  
@@ -514,12 +551,12 @@ map, the profile defined in `defaultProfile` will be used.
 ### defaultMeta [array]
 *Default: `[]`*  
 This setting defines the default meta data that will be used if no valid meta data
-was found for the current element (ie, non of the fields provided in the field profile
-existed or had valid values). 
+was found for the current element (ie, none of the fields provided in the field profile
+existed, or they all had empty values). 
 
-The waterfall uses the current _context_ to search for meta data. In the example
-below, we're falling back to using fields in two globals with handle `globalSeo` 
-and `settings`:
+The waterfall looks for meta data in the global _Twig context_. In the example
+below, we're falling back to using fields in two global sets, with handles `globalSeo` 
+and `settings` respectively:
 
 ```php
 'defaultMeta' => [
@@ -527,6 +564,28 @@ and `settings`:
     'description' => ['globalSeo.seoDescription', 'settings.companyInfo'],
     'image' => ['globalSeo.seoImages']
 ],
+```
+
+In addition to field handle references, `defaultMeta` can also contain functions (i.e. _closures_)
+and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html).  
+
+Field profile closures receive a single argument `$context` (i.e. an array; the global Twig context).    
+Here's how a closure can look inside `defaultMeta`:
+
+```php
+'defaultMeta' => [
+    'title' => [static function ($context) { return $context['siteName'] . ' is awesome!'; }],
+]
+```
+
+Object templates are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+Here's how they can be used in `defaultMeta` (note that for `defaultMeta`, the `object` variable refers to the global  
+Twig context):  
+
+```php
+'defaultMeta' => [
+    'title' => ['{siteName} is awesome!', '{{ object.siteName }} is awesome!'],
+]
 ```
 
 ### additionalMeta [array]
