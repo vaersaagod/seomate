@@ -1,9 +1,9 @@
 # SEOMate Changelog
 
-### Unreleased  
+### 3.0.0-beta.4 - 2024-04-03
 
 ### Fixed
-- Fixed some additional cases where SEOMate could attempt to use string values as callables
+- Fixed some additional cases where SEOMate could attempt to use string values as callables  
 
 ### 3.0.0-beta.3 - 2024-04-03
 
