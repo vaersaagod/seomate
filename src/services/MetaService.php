@@ -463,7 +463,7 @@ class MetaService extends Component
         }
         
         foreach ($settings->additionalMeta as $key => $value) {
-            if (\is_callable($value)) {
+            if ($value instanceof \Closure) {
                 $r = $value($context);
                 $value = $r;
             }

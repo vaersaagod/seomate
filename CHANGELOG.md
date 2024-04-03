@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 2.2.1 - 2024-04-04  
+### Fixed  
+- Fixed a bug where SEOMate could attempt to use string values as callables in `additionalMeta`  
+
 ## 2.2.0 - 2024-01-19  
 ### Added  
 - Sitemaps now include alternate URLs in `<xhtml:link>` entries, if the `outputAlternate` config setting is `true`. [#79](https://github.com/vaersaagod/seomate/pull/79)  
