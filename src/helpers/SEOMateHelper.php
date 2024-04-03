@@ -20,6 +20,7 @@ use craft\helpers\UrlHelper;
 
 use Illuminate\Support\Collection;
 
+use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
@@ -146,7 +147,7 @@ class SEOMateHelper
             }
         }
 
-        if (\str_contains(trim($handle), '{')) {
+        if (str_contains(trim($handle), '{')) {
             try {
                 return Craft::$app->getView()->renderObjectTemplate($handle, $scope);
             } catch (\Throwable $throwable) {
@@ -155,7 +156,7 @@ class SEOMateHelper
             }
         }
 
-        if ($scope[$handle] ?? null) {
+        if (!empty($scope[$handle])) {
             if ($type === 'text') {
                 return static::getStringPropertyValue($scope[$handle]);
             }
