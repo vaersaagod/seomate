@@ -177,7 +177,7 @@ class MetaService extends Component
     public function getContextPropertyDataByFields(array $context, string $type, array $fields): Asset|string
     {
         foreach ($fields as $fieldDef) {
-            if (!\is_callable($fieldDef) && !\str_contains(trim($fieldDef), '{')) {
+            if (is_string($fieldDef) && !str_contains(trim($fieldDef), '{')) {
                 // Get the deepest scope possible, and the remaining field handle.
                 [$primaryScope, $fieldDef] = SEOMateHelper::reduceScopeAndHandle($context, $fieldDef);
                 
@@ -353,6 +353,7 @@ class MetaService extends Component
      *
      * @param array $meta
      * @param null|Settings $settings
+     * @return array
      */
     public function applyMetaRestrictions(array $meta, Settings $settings = null): array
     {
@@ -467,12 +468,12 @@ class MetaService extends Component
         }
         
         foreach ($settings->additionalMeta as $key => $value) {
-            if (\is_callable($value)) {
+            if ($value instanceof \Closure) {
                 $r = $value($context);
                 $value = $r;
             }
 
-            if (\is_array($value)) {
+            if (is_array($value)) {
                 foreach ($value as $subValue) {
                     $renderedValue = SEOMateHelper::renderString($subValue, $context);
 
