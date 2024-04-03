@@ -137,15 +137,20 @@ class SEOMateHelper
      */
     public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string|\Closure $handle, string $type): Asset|string|null
     {
-        if (\is_callable($handle)) {
-            return $handle($scope);
+        if ($handle instanceof \Closure) {
+            try {
+                return $handle($scope);
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occurred when calling closure: '. $throwable->getMessage(), __METHOD__);
+                return null;
+            }
         }
 
         if (\str_contains(trim($handle), '{')) {
             try {
                 return Craft::$app->getView()->renderObjectTemplate($handle, $scope);
             } catch (\Throwable $throwable) {
-                Craft::error('An error occurred when trying to render object template: '.$throwable->getMessage(), __METHOD__);
+                Craft::error('An error occurred when trying to render object template: '. $throwable->getMessage(), __METHOD__);
                 return null;
             }
         }
