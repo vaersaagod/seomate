@@ -11,16 +11,18 @@ namespace vaersaagod\seomate\helpers;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\commerce\elements\Product;
 use craft\elements\Asset;
+use craft\elements\Category;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
 use craft\elements\Entry;
+use craft\elements\User;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 
 use Illuminate\Support\Collection;
 
-use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
@@ -34,7 +36,7 @@ use vaersaagod\seomate\SEOMate;
 class SEOMateHelper
 {
     /**
-     * Updates Settings model wit override values
+     * Updates Settings model with override values
      */
     public static function updateSettings(Settings $settings, array $overrides): void
     {
@@ -46,31 +48,51 @@ class SEOMateHelper
     /**
      * Gets the profile to use from element and settings
      */
-    public static function getElementProfile(Element $element, Settings $settings): mixed
+    public static function getElementProfile(Element $element, Settings $settings): ?string
     {
-        if (!isset($settings->profileMap) || !\is_array($settings->profileMap)) {
+        if (empty($settings->profileMap)) {
             return null;
         }
 
         $fieldMap = self::expandMap($settings->profileMap);
-        $mapIds = [];
 
-        if (method_exists($element, 'refHandle')) {
-            $refHandle = strtolower($element->refHandle());
-
-            if ($refHandle === 'entry') {
-                $mapIds[] = $element->section->handle;
-            } elseif ($refHandle === 'category') {
-                $mapIds[] = $element->group->handle;
-            }
+        if ($element instanceof Entry) {
+            $typeHandle = $element->getType()->handle;
+            $sectionHandle = $element->getSection()?->handle;
+            $mapIds = [
+                "entryType:$typeHandle",
+                $sectionHandle ? "section:$sectionHandle" : null,
+                $typeHandle,
+                $sectionHandle,
+            ];
+        } else if ($element instanceof Category) {
+            $groupHandle = $element->getGroup()->handle;
+            $mapIds = [
+                "categoryGroup:$groupHandle",
+                $groupHandle,
+            ];
+        } else if ($element instanceof User) {
+            $mapIds = [
+                "user",
+            ];
+        } else if ($element instanceof Product) {
+            $productTypeHandle = $element->getType()->handle;
+            $mapIds = [
+                "productType:$productTypeHandle",
+                $productTypeHandle,
+            ];
+        } else {
+            return null;
         }
 
-        if (\count($mapIds) === 0) {
+        $mapIds = array_values(array_unique(array_filter($mapIds)));
+
+        if (empty($mapIds)) {
             return null;
         }
 
         foreach ($mapIds as $mapId) {
-            if (isset($fieldMap[$mapId])) {
+            if (!empty($fieldMap[$mapId])) {
                 return $fieldMap[$mapId];
             }
         }
