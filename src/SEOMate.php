@@ -56,42 +56,34 @@ use yii\base\Event;
  */
 class SEOMate extends Plugin
 {
-    // Static Properties
-    // =========================================================================
-
-    /**
-     * @var SEOMate
-     */
-    public static SEOMate $plugin;
-
-    // Public Properties
-    // =========================================================================
 
     /**
      * @var string
      */
     public string $schemaVersion = '1.0.0';
 
-    // Public Methods
-    // =========================================================================
+    public static function config(): array
+    {
+        return [
+            'components' => [
+                'meta' => MetaService::class,
+                'urls' => UrlsService::class,
+                'render' => RenderService::class,
+                'sitemap' => SitemapService::class,
+                'schema' => SchemaService::class,
+            ],
+        ];
+    }
 
+    /**
+     * @return void
+     */
     public function init(): void
     {
+
         parent::init();
         
-        self::$plugin = $this;
-        $settings = $this->getSettings();
-
-        // Register services
-        $this->setComponents([
-            'meta' => MetaService::class,
-            'urls' => UrlsService::class,
-            'render' => RenderService::class,
-            'sitemap' => SitemapService::class,
-            'schema' => SchemaService::class,
-        ]);
-
-        // Register tamplate variables
+        // Register template variables
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
@@ -118,30 +110,32 @@ class SEOMate extends Plugin
                 $event->options[] = [
                     'key' => 'seomate-cache',
                     'label' => Craft::t('seomate', 'SEOMate cache'),
-                    'action' => [SEOMate::$plugin, 'invalidateCaches'],
+                    'action' => [SEOMate::getInstance(), 'invalidateCaches'],
                 ];
             }
         );
 
         // After save element event handler
-        Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT,
+        Event::on(
+            Elements::class,
+            Elements::EVENT_AFTER_SAVE_ELEMENT,
             static function(ElementEvent $event) {
                 $element = $event->element;
-                
-                if ($element instanceof Element) {
-                    if (!$event->isNew) {
-                        CacheHelper::deleteMetaCacheForElement($element);
-                    }
-                    
-                    $siteId = $element->siteId ?? null;
-                    CacheHelper::deleteCacheForSitemapIndex($siteId);
-                    CacheHelper::deleteCacheForElementSitemapsByElement($element);
+                if (!$element instanceof ElementInterface) {
+                    return;
                 }
+                if (!$event->isNew) {
+                    CacheHelper::deleteMetaCacheForElement($element);
+                }
+                CacheHelper::deleteCacheForSitemapIndex($element->siteId ?? null);
+                CacheHelper::deleteCacheForElementSitemapsByElement($element);
             }
         );
 
+        $settings = $this->getSettings();
+
+        // Register sitemap urls?
         if ($settings->sitemapEnabled) {
-            // Register sitemap urls
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_SITE_URL_RULES,
@@ -164,7 +158,7 @@ class SEOMate extends Plugin
                 static function(RegisterPreviewTargetsEvent $event) use ($settings) {
                     try {
                         $element = $event->sender;
-                        if (!$element instanceof ElementInterface || !SEOMateHelper::isElementPreviewable($element)) {
+                        if (!$element instanceof Element || !SEOMateHelper::isElementPreviewable($element)) {
                             return;
                         }
                         $event->previewTargets[] = [
@@ -206,19 +200,15 @@ class SEOMate extends Plugin
      * Process 'seomateMeta' hook
      *
      * @param array $context
-     *
      * @return string
-     *
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Throwable
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
      */
     public function onRegisterMetaHook(array &$context): string
     {
-
-        $craft = Craft::$app;
-        $settings = $this->getSettings();
 
         if (isset($context['seomatePreviewElement'])) {
             $context['seomate']['element'] = $context['seomate']['element'] ?? $context['seomatePreviewElement'];
@@ -232,14 +222,16 @@ class SEOMate extends Plugin
         $context['seomate']['canonicalUrl'] = $canonicalUrl;
         $context['seomate']['alternateUrls'] = $alternateUrls;
 
-        if ($settings['metaTemplate'] !== '') {
-            return $craft->view->renderTemplate($settings['metaTemplate'], $context);
+        $settings = $this->getSettings();
+
+        if (!empty($settings->metaTemplate)) {
+            return Craft::$app->view->renderTemplate($settings->metaTemplate, $context);
         }
 
-        $oldTemplateMode = $craft->getView()->getTemplateMode();
-        $craft->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
-        $output = $craft->getView()->renderTemplate('seomate/_output/meta', $context);
-        $craft->getView()->setTemplateMode($oldTemplateMode);
+        $oldTemplateMode = Craft::$app->getView()->getTemplateMode();
+        Craft::$app->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
+        $output = Craft::$app->getView()->renderTemplate('seomate/_output/meta', $context);
+        Craft::$app->getView()->setTemplateMode($oldTemplateMode);
 
         return $output;
     }

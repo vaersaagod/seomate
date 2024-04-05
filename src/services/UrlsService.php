@@ -40,7 +40,7 @@ class UrlsService extends Component
     public function getCanonicalUrl($context): ?string
     {
         $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $overrideObject = $context['seomate'] ?? [];
 
@@ -94,7 +94,7 @@ class UrlsService extends Component
     public function getAlternateUrls($context): array
     {
         $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $alternateUrls = [];
 
         $overrideObject = $context['seomate'] ?? null;

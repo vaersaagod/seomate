@@ -32,7 +32,7 @@ class RenderService extends Component
      */
     public function renderMetaTag(string $key, string|array $value): Markup
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
         
         // Set default template

@@ -107,7 +107,7 @@ class SEOMateHelper
      */
     public static function getMetaTypeByKey(string $key): string
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $typeMap = self::expandMap($settings->metaPropertyTypes);
 
         if (isset($typeMap[$key])) {

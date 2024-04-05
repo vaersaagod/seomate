@@ -121,7 +121,7 @@ class CacheHelper
      */
     public static function setMetaCacheForElement($element, $meta): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
@@ -177,7 +177,7 @@ class CacheHelper
      */
     public static function setCacheForSitemapIndex($siteId, $data): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
@@ -254,7 +254,7 @@ class CacheHelper
      */
     public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 

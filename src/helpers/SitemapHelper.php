@@ -36,7 +36,7 @@ class SitemapHelper
      */
     public static function getIndexSitemapUrls(string $handle, array $definition): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
 
@@ -75,7 +75,7 @@ class SitemapHelper
      */
     public static function getCustomIndexSitemapUrl(): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         return self::getSitemapUrl($settings->sitemapName . '-custom.xml');
     }
 
@@ -102,7 +102,7 @@ class SitemapHelper
      */
     public static function getElementsSitemapUrls(string $handle, array $definition, int $page): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
 

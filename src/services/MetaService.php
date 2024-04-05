@@ -35,7 +35,7 @@ class MetaService extends Component
     public function getContextMeta(array $context): array
     {
         $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $overrideObject = $context['seomate'] ?? null;
 
@@ -113,7 +113,7 @@ class MetaService extends Component
      */
     public function getElementMeta(Element $element, array $overrides = null): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         if ($overrides && isset($overrides['config'])) {
             SEOMateHelper::updateSettings($settings, $overrides['config']);
@@ -207,7 +207,7 @@ class MetaService extends Component
     public function transformMetaAssets(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         $imageTransformMap = $settings->imageTransformMap;
@@ -269,7 +269,7 @@ class MetaService extends Component
     public function getTransformedUrl(Asset|string $asset, array $transform, Settings $settings = null): string
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         $plugins = Craft::$app->getPlugins();
@@ -332,7 +332,7 @@ class MetaService extends Component
     public function autofillMeta(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         $autofillMap = SEOMateHelper::expandMap($settings->autofillMap);
@@ -358,7 +358,7 @@ class MetaService extends Component
     public function applyMetaRestrictions(array $meta, Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         $restrictionsMap = SEOMateHelper::expandMap($settings->metaPropertyTypes);
@@ -399,7 +399,7 @@ class MetaService extends Component
     public function addSitename(array $meta, array $context, Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         $siteName = '';
@@ -443,7 +443,7 @@ class MetaService extends Component
     public function processDefaultMeta(array $meta, array $context = [], Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
 
         foreach ($settings->defaultMeta as $key => $value) {
@@ -464,7 +464,7 @@ class MetaService extends Component
     public function processAdditionalMeta(array $meta, array $context = [], Settings $settings = null): array
     {
         if ($settings === null) {
-            $settings = SEOMate::$plugin->getSettings();
+            $settings = SEOMate::getInstance()->getSettings();
         }
         
         foreach ($settings->additionalMeta as $key => $value) {
