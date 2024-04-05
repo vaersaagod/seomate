@@ -1,5 +1,12 @@
 # SEOMate Changelog
 
+## Unreleased  
+### Fixed
+- Fixed a PHP exception that would occur when using the `{% seomateMeta %}` hook in nested entry templates ([#85](https://github.com/vaersaagod/seomate/issues/85))
+
+### Added
+- Added the ability to create field profiles specific to a particular section, entry type, category group or Commerce product type ([#86](https://github.com/vaersaagod/seomate/pull/86))  
+
 ## 3.0.0-beta.4 - 2024-04-04
 
 ### Fixed

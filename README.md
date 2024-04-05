@@ -90,8 +90,15 @@ exactly the same as any other config file in Craft, but in the following example
 skip that part to keep things a bit more tidy. 
 
 All the config settings are documented in the [`Configuring`](#configuring) section, 
-and there're quite a few. But to get you going, start by adding a field
-profile in `fieldProfiles` and set that profile as the default with `defaultProfile`:  
+and there are quite a few! But to get you going, these are some fundamental concepts:  
+
+### Field profiles
+
+A _field profile_ in SEOMate is, essentially, a mapping of metadata attributes to the fields that SEOMate 
+should look at for those attributes' metadata values.    
+
+To get started, create a profile called "standard" in `fieldProfiles`, and set that profile as the default 
+field profile using the `defaultProfile` setting:    
 
 ```php
 <?php
@@ -109,18 +116,23 @@ return [
 ];
 ```
 
-This tells SEOMate to use the field profile `standard` to get element meta data from, as a default. So, everytime a 
-template that has an element (ie. `entry` or `category`) is loaded, SEOMate will start by checking if there is a field
-named `seoTitle` that has a value that it can use for the title meta tag. If a field named `seoTitle` does not exist, 
-or if it's empty, SEOMate continues to check if there is a field named `heading`, and does the same thing.
-If `heading` is empty, it checks for `title`. And so on, for every key in the field profile.  
+The above tells SEOMate to use the field profile `standard` to get element metadata from, as a default. 
+So, everytime a page template that has an element (i.e. `entry`, `category` or `product`) is loaded, SEOMate will 
+start by checking if that element has a field named `seoTitle`, and that this field has a value that can be used for 
+the title meta tag. If a field named `seoTitle` does not exist – or if it's empty – SEOMate continues to check if 
+there is a field named `heading`, and does the same thing. If `heading` is empty, it checks for `title`.  
+And so on, for every key in the field profile.  
 
-_💡 In addition to field handles, field profiles can also contain **functions** (i.e. closures), and/or **Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html)**.  
-For documentation and examples for closures and object templates, see the [`fieldProfiles` setting](#fieldprofiles-array)!_  
+_💡 In addition to field handles, field profiles can also contain **functions** (i.e. closures), and/or  
+**Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html)**. For documentation and examples for closures and object templates,  
+see the [`fieldProfiles` setting](#fieldprofiles-array)!_  
+
+#### Mapping different field profiles to elements  
 
 Now, let's say we have a section with handle `news` that has a slightly different field setup than
-our other sections, so we want to pull data from some other fields. We'll add another field profile to `fieldProfiles`, 
-and make a mapping between the profile and the section handle in `profileMap`:
+our other sections, so for entries in that section we want to pull data from some other fields. 
+We'll add another field profile to `fieldProfiles`, and make a mapping between the profile and the 
+section handle in `profileMap`:
 
 ```php
 <?php
@@ -150,24 +162,63 @@ return [
 ];
 ```
 
-The mapping between the section and the profile is simple enough, the key in `profileMap` can
-be a section handle or a category group handle, and the value is the key for the profile in 
-`fieldProfiles`.
+The mapping between the "news" section and the profile is simple enough: the _key_ in `profileMap` can
+be the handle for a section, entry type, category group, or Commerce product type, and the _value_ 
+should be the key for the profile in `fieldProfiles` that you want to use for matching elements.    
 
-In this profile we also we have also used a couple of other SEOMate features. 
+_In this profile we also we have also used a couple of other SEOMate features._  
 
-First, notice that we have chosen to specify a field profile for `og:title`, `og:image` 
-and `twitter:image` that we didn't have in the default profile. By default, the `autofillMap` 
-defines that if no value are set for `og:title` and `twitter:title`, we want to autofill those 
-meta tags with the value  from `title`. So in the `standard` profile, those values will be 
+First, notice that we have chosen to specify a field profile for `og:title`, `og:image`
+and `twitter:image` that we didn't have in the default profile. By default, the `autofillMap`
+defines that if no value are set for `og:title` and `twitter:title`, we want to autofill those
+meta tags with the value  from `title`. So in the `standard` profile, those values will be
 autofilled, while in the `newsprofile` we choose to customize some of them.
 
-Secondly, we can specify to pull a value from a Matrix sub field by using the syntax 
+Secondly, we can specify to pull a value from a Matrix subfield by using the syntax
 `matrixFieldHandle.blockTypeHandle:subFieldHandle`.
 
-This is all fine for templates that have an element associated with them. But what about the ones
-that don't? Or, what if there is no valid image in any of those image fields in the profile? That's
-where `defaultMeta` comes into play. Let's say that we have a global with handle `globalSeo`, with 
+#### Profile map specificity   
+
+**In some cases there might be a need to create more specific field profile mappings.** For example, you might have
+a section with the handle `news` _and_ a category group with the handle `news`, and you need their elements to use
+different profiles. This can be achieved by using prefixes `section:` and/or `categoryGroup:`, e.g.   
+
+```php
+'profileMap' => [
+   'section:news' => 'newsprofile', // Will match entries in a section "news"
+   'categoryGroup:news' => 'newscategoryprofile', // Will match categories in a group "news"
+],
+```
+
+Another use case for specific field profiles is if you need a certain entry type to use a specific profile, in which
+case the `entryType:` prefix is the ticket:  
+
+```php
+'profileMap' => [
+   'section:news' => 'newsprofile', // Will match entries in a section "news"
+   'categoryGroup:news' => 'newscategoryprofile', // Will match categories in a group "news"
+   'pages' => 'pagesprofile',
+   'entryType:listPage' => 'listpageprofile', // Will match entries with an entry type "listPage"
+],
+```
+
+The _specific_ field profiles (i.e. the ones using the `{sourceType}:` prefix) will take precedence over _unspecific_
+ones. That means that – with the above config – entries in a section "page" will use the "pagesprofile" profile, 
+unless they're using an entry type with the handle `listPage`, in which case the "listpageprofile" profile will be
+used. And, the "listpageprofile" will also be used for entries in _other_ sections, if they're using that same entry type.  
+
+The following field profile specificity prefixes are supported:   
+
+* Entries: `section:` and `entryType:`  
+* Categories: `categoryGroup:`  
+* Commerce products: `productType:`  
+* Users: `user:` 
+
+### Default meta data
+
+Field profiles are great for templates that have an element associated with them. But what about the ones
+that don't? Or – what if there is no valid image in any of those image fields defined in the matching field profile?  
+This is where `defaultMeta` comes into play. Let's say that we have a global set with handle `globalSeo`, with 
 fields that we want to fall back on if everything else fails:  
 
 ```php
@@ -207,7 +258,9 @@ return [
 The `defaultMeta` setting works almost exactly the same as `fieldProfiles`, except that it
 looks for objects and fields in you current Twig `context`, hence the use of globals.
 
-Lastly, we want to add some additional meta data like `og:type` and `twitter:card`, and for 
+### Additional meta data
+
+Lastly, we want to add some additional metadata like `og:type` and `twitter:card`, and for 
 that we have... `additionalMeta`:
    
 ```php
@@ -280,7 +333,7 @@ with your own template using the `metaTemplate` config setting.
 
 ### Overriding meta data and settings from your templates
 
-You can override the meta data and config settings directly from your templates by creating a
+You can override the metadata and config settings directly from your templates by creating a
 `seomate` object and overriding accordingly:   
 
 ```twig
@@ -300,9 +353,9 @@ You can override the meta data and config settings directly from your templates 
 } %}
 ```
 
-All relevant config settings can be overridden inside the `config` key, and all meta data
+All relevant config settings can be overridden inside the `config` key, and all metadata
 inside the `meta` key. You can also tell seomate to use a specific profile with the `profile` setting. 
-And to use some other element as the base element to get meta data from, or provide one if the current 
+And to use some other element as the base element to get metadata from, or provide one if the current 
 template doesn't have one, in the `element` key. And you can customize the canonicalUrl as needed. 
 And... more.
 
