@@ -430,8 +430,8 @@ and overriding settings as needed.
 
 ### cacheEnabled [bool]
 *Default: `'true'`*  
-Enables/disables caching of generated meta data. **The cached data will be automatically
-cleared when an element is saved**. To clear the meta data cache manually, Craft's "Clear Caches" CP utility can be used, or the core `clear-caches` CLI command.  
+Enables/disables caching of generated metadata. **The cached data will be automatically
+cleared when an element is saved**. To clear the metadata cache manually, Craft's "Clear Caches" CP utility can be used, or the core `clear-caches` CLI command.  
 
 ### cacheDuration [int|string]
 *Default: `3600`*  
@@ -439,16 +439,16 @@ Duration of meta cache in seconds. Can be set to an integer (seconds), or a vali
 
 ### previewEnabled [bool|array]
 *Default: `true`*  
-Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections and category groups (array of section and/or category group handles; e.g. `['news', 'events', 'homepage']`).  
+Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections, category groups, entry types or Commerce product types (array of section and/or category group handles; e.g. `['news', 'events', 'homepage', 'section:blog', 'entryType:listPage']`, etc).  
 _Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._  
 
 ### previewLabel [string|null]
 *Default: "SEO Preview"*  
-Defines the text label for the SEO Preview button and Preview Target (Craft 3.2.x only) inside the Control Panel.  
+Defines the text label for the "SEO Preview" button and preview target inside the Control Panel.  
 
 ### siteName [string|array|null]
 *Default: `null`*  
-Defines the site name to be used in meta data. Can be a plain string, or an array
+Defines the site name to be used in metadata. Can be a plain string, or an array
 with site handles as keys. Example:
 
 ```php  

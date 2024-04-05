@@ -26,6 +26,8 @@ use Illuminate\Support\Collection;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
 
+use yii\base\InvalidConfigException;
+
 /**
  * SEOMate Helper
  *
@@ -371,5 +373,82 @@ class SEOMateHelper
 
         // huh, relative url? Seems unlikely, but... If we've come this far.
         return $scheme.'://'.$siteUrlParts['host'].'/'.$url;
+    }
+
+    /**
+     * Returns true if the element a) has a URL and b) is eligble to be SEO-previewed as per the `previewEnabled` setting
+     *
+     * @param ElementInterface $element
+     * @return bool
+     * @throws InvalidConfigException
+     */
+    public static function isElementPreviewable(ElementInterface $element): bool
+    {
+        if (!$element->getUrl() || empty($element->id)) {
+            // Anything that doesn't have a URL shouldn't have a SEO preview, and if it doesn't have an ID stuff won't work.
+            return false;
+        }
+
+        $settings = SEOMate::getInstance()->getSettings();
+        $previewEnabled = $settings->previewEnabled;
+
+        if (empty($previewEnabled)) {
+            return false;
+        }
+
+        if (is_bool($previewEnabled)) {
+            return $previewEnabled;
+        }
+
+        if (is_string($previewEnabled)) {
+            $previewEnabled = explode(',', preg_replace('/\s+/', '', $previewEnabled));
+        }
+
+        $previewEnabled = array_values(array_filter($previewEnabled));
+
+        if (empty($previewEnabled)) {
+            return false;
+        }
+
+        // ...if the `previewEnabled` setting is an array, it's essentially a whitelist of stuff we want to preview
+        if ($element instanceof Entry) {
+            $typeHandle = $element->getType()->handle;
+            $sectionHandle = $element->getSection()?->handle;
+            $sourceHandles = [
+                "entryType:$typeHandle",
+                $sectionHandle ? "section:$sectionHandle" : null,
+                $typeHandle,
+                $sectionHandle,
+            ];
+        } else if ($element instanceof Category) {
+            $categoryGroupHandle = $element->getGroup()->handle;
+            $sourceHandles = [
+                "categoryGroup:$categoryGroupHandle",
+                $categoryGroupHandle,
+            ];
+        } else if ($element instanceof Product) {
+            $productTypeHandle = $element->getType()->handle;
+            $sourceHandles = [
+                "productType:$productTypeHandle",
+                $productTypeHandle,
+            ];
+        } else if ($element instanceof User) {
+            $sourceHandles = [
+                'user',
+            ];
+        } else {
+            return false;
+        }
+
+        $sourceHandles = array_values(array_unique(array_filter($sourceHandles)));
+
+        foreach ($sourceHandles as $sourceHandle) {
+            if (in_array($sourceHandle, $previewEnabled, true)) {
+                return true;
+            }
+        }
+
+        return false;
+
     }
 }

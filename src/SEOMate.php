@@ -10,9 +10,8 @@ namespace vaersaagod\seomate;
 
 use Craft;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\base\Plugin;
-use craft\elements\Category;
-use craft\elements\Entry;
 use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterPreviewTargetsEvent;
@@ -29,6 +28,7 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 use vaersaagod\seomate\helpers\CacheHelper;
+use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\services\MetaService;
 use vaersaagod\seomate\services\RenderService;
@@ -162,29 +162,21 @@ class SEOMate extends Plugin
                 Element::class,
                 Element::EVENT_REGISTER_PREVIEW_TARGETS,
                 static function(RegisterPreviewTargetsEvent $event) use ($settings) {
-                    /** @var Element $element */
-                    $element = $event->sender;
-                    if (!$element->getUrl()) {
-                        return;
-                    }
-                    if (is_array($settings->previewEnabled)) {
-                        $sourceHandle = null;
-                        if ($element instanceof Entry) {
-                            $sourceHandle = $element->getSection()?->handle;
-                        } else if ($element instanceof Category) {
-                            $sourceHandle = $element->getGroup()->handle;
-                        }
-                        if (!empty($sourceHandle) && !in_array($sourceHandle, $settings->previewEnabled, true)) {
+                    try {
+                        $element = $event->sender;
+                        if (!$element instanceof ElementInterface || !SEOMateHelper::isElementPreviewable($element)) {
                             return;
                         }
+                        $event->previewTargets[] = [
+                            'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
+                            'url' => UrlHelper::siteUrl('seomate/preview', [
+                                'elementId' => $element->id,
+                                'siteId' => $element->siteId,
+                            ]),
+                        ];
+                    } catch (\Throwable $e) {
+                        Craft::error("An exception occurred when attempting to register the \"SEO Preview\" preview target: " . $e->getMessage(), __METHOD__);
                     }
-                    $event->previewTargets[] = [
-                        'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
-                        'url' => UrlHelper::siteUrl('seomate/preview', [
-                            'elementId' => $element->id,
-                            'siteId' => $element->siteId,
-                        ]),
-                    ];
                 }
             );
 
