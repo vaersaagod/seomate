@@ -11,9 +11,6 @@ namespace vaersaagod\seomate\controllers;
 use Craft;
 
 use craft\base\Element;
-use craft\commerce\elements\Product;
-use craft\commerce\helpers\Product as ProductHelper;
-use craft\elements\Category;
 use craft\elements\Entry;
 use craft\web\Controller;
 use craft\web\Response;
@@ -23,9 +20,6 @@ use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\web\BadRequestHttpException;
-use yii\web\ForbiddenHttpException;
-use yii\web\NotFoundHttpException;
 use yii\web\Response as YiiResponse;
 use yii\web\ServerErrorHttpException;
 
@@ -43,14 +37,14 @@ class PreviewController extends Controller
     /**
      * @inheritdoc
      */
-    protected int|bool|array $allowAnonymous = ['preview'];
+    protected int|bool|array $allowAnonymous = ['index'];
 
     /**
      * @throws Exception
      * @throws InvalidConfigException
      * @throws ServerErrorHttpException
      */
-    public function actionPreview(): Response|YiiResponse
+    public function actionIndex(): Response|YiiResponse
     {
         $elementId = Craft::$app->getRequest()->getParam('elementId');
         $siteId = Craft::$app->getRequest()->getParam('siteId');
@@ -121,88 +115,6 @@ class PreviewController extends Controller
 
         return $this->renderTemplate('seomate/preview', [
             'element' => $element,
-            'meta' => $meta,
-        ]);
-    }
-
-    /**
-     * Previews an Entry or a Category
-     *
-     * @throws BadRequestHttpException
-     * @throws NotFoundHttpException if the requested entry version cannot be found
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws ForbiddenHttpException
-     */
-    public function actionIndex(): Response
-    {
-        $this->requirePostRequest();
-
-        $productId = Craft::$app->getRequest()->getParam('productId');
-
-        // What kind of element is it?
-        if ($productId !== null) {
-            $product = ProductHelper::populateProductFromPost();
-            $this->_enforceProductPermissions($product);
-
-            return $this->_showProduct($product);
-        }
-
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @throws ForbiddenHttpException|InvalidConfigException
-     */
-    private function _enforceProductPermissions(Product $product): void
-    {
-        $this->requirePermission('commerce-manageProductType:' . $product->getType()->uid);
-    }
-
-    /**
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws ServerErrorHttpException
-     */
-    private function _showProduct(Product $product): Response|YiiResponse
-    {
-        $productType = $product->getType();
-        if (!$productType) {
-            throw new ServerErrorHttpException('Product type not found.');
-        }
-
-        $siteSettings = $productType->getSiteSettings();
-        if (!isset($siteSettings[$product->siteId]) || !$siteSettings[$product->siteId]->hasUrls) {
-            throw new ServerErrorHttpException('The product ' . $product->getId() . " doesn't have a URL for the site " . $product->siteId . '.');
-        }
-
-        $site = Craft::$app->getSites()->getSiteById($product->siteId);
-        if (!$site) {
-            throw new ServerErrorHttpException('Invalid site ID: ' . $product->siteId);
-        }
-
-        Craft::$app->language = $site->language;
-        // Have this product override any freshly queried products with the same ID/site
-        Craft::$app->getElements()->setPlaceholderElement($product);
-
-        // Get meta
-        $view = $this->getView();
-        $view->getTwig()->disableStrictVariables();
-        $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-
-        $meta = SEOMate::$plugin->meta->getContextMeta(\array_merge($view->getTwig()->getGlobals(), [
-            'seomate' => [
-                'element' => $product,
-                'config' => [
-                    'cacheEnabled' => false,
-                ],
-            ],
-        ]));
-
-        // Render previews
-        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
-        return $this->renderTemplate('seomate/preview', [
-            'product' => $product,
             'meta' => $meta,
         ]);
     }

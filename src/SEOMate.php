@@ -10,7 +10,6 @@ namespace vaersaagod\seomate;
 
 use Craft;
 use craft\base\Element;
-use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\Category;
 use craft\elements\Entry;
@@ -18,7 +17,6 @@ use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterPreviewTargetsEvent;
 use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\utilities\ClearCaches;
@@ -30,9 +28,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-use vaersaagod\seomate\assets\preview\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
-use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\services\MetaService;
 use vaersaagod\seomate\services\RenderService;
@@ -44,8 +40,6 @@ use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
 
 use yii\base\Event;
-use yii\base\InvalidConfigException;
-use yii\web\View as YiiView;
 
 /**
  * @author    Værsågod
@@ -162,14 +156,8 @@ class SEOMate extends Plugin
             );
         }
 
-        if ($settings->previewEnabled) {
-            // Register preview asset bundle for legacy Live Preview (Craft Commerce)
-            $view = Craft::$app->getView();
-            $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
-
-            $settings = $this->getSettings();
-
-            // Register preview target
+        // Register preview target?
+        if (!empty($settings->previewEnabled)) {
             Event::on(
                 Element::class,
                 Element::EVENT_REGISTER_PREVIEW_TARGETS,
@@ -207,7 +195,7 @@ class SEOMate extends Plugin
                     UrlManager::class,
                     UrlManager::EVENT_REGISTER_SITE_URL_RULES,
                     static function(RegisterUrlRulesEvent $event) {
-                        $event->rules['seomate/preview'] = 'seomate/preview/preview';
+                        $event->rules['seomate/preview'] = 'seomate/preview';
                     }
                 );
             }
@@ -265,37 +253,9 @@ class SEOMate extends Plugin
     }
 
     /**
-     * Registers assets bundle for preview
-     *
-     * @param array $context
-     * @throws InvalidConfigException
+     * @return Settings
      */
-    public function registerPreviewAssetsBundle(array $context = []): void
-    {
-        $element = $context['entry'] ?? $context['category'] ?? $context['product'] ?? null;
-        if (!$element) {
-            return;
-        }
-        // Get fields to include
-        $settings = $this->getSettings();
-        $profile = SEOMateHelper::getElementProfile($element, $settings) ?? $settings->defaultProfile ?? null;
-        $fieldProfile = Json::encode($settings->fieldProfiles[$profile] ?? []);
-        $js = <<<JS
-                    SEOMATE_FIELD_PROFILE = {$fieldProfile};
-JS;
-        Craft::$app->getView()->registerJs($js, YiiView::POS_HEAD);
-        Craft::$app->getView()->registerAssetBundle(PreviewAsset::class);
-    }
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return Model|null
-     */
-    protected function createSettingsModel(): ?Model
+    protected function createSettingsModel(): Settings
     {
         return new Settings();
     }
