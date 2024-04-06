@@ -6,7 +6,8 @@
 
 ### Added
 - Added the ability to create field profiles specific to a particular section, entry type, category group or Commerce product type ([#86](https://github.com/vaersaagod/seomate/pull/86))  
-- Added the ability to be specific in the `previewEnabled` setting about which sections, entry types, category groups and/or Commerce product types should be SEO-previewable  
+- Added the ability to be specific in the `previewEnabled` setting about which sections, entry types, category groups and/or Commerce product types should be SEO-previewable
+- Added support for custom meta templates and template overrides in SEO Preview to categories, nested entries and Commerce products, in addition to regular ol' section entries
 
 ### Changed
 - Removed support for "SEO Preview" for elements using legacy live preview  

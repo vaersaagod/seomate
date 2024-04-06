@@ -11,16 +11,22 @@ namespace vaersaagod\seomate\controllers;
 use Craft;
 
 use craft\base\Element;
+use craft\base\ElementInterface;
+use craft\commerce\elements\Product;
+use craft\elements\Category;
 use craft\elements\Entry;
 use craft\web\Controller;
-use craft\web\Response;
 use craft\web\View;
+
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
-use yii\web\Response as YiiResponse;
+use yii\web\Response;
 use yii\web\ServerErrorHttpException;
 
 /**
@@ -40,11 +46,12 @@ class PreviewController extends Controller
     protected int|bool|array $allowAnonymous = ['index'];
 
     /**
+     * @return Response
      * @throws Exception
      * @throws InvalidConfigException
      * @throws ServerErrorHttpException
      */
-    public function actionIndex(): Response|YiiResponse
+    public function actionIndex(): Response
     {
         $elementId = Craft::$app->getRequest()->getParam('elementId');
         $siteId = Craft::$app->getRequest()->getParam('siteId');
@@ -78,26 +85,13 @@ class PreviewController extends Controller
         $view->setTemplateMode(View::TEMPLATE_MODE_SITE);
         $context = $view->getTwig()->getGlobals();
 
-        $meta = null;
-
-        if ($element instanceof Entry) {
-            // If this is an entry, get the metadata from the rendered entry template
-            // This ensures that custom meta templates and template overrides will be rendered
-            try {
-                if ($template = $element->getSection()?->getSiteSettings()[$element->siteId]['template'] ?? null) {
-                    $variables = array_merge($context, [
-                        'entry' => $element,
-                        'seomatePreviewElement' => $element,
-                    ]);
-                    $html = $view->renderTemplate($template, $variables);
-                    $meta = $this->_getMetaFromHtml($html);
-                }
-            } catch (\Throwable $e) {
-                \Craft::error($e, __METHOD__);
-            }
+        try {
+            $meta = $this->_getMetaFromElementPageTemplate($element, $context);
+        } catch (\Throwable $e) {
+            Craft::error("An error occurred when attempting to render meta data for element page template: " . $e->getMessage(), __METHOD__);
         }
 
-        if (!$meta) {
+        if (empty($meta)) {
             // Fall back to getting the metadata directly from the meta service
             $context = array_merge($context, [
                 'seomate' => [
@@ -117,6 +111,59 @@ class PreviewController extends Controller
             'element' => $element,
             'meta' => $meta,
         ]);
+    }
+
+    /**
+     * @param ElementInterface $element
+     * @param array $context
+     * @return array|null
+     * @throws Exception
+     * @throws InvalidConfigException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    private function _getMetaFromElementPageTemplate(ElementInterface $element, array $context = []): ?array
+    {
+
+        if (!$element instanceof Element) {
+            return null;
+        }
+
+        $refHandle = null;
+        if (method_exists($element, 'refHandle')) {
+            $refHandle = $element->refHandle();
+        }
+
+        if (empty($refHandle)) {
+            return null;
+        }
+
+        $pageTemplate = null;
+
+        if ($element instanceof Entry) {
+            if (!empty($element->sectionId)) {
+                $pageTemplate = $element->getSection()?->getSiteSettings()[$element->siteId]['template'] ?? null;
+            } else if (!empty($element->fieldId)) { // Nested entry
+                $pageTemplate = $element->getField()->siteSettings[$element->getSite()->uid]['template'] ?? null;
+            }
+        } else if ($element instanceof Category) {
+            $pageTemplate = $element->getGroup()->getSiteSettings()[$element->siteId]['template'] ?? null;
+        } else if ($element instanceof Product) {
+            $pageTemplate = $element->getType()->getSiteSettings()[$element->siteId]['template'] ?? null;
+        }
+
+        if (empty($pageTemplate) || !is_string($pageTemplate)) {
+            return null;
+        }
+
+        $variables = array_merge($context, [
+            $refHandle => $element,
+            'seomatePreviewElement' => $element,
+        ]);
+        $html = Craft::$app->getView()->renderTemplate($pageTemplate, $variables);
+
+        return $this->_getMetaFromHtml($html);
     }
 
     /**
