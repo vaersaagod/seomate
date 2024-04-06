@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased  
+## 3.0.0-beta.5 - 2024-04-06  
 ### Fixed
 - Fixed a PHP exception that would occur when using the `{% seomateMeta %}` hook in nested entry templates ([#85](https://github.com/vaersaagod/seomate/issues/85))
 
