@@ -209,10 +209,10 @@ used. And, the "listpageprofile" will also be used for entries in _other_ sectio
 
 The following field profile specificity prefixes are supported:   
 
-* Entries: `section:` and `entryType:`  
-* Categories: `categoryGroup:`  
-* Commerce products: `productType:`  
-* Users: `user:` 
+* Entries: `section:{sectionHandle}` and `entryType:{entryTypeHandle}`  
+* Categories: `categoryGroup:{categoryGroupHandle}`  
+* Commerce products: `productType:{productTypeHandle}`  
+* Users: `user` 
 
 ### Default meta data
 
@@ -589,15 +589,36 @@ Here's how they can be used in field profiles (the two examples are using short-
 
 ### profileMap [array]
 *Default: `[]`*  
-The profile map provides a way to map sections and category groups to profiles
-defined in `fieldProfiles`. If a section or category group is not found in this
-map, the profile defined in `defaultProfile` will be used.
+The profile map provides a way to map elements to different field profiles defined in `fieldProfiles`, via their 
+sections, entry types, category groups and Commerce product types. **If no matching profile in this mapping is found, 
+the profile defined in `defaultProfile` will be used.**  
+
+The keys in the `profileMap` should be a string containing one or several (comma-separated) element source handles,
+such as a section handle, entry type handle, category group handle or Commerce product type handle. These keys can 
+be specific, such as `section:news` (to explicitly match entries belonging to a "news" section) or unspecific, such 
+as simply `news` (which would match elements belong to _either_ a section, entry type, category group or product type 
+with the handle `'news'`).  
+
+Keys in `profileMap` are matched to elements from _most_ to _least_ specific, e.g. for an element with an 
+entry type `listPage`, if the `profileMap` contained both a `listPage` and an `entryType:listPage` key, 
+the latter would be used for that element.  
+
+The following field profile specificity prefixes are supported:
+
+* Entries: `section:{sectionHandle}` and `entryType:{entryTypeHandle}`
+* Categories: `categoryGroup:{categoryGroupHandle}`
+* Commerce products: `productType:{productTypeHandle}`
+* Users: `user`
+
+Example:  
 
 ```php
 'profileMap' => [
-    'products' => 'products',
-    'frontpage' => 'landingPages',
-    'campaigns' => 'landingPages',
+    'news' => 'newsProfile',
+    'section:products' => 'productsProfile',
+    'section:frontpage,section:campaigns' => 'landingPagesProfile',
+    'entryType:listPage' => 'listPageProfile',
+    'categoryGroup:newsCategories' => 'newsCategoriesProfile',
 ],
 ```
 
