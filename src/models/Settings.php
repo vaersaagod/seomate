@@ -45,7 +45,7 @@ class Settings extends Model
 
     public string|null $defaultProfile = null;
 
-    public bool $outputAlternate = true;
+    public bool|\Closure $outputAlternate = true;
 
     public string|null $alternateFallbackSiteHandle = null;
 

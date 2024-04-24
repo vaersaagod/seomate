@@ -103,7 +103,7 @@ class UrlsService extends Component
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
 
-        if (!$settings->outputAlternate || !Craft::$app->isMultiSite) {
+        if ($settings->outputAlternate === false || !Craft::$app->getIsMultiSite()) {
             return [];
         }
 
@@ -140,6 +140,9 @@ class UrlsService extends Component
 
         /** @var ElementInterface $siteElement */
         foreach ($siteElements->all() as $siteElement) {
+            if ($settings->outputAlternate instanceof \Closure && !($settings->outputAlternate)($element, $siteElement)) {
+                continue;
+            }
             $alternateUrls[] = [
                 'url' => $siteElement->getUrl(),
                 'language' => strtolower(str_replace('_', '-', $siteElement->getLanguage())),

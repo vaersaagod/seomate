@@ -495,16 +495,40 @@ meta content.
 *Default: `'|'`*  
 The separator between the meta tag content and the site name.
 
-### outputAlternate [bool]
+### outputAlternate [bool|Closure]
 *Default: `true`*  
-Enables/disables output of alternate URLs. Alternate URLs are meant to provide
-search engines with alternate URLs _for localized versions of the current page's content_. 
+Enables/disables output of alternate URLs in meta tags and sitemaps.  
+
+Alternate URLs are meant to provide search engines with alternate URLs  
+_for localized versions of the current page's content_.  
 
 If you have a normal multi-locale website, you'll probably want to leave this setting
-enabled. If you're running a multi-site website, where the sites are distinct, you'll
-probably want to disable this.  
+enabled (i.e. set to `true`). However, if you're running a multi-site website where the  
+sites are distinct, you'll might want to set it to `false`, to prevent alternate URLs  
+from being output at all.    
 
-For more information about alternate URLs, (refer to this article)[https://support.google.com/webmasters/answer/189077].   
+For the Advanced Use Case (tm) – _e.g. multi-sites that have a mix of translated **and**  
+distinct content_, it's also possible to break free from the shackles of the binary boolean,  
+and configure the `outputAlternate` setting with a closure function (that returns either `true`  
+or `false`).  
+
+The `outputAlternate` closure will receive two parameters; `$element` (the current element) and  
+`$alternateElement` (the element from a different site, i.e. the *potential* alternate). This makes  
+it possible to compose custom logic, in order to determine if that alternate element's URL  
+should be output or not.  
+
+An example: the below closure would make SEOMate only output alternate URLs if the _language_ for  
+the alternate element is different from the element's language:  
+
+```php
+'outputAlternate' => static fn($element, $alternateElement) => $element->language !== $alternateElement->language,
+```  
+
+If this closure returns `true`, SEOMate will create an alternate URL for the `$alternateElement`.  
+If it returns `false` (or any other falsey value), SEOMate will quietly pretend the `$alternateElement`  
+does not exist.  
+
+_For more information about alternate URLs, [refer to this article](https://support.google.com/webmasters/answer/189077)._   
 
 ### alternateFallbackSiteHandle [string|null]
 *Default: `null`*  

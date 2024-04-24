@@ -131,7 +131,7 @@ class SitemapHelper
         $siteElements = null;
         $fallbackSite = null;
 
-        if ($settings->outputAlternate && Craft::$app->isMultiSite) {
+        if ($settings->outputAlternate !== false && Craft::$app->getIsMultiSite()) {
             $elementIds = $elements->pluck('id')->all();
             /** @var Collection $siteElements */
             $siteElements = (clone($query))
@@ -164,6 +164,9 @@ class SitemapHelper
                 }
                 /** @var ElementInterface $alternate */
                 foreach ($alternates->all() as $alternate) {
+                    if ($settings->outputAlternate instanceof \Closure && !($settings->outputAlternate)($element, $alternate)) {
+                        continue;
+                    }
                     $url['alternate'][] = [
                         'hreflang' => strtolower(str_replace('_', '-', $alternate->getLanguage())),
                         'href' => $alternate->getUrl(),
