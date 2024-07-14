@@ -1,6 +1,6 @@
 # SEOMate Changelog
 
-## Unreleased  
+## 3.0.0-beta.7 - 2024-07-14  
 ### Added
 - Added the ability to have object templates render an asset ID for image meta tags, in field profiles and default mate.  
 ### Changed
@@ -22,7 +22,7 @@
 - Added support for custom meta templates and template overrides in SEO Preview to categories, nested entries and Commerce products, in addition to regular ol' section entries
 
 ### Changed
-- Removed support for "SEO Preview" for elements using legacy live preview  
+- Removed support for the "SEO Preview" for elements using legacy live preview  
 
 ## 3.0.0-beta.4 - 2024-04-04
 
