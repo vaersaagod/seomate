@@ -551,7 +551,7 @@ Sets the default meta data profile to use (see the `fieldProfiles` config settin
 
 ### fieldProfiles [array]
 *Default: `[]`*  
-Field profiles defines waterfalls for which fields should be used to fill which
+Field profiles defines "waterfalls" for which fields should be used to fill which
 meta tags. You can have as many or as few profiles as you want. You can define a default 
 profile using the `defaultProfile` setting, and you can map your sections and category 
 groups using the `profileMap` setting. You can also override which profile to use, directly 
@@ -581,32 +581,54 @@ Example:
 ],
 ```  
 
-Field waterfalls are parsed from left to right. Empty or missing fields are ignored, 
+Field waterfalls are parsed from left to right. Empty or missing values are ignored, 
 and SEOMate continues to look for a valid value in the next field.  
 
-In addition to field handle references, field profiles can also contain functions (i.e. _closures_) 
-and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html). These work exactly the same 
-as field references, i.e. if SEOMate encounters a closure or object template in the config it will call/render it; if 
-that doesn't yield a non-empty value SEOMate will proceed to look at the next item in the field profile array, etc.    
+#### Closures and object templates
 
-Field profile closures receive a single argument `$element` (i.e. the element SEOMate is rendering meta data for).  
+In addition to field handle references, field profiles can also contain functions (i.e. _closures_) 
+and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html).   
+
+Field profile **closures** take a single argument `$element` (i.e. the element SEOMate is rendering meta data for).  
 Here's how a closure can look inside a field profile:  
 
 ```php
 'fieldProfiles' => [
     'default' => [
-        'title' => [static function ($element) { return "$element->title - ($element->productCode)"; }],
+        'title' => ['seoTitle', static function ($element) { return "$element->title - ($element->productCode)"; }],
     ],
 ]
 ```
 
-Object templates are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+Generally, closures should return a string value (or `null`). The exception is image meta tags  
+(e.g. `'image'`, `'og:image'`, etc.), where SEOMate will expect an asset (or `null`) returned:    
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'image' => [static function ($element) { return $element->seoImage->one() ?? null; }],
+    ],
+]
+```
+
+**Object templates** are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
 Here's how they can be used in field profiles (the two examples are using short- and longhand syntaxes, respectively):     
 
 ```php
 'fieldProfiles' => [
     'default' => [
-        'title' => ['{title} - ({productCode})', '{{ object.title }} - ({{ object.productCode }})'],
+        'title' => ['seoTitle', '{title} - ({productCode})', '{{ object.title }} - ({{ object.productCode }})'],
+    ],
+]
+```
+
+Object templates can only render strings, which make them less useful for image meta tags (that expect an asset returned).  
+But if you really want to, you can render an asset ID, which SEOMate will use to query for the actual asset:
+
+```php
+'defaultMeta' => [
+    'default' => [
+        'image' => ['{seoImage.one().id}'],
     ],
 ]
 ```
@@ -664,19 +686,30 @@ and `settings` respectively:
 ],
 ```
 
+#### Closures and object templates
+
 In addition to field handle references, `defaultMeta` can also contain functions (i.e. _closures_)
 and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html).  
 
-Field profile closures receive a single argument `$context` (i.e. an array; the global Twig context).    
+Field profile **closures** take a single argument `$context` (i.e. an array; the global Twig context).    
 Here's how a closure can look inside `defaultMeta`:
 
 ```php
 'defaultMeta' => [
     'title' => [static function ($context) { return $context['siteName'] . ' is awesome!'; }],
 ]
+```  
+
+Generally, closures should return a string value (or `null`). The exception is image meta tags  
+(e.g. `'image'`, `'og:image'`, etc.), where SEOMate will expect an asset (or `null`) returned:  
+
+```php
+'defaultMeta' => [
+    'image' => [static function ($context) { return $context['defaultSeoImage']->one() ?? null; }],
+]
 ```
 
-Object templates are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+**Object templates** are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
 Here's how they can be used in `defaultMeta` (note that for `defaultMeta`, the `object` variable refers to the global  
 Twig context):  
 
@@ -685,6 +718,15 @@ Twig context):
     'title' => ['{siteName} is awesome!', '{{ object.siteName }} is awesome!'],
 ]
 ```
+
+Object templates can only render strings, which make them less useful for image meta tags (that expect an asset returned).  
+But if you really want to, you can render an asset ID, which SEOMate will use to query for the actual asset:  
+
+```php
+'defaultMeta' => [
+    'image' => ['{defaultSeoImage.one().id}'],
+]
+```  
 
 ### additionalMeta [array]
 *Default: `[]`*  

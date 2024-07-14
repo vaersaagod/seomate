@@ -1,5 +1,13 @@
 # SEOMate Changelog
 
+## Unreleased  
+### Added
+- Added the ability to have object templates render an asset ID for image meta tags, in field profiles and default mate.  
+### Changed
+- Meta data rendered from object templates or returned from closures is now sanitised.
+### Improved  
+- Improved docs on object templates and closures for the `defaultMeta` and `fieldProfiles` config settings.   
+
 ## 3.0.0-beta.6 - 2024-04-25
 ### Added
 - The `outputAlternate` config setting now accepts a closure returning `true` or `false`.

@@ -164,20 +164,36 @@ class SEOMateHelper
     {
         if ($handle instanceof \Closure) {
             try {
-                return $handle($scope);
+                $result = $handle($scope);
             } catch (\Throwable $throwable) {
                 Craft::error('An error occurred when calling closure: '. $throwable->getMessage(), __METHOD__);
                 return null;
             }
+            if ($type === 'text') {
+                return static::getStringPropertyValue($result);
+            }
+            if ($type === 'image') {
+                return static::getImagePropertyValue($result);
+            }
+            return null;
         }
 
         if (str_contains(trim($handle), '{')) {
             try {
-                return Craft::$app->getView()->renderObjectTemplate($handle, $scope);
+                $result = Craft::$app->getView()->renderObjectTemplate($handle, $scope);
             } catch (\Throwable $throwable) {
                 Craft::error('An error occurred when trying to render object template: '. $throwable->getMessage(), __METHOD__);
                 return null;
             }
+            if ($type === 'text') {
+                return static::getStringPropertyValue($result);
+            }
+            // If this is an "image" meta tag type, assume that the object template has rendered an asset ID
+            if ($type === 'image' && $assetId = (int)$result) {
+                $asset = Asset::find()->id($assetId)->one();
+                return static::getImagePropertyValue($asset);
+            }
+            return null;
         }
 
         if (!empty($scope[$handle])) {
@@ -288,9 +304,13 @@ class SEOMateHelper
             return null;
         }
 
+        if ($input instanceof Asset) {
+            $input = [$input];
+        }
+
         if ($input instanceof AssetQuery) {
             $collection = (clone $input)->kind(Asset::KIND_IMAGE)->collect();
-        } else {
+        } else if (is_array($input)) {
             $collection = Collection::make($input);
         }
 
