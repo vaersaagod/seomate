@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 3.0.0-beta.8 - 2024-07-30  
+### Fixed
+- Fixed an issue where seomate would throw an error if an element collection was passed as the image property.
+
 ## 3.0.0-beta.7 - 2024-07-14  
 ### Added
 - Added the ability to have object templates render an asset ID for image meta tags, in field profiles and default mate.  
