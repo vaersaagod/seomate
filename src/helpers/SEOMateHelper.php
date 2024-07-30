@@ -16,7 +16,6 @@ use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\EntryQuery;
-use craft\elements\ElementCollection;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\errors\SiteNotFoundException;
@@ -313,7 +312,7 @@ class SEOMateHelper
             $collection = (clone $input)->kind(Asset::KIND_IMAGE)->collect();
         } else if (is_array($input)) {
             $collection = Collection::make($input);
-        } else if ($input instanceof ElementCollection) {
+        } else if ($input instanceof Collection) {
             $collection = $input;
         }
 
