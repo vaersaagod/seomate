@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\variables;
@@ -25,12 +25,12 @@ class SEOMateVariable
 {
     public function renderMetaTag(string $key, string|array $value): Markup
     {
-        return SEOMate::$plugin->render->renderMetaTag($key, $value);
+        return SEOMate::getInstance()->render->renderMetaTag($key, $value);
     }
 
     public function breadcrumbSchema(array $breadcrumbArray): Markup
     {
-        $breadcrumbList = SEOMate::$plugin->schema->breadcrumb($breadcrumbArray);
+        $breadcrumbList = SEOMate::getInstance()->schema->breadcrumb($breadcrumbArray);
         return Template::raw($breadcrumbList->toScript());
     }
 
@@ -41,9 +41,9 @@ class SEOMateVariable
     {
         $context = array_merge(['seomate' => $config], \Craft::$app->getView()->getTwig()->getGlobals());
         
-        $meta = SEOMate::$plugin->meta->getContextMeta($context);
-        $canonicalUrl = SEOMate::$plugin->urls->getCanonicalUrl($context);
-        $alternateUrls = SEOMate::$plugin->urls->getAlternateUrls($context);
+        $meta = SEOMate::getInstance()->meta->getContextMeta($context);
+        $canonicalUrl = SEOMate::getInstance()->urls->getCanonicalUrl($context);
+        $alternateUrls = SEOMate::getInstance()->urls->getAlternateUrls($context);
 
         return [
             'meta' => $meta,

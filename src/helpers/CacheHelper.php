@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\helpers;
@@ -89,8 +89,7 @@ class CacheHelper
      */
     public static function hasMetaCacheForElement($element): bool
     {
-        $cache = Craft::$app->getCache();
-        return (bool)$cache->get(self::getElementKey($element));
+        return (bool)Craft::$app->getCache()?->get(self::getElementKey($element));
     }
 
     /**
@@ -101,8 +100,7 @@ class CacheHelper
      */
     public static function getMetaCacheForElement($element): mixed
     {
-        $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementKey($element));
+        return Craft::$app->getCache()?->get(self::getElementKey($element));
     }
 
     /**
@@ -112,8 +110,7 @@ class CacheHelper
      */
     public static function deleteMetaCacheForElement($element): void
     {
-        $cache = Craft::$app->getCache();
-        $cache->delete(self::getElementKey($element));
+        Craft::$app->getCache()?->delete(self::getElementKey($element));
     }
 
     /**
@@ -124,9 +121,8 @@ class CacheHelper
      */
     public static function setMetaCacheForElement($element, $meta): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
-        $cache = Craft::$app->getCache();
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $dependency = new TagDependency([
@@ -136,7 +132,7 @@ class CacheHelper
             ],
         ]);
 
-        $cache->set(self::getElementKey($element), $meta, $cacheDuration, $dependency);
+        Craft::$app->getCache()?->set(self::getElementKey($element), $meta, $cacheDuration, $dependency);
     }
 
 
@@ -148,8 +144,7 @@ class CacheHelper
      */
     public static function hasCacheForSitemapIndex($siteId): bool
     {
-        $cache = Craft::$app->getCache();
-        return (bool)$cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
+        return (bool)Craft::$app->getCache()?->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
     }
 
     /**
@@ -160,8 +155,7 @@ class CacheHelper
      */
     public static function getCacheForSitemapIndex($siteId): mixed
     {
-        $cache = Craft::$app->getCache();
-        return $cache->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
+        return Craft::$app->getCache()?->get(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
     }
 
     /**
@@ -171,8 +165,7 @@ class CacheHelper
      */
     public static function deleteCacheForSitemapIndex($siteId): void
     {
-        $cache = Craft::$app->getCache();
-        $cache->delete(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
+        Craft::$app->getCache()?->delete(self::SITEMAP_INDEX_KEY . '_site' . $siteId);
     }
 
     /**
@@ -184,9 +177,8 @@ class CacheHelper
      */
     public static function setCacheForSitemapIndex($siteId, $data): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
-        $cache = Craft::$app->getCache();
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $dependency = new TagDependency([
@@ -196,7 +188,7 @@ class CacheHelper
             ],
         ]);
 
-        $cache->set(self::SITEMAP_INDEX_KEY . '_site' . $siteId, $data, $cacheDuration, $dependency);
+        Craft::$app->getCache()?->set(self::SITEMAP_INDEX_KEY . '_site' . $siteId, $data, $cacheDuration, $dependency);
     }
 
     /**
@@ -205,11 +197,12 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
+     *
+     * @return bool
      */
     public static function hasCacheForElementSitemap($siteId, $handle, $page): bool
     {
-        $cache = Craft::$app->getCache();
-        return (bool)$cache->get(self::getElementSitemapKey($siteId, $handle, $page));
+        return (bool)Craft::$app->getCache()?->get(self::getElementSitemapKey($siteId, $handle, $page));
     }
 
     /**
@@ -218,11 +211,12 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
+     *
+     * @return mixed
      */
     public static function getCacheForElementSitemap($siteId, $handle, $page): mixed
     {
-        $cache = Craft::$app->getCache();
-        return $cache->get(self::getElementSitemapKey($siteId, $handle, $page));
+        return Craft::$app->getCache()?->get(self::getElementSitemapKey($siteId, $handle, $page));
     }
 
     /**
@@ -260,9 +254,8 @@ class CacheHelper
      */
     public static function setCacheForElementSitemap($siteId, $data, $handle, $definition, $page): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
-        $cache = Craft::$app->getCache();
         $cacheDuration = ConfigHelper::durationInSeconds($settings->cacheDuration);
 
         $tags = array_merge([self::SEOMATE_TAG, self::SITEMAP_ELEMENT_TAG], self::getElementSitemapTags($siteId, $handle, $definition));
@@ -271,7 +264,7 @@ class CacheHelper
             'tags' => $tags,
         ]);
 
-        $cache->set(self::getElementSitemapKey($siteId, $handle, $page), $data, $cacheDuration, $dependency);
+        Craft::$app->getCache()?->set(self::getElementSitemapKey($siteId, $handle, $page), $data, $cacheDuration, $dependency);
     }
 
 
@@ -279,6 +272,8 @@ class CacheHelper
      * Creates key for element meta
      *
      * @param $element
+     *
+     * @return string
      */
     private static function getElementKey($element): string
     {
@@ -293,6 +288,8 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $page
+     *
+     * @return string
      */
     private static function getElementSitemapKey($siteId, $handle, $page): string
     {
@@ -305,6 +302,8 @@ class CacheHelper
      * @param $siteId
      * @param $handle
      * @param $definition
+     *
+     * @return array
      */
     private static function getElementSitemapTags($siteId, $handle, $definition): array
     {
@@ -331,6 +330,8 @@ class CacheHelper
      *
      * @param $siteId
      * @param $class
+     *
+     * @return string
      */
     private static function getElementSitemapTagForClass($siteId, $class): string
     {

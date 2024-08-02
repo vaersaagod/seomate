@@ -1,22 +1,21 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate;
 
 use Craft;
 use craft\base\Element;
-use craft\base\Model;
+use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\events\ElementEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterPreviewTargetsEvent;
 use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\services\Elements;
 use craft\utilities\ClearCaches;
@@ -28,7 +27,6 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-use vaersaagod\seomate\assets\preview\PreviewAsset;
 use vaersaagod\seomate\helpers\CacheHelper;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\models\Settings;
@@ -42,8 +40,6 @@ use vaersaagod\seomate\variables\SchemaVariable;
 use vaersaagod\seomate\variables\SEOMateVariable;
 
 use yii\base\Event;
-use yii\base\InvalidConfigException;
-use yii\web\View as YiiView;
 
 /**
  * @author    Værsågod
@@ -60,42 +56,34 @@ use yii\web\View as YiiView;
  */
 class SEOMate extends Plugin
 {
-    // Static Properties
-    // =========================================================================
-
-    /**
-     * @var SEOMate
-     */
-    public static SEOMate $plugin;
-
-    // Public Properties
-    // =========================================================================
 
     /**
      * @var string
      */
     public string $schemaVersion = '1.0.0';
 
-    // Public Methods
-    // =========================================================================
+    public static function config(): array
+    {
+        return [
+            'components' => [
+                'meta' => MetaService::class,
+                'urls' => UrlsService::class,
+                'render' => RenderService::class,
+                'sitemap' => SitemapService::class,
+                'schema' => SchemaService::class,
+            ],
+        ];
+    }
 
+    /**
+     * @return void
+     */
     public function init(): void
     {
+
         parent::init();
         
-        self::$plugin = $this;
-        $settings = $this->getSettings();
-
-        // Register services
-        $this->setComponents([
-            'meta' => MetaService::class,
-            'urls' => UrlsService::class,
-            'render' => RenderService::class,
-            'sitemap' => SitemapService::class,
-            'schema' => SchemaService::class,
-        ]);
-
-        // Register tamplate variables
+        // Register template variables
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
@@ -122,30 +110,32 @@ class SEOMate extends Plugin
                 $event->options[] = [
                     'key' => 'seomate-cache',
                     'label' => Craft::t('seomate', 'SEOMate cache'),
-                    'action' => [SEOMate::$plugin, 'invalidateCaches'],
+                    'action' => [SEOMate::getInstance(), 'invalidateCaches'],
                 ];
             }
         );
 
         // After save element event handler
-        Event::on(Elements::class, Elements::EVENT_AFTER_SAVE_ELEMENT,
+        Event::on(
+            Elements::class,
+            Elements::EVENT_AFTER_SAVE_ELEMENT,
             static function(ElementEvent $event) {
                 $element = $event->element;
-                
-                if ($element instanceof Element) {
-                    if (!$event->isNew) {
-                        CacheHelper::deleteMetaCacheForElement($element);
-                    }
-                    
-                    $siteId = $element->siteId ?? null;
-                    CacheHelper::deleteCacheForSitemapIndex($siteId);
-                    CacheHelper::deleteCacheForElementSitemapsByElement($element);
+                if (!$element instanceof ElementInterface) {
+                    return;
                 }
+                if (!$event->isNew) {
+                    CacheHelper::deleteMetaCacheForElement($element);
+                }
+                CacheHelper::deleteCacheForSitemapIndex($element->siteId ?? null);
+                CacheHelper::deleteCacheForElementSitemapsByElement($element);
             }
         );
 
+        $settings = $this->getSettings();
+
+        // Register sitemap urls?
         if ($settings->sitemapEnabled) {
-            // Register sitemap urls
             Event::on(
                 UrlManager::class,
                 UrlManager::EVENT_REGISTER_SITE_URL_RULES,
@@ -160,33 +150,27 @@ class SEOMate extends Plugin
             );
         }
 
-        if ($settings->previewEnabled) {
-            // Register preview asset bundle for legacy Live Preview (Craft Commerce)
-            $view = Craft::$app->getView();
-            $view->hook('cp.commerce.product.edit.details', [$this, 'registerPreviewAssetsBundle']);
-
-            $settings = $this->getSettings();
-
-            // Register preview target
+        // Register preview target?
+        if (!empty($settings->previewEnabled)) {
             Event::on(
                 Element::class,
                 Element::EVENT_REGISTER_PREVIEW_TARGETS,
                 static function(RegisterPreviewTargetsEvent $event) use ($settings) {
-                    /** @var Element $element */
-                    $element = $event->sender;
-                    if (!$element->getUrl()) {
-                        return;
+                    try {
+                        $element = $event->sender;
+                        if (!$element instanceof Element || !SEOMateHelper::isElementPreviewable($element)) {
+                            return;
+                        }
+                        $event->previewTargets[] = [
+                            'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
+                            'url' => UrlHelper::siteUrl('seomate/preview', [
+                                'elementId' => $element->id,
+                                'siteId' => $element->siteId,
+                            ]),
+                        ];
+                    } catch (\Throwable $e) {
+                        Craft::error("An exception occurred when attempting to register the \"SEO Preview\" preview target: " . $e->getMessage(), __METHOD__);
                     }
-                    if (\is_array($settings->previewEnabled) && !\in_array($element->getSection()->handle, $settings->previewEnabled, true)) {
-                        return;
-                    }
-                    $event->previewTargets[] = [
-                        'label' => $settings->previewLabel ?: Craft::t('seomate', 'SEO Preview'),
-                        'url' => UrlHelper::siteUrl('seomate/preview', [
-                            'elementId' => $element->id,
-                            'siteId' => $element->siteId,
-                        ]),
-                    ];
                 }
             );
 
@@ -197,7 +181,7 @@ class SEOMate extends Plugin
                     UrlManager::class,
                     UrlManager::EVENT_REGISTER_SITE_URL_RULES,
                     static function(RegisterUrlRulesEvent $event) {
-                        $event->rules['seomate/preview'] = 'seomate/preview/preview';
+                        $event->rules['seomate/preview'] = 'seomate/preview';
                     }
                 );
             }
@@ -216,19 +200,15 @@ class SEOMate extends Plugin
      * Process 'seomateMeta' hook
      *
      * @param array $context
-     *
      * @return string
-     *
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Throwable
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
      */
     public function onRegisterMetaHook(array &$context): string
     {
-
-        $craft = Craft::$app;
-        $settings = $this->getSettings();
 
         if (isset($context['seomatePreviewElement'])) {
             $context['seomate']['element'] = $context['seomate']['element'] ?? $context['seomatePreviewElement'];
@@ -242,50 +222,24 @@ class SEOMate extends Plugin
         $context['seomate']['canonicalUrl'] = $canonicalUrl;
         $context['seomate']['alternateUrls'] = $alternateUrls;
 
-        if ($settings['metaTemplate'] !== '') {
-            return $craft->view->renderTemplate($settings['metaTemplate'], $context);
+        $settings = $this->getSettings();
+
+        if (!empty($settings->metaTemplate)) {
+            return Craft::$app->view->renderTemplate($settings->metaTemplate, $context);
         }
 
-        $oldTemplateMode = $craft->getView()->getTemplateMode();
-        $craft->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
-        $output = $craft->getView()->renderTemplate('seomate/_output/meta', $context);
-        $craft->getView()->setTemplateMode($oldTemplateMode);
+        $oldTemplateMode = Craft::$app->getView()->getTemplateMode();
+        Craft::$app->getView()->setTemplateMode(View::TEMPLATE_MODE_CP);
+        $output = Craft::$app->getView()->renderTemplate('seomate/_output/meta', $context);
+        Craft::$app->getView()->setTemplateMode($oldTemplateMode);
 
         return $output;
     }
 
     /**
-     * Registers assets bundle for preview
-     *
-     * @param array $context
-     * @throws InvalidConfigException
+     * @return Settings
      */
-    public function registerPreviewAssetsBundle(array $context = []): void
-    {
-        $element = $context['entry'] ?? $context['category'] ?? $context['product'] ?? null;
-        if (!$element) {
-            return;
-        }
-        // Get fields to include
-        $settings = $this->getSettings();
-        $profile = SEOMateHelper::getElementProfile($element, $settings) ?? $settings->defaultProfile ?? null;
-        $fieldProfile = Json::encode($settings->fieldProfiles[$profile] ?? []);
-        $js = <<<JS
-                    SEOMATE_FIELD_PROFILE = {$fieldProfile};
-JS;
-        Craft::$app->getView()->registerJs($js, YiiView::POS_HEAD);
-        Craft::$app->getView()->registerAssetBundle(PreviewAsset::class);
-    }
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return Model|null
-     */
-    protected function createSettingsModel(): ?Model
+    protected function createSettingsModel(): Settings
     {
         return new Settings();
     }

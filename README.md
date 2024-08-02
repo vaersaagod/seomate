@@ -19,7 +19,7 @@ Craft's native Preview Targets, giving your clients a nice and familiar interfac
 
 ## Requirements
 
-This plugin requires Craft CMS 4.0.0 or later.  
+This plugin requires Craft CMS 5.0.0 or later.  
 
 ## Installation
 
@@ -37,17 +37,16 @@ SEOMate focuses on providing developers with the tools they need to craft their
 site's SEO in three main areas; **meta data**, **sitemaps**, and **JSON-LD microdata**.
 
 ### Meta data
-SEOMate doesn't provide any field types or custom tables that store your meta data.
-Instead, you use the native field types that comes with Craft, and just tell SEOMate
-where to look for meta data. 
+SEOMate doesn't provide any custom field types for entering meta data.
+Instead, you use native field types that come with Craft, and just tell SEOMate
+which fields to use.   
 
-You do this by configuring profiles for the different field setups in your site, and 
-then map sections and category groups to these profiles, or set the desired profile from 
-your templates.
+You do this by configuring _field profiles_ for the different field setups in your site. Sections and category groups 
+can be mapped to these profiles, or the desired profile can be set at the template level.  
 
 The key config settings for meta data is `fieldProfiles`, `profileMap`, `defaultProfile`, 
 `defaultMeta` and `additionalMeta`. Refer to the ["Adding meta data"](#adding-meta-data) 
-section on how to include the meta data in your page, and override it at the template level.
+section on how to include the meta data in your page, and how to (optionally) override it at the template level.
 
 ### Sitemaps
 SEOMate lets you create completely configuration based sitemaps for all your content.
@@ -66,6 +65,16 @@ template variable, that directly ties into the fluent [Schema API](https://githu
 _This method uses the exact same approach and signature as [Rias' Schema plugin](https://github.com/Rias500/craft-schema).
 If you're only looking for a way to output JSON-LD, we suggest you use that plugin instead_.  
 
+### SEO preview  
+SEOMate provides a fancy "SEO Preview" preview target, for any and all elements with URLs, featuring 
+_photo realistic approximations_ of how your content will appear in Google SERPs, or when shared on Facebook, 
+Twitter/X and LinkedIn.  
+
+![img.png](resources/seo-preview.png)
+
+_If you don't like the SEO preview, or if you'd like it to only appear for entries in specific sections, check 
+out the [previewEnabled](`#previewenabled-boolarray`) config setting._     
+
 ### Things that SEOMate doesn't do...
 So much! 
 
@@ -81,8 +90,15 @@ exactly the same as any other config file in Craft, but in the following example
 skip that part to keep things a bit more tidy. 
 
 All the config settings are documented in the [`Configuring`](#configuring) section, 
-and there're quite a few. But to get you going, start by adding a field
-profile in `fieldProfiles` and set that profile as the default with `defaultProfile`:  
+and there are quite a few! But to get you going, these are some fundamental concepts:  
+
+### Field profiles
+
+A _field profile_ in SEOMate is, essentially, a mapping of metadata attributes to the fields that SEOMate 
+should look at for those attributes' metadata values.    
+
+To get started, create a profile called "standard" in `fieldProfiles`, and set that profile as the default 
+field profile using the `defaultProfile` setting:    
 
 ```php
 <?php
@@ -100,16 +116,23 @@ return [
 ];
 ```
 
-This tells SEOMate to use the field profile `standard` to get element meta data from
-by default. So, everytime a template that has an element (ie. `entry` or `category`) is loaded,
-SEOMate will start by checking if there is a field named `seoTitle` that has a value that it
-can use for the title meta tag. If there a field named `seoTitle` does not exist, or there is one and
-it's empty, SEOMate continues to check if there is a field named `heading`, and does the same thing.
-If `heading` is empty, it checks for `title`. And so on, for every key in the field profile.
+The above tells SEOMate to use the field profile `standard` to get element metadata from, as a default. 
+So, everytime a page template that has an element (i.e. `entry`, `category` or `product`) is loaded, SEOMate will 
+start by checking if that element has a field named `seoTitle`, and that this field has a value that can be used for 
+the title meta tag. If a field named `seoTitle` does not exist – or if it's empty – SEOMate continues to check if 
+there is a field named `heading`, and does the same thing. If `heading` is empty, it checks for `title`.  
+And so on, for every key in the field profile.  
+
+_💡 In addition to field handles, field profiles can also contain **functions** (i.e. closures), and/or  
+**Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html)**. For documentation and examples for closures and object templates,  
+see the [`fieldProfiles` setting](#fieldprofiles-array)!_  
+
+#### Mapping different field profiles to elements  
 
 Now, let's say we have a section with handle `news` that has a slightly different field setup than
-our other sections, so we want to pull data from some other fields. We'll add another field profile to `fieldProfiles`, 
-and make a mapping between the profile and the section handle in `profileMap`:
+our other sections, so for entries in that section we want to pull data from some other fields. 
+We'll add another field profile to `fieldProfiles`, and make a mapping between the profile and the 
+section handle in `profileMap`:
 
 ```php
 <?php
@@ -139,24 +162,63 @@ return [
 ];
 ```
 
-The mapping between the section and the profile is simple enough, the key in `profileMap` can
-be a section handle or a category group handle, and the value is the key for the profile in 
-`fieldProfiles`.
+The mapping between the "news" section and the profile is simple enough: the _key_ in `profileMap` can
+be the handle for a section, entry type, category group, or Commerce product type, and the _value_ 
+should be the key for the profile in `fieldProfiles` that you want to use for matching elements.    
 
-In this profile we also we have also used a couple of other SEOMate features. 
+_In this profile we also we have also used a couple of other SEOMate features._  
 
-First, notice that we have chosen to specify a field profile for `og:title`, `og:image` 
-and `twitter:image` that we didn't have in the default profile. By default, the `autofillMap` 
-defines that if no value are set for `og:title` and `twitter:title`, we want to autofill those 
-meta tags with the value  from `title`. So in the `standard` profile, those values will be 
+First, notice that we have chosen to specify a field profile for `og:title`, `og:image`
+and `twitter:image` that we didn't have in the default profile. By default, the `autofillMap`
+defines that if no value are set for `og:title` and `twitter:title`, we want to autofill those
+meta tags with the value  from `title`. So in the `standard` profile, those values will be
 autofilled, while in the `newsprofile` we choose to customize some of them.
 
-Secondly, we can specify to pull a value from a Matrix sub field by using the syntax 
+Secondly, we can specify to pull a value from a Matrix subfield by using the syntax
 `matrixFieldHandle.blockTypeHandle:subFieldHandle`.
 
-This is all fine for templates that have an element associated with them. But what about the ones
-that don't? Or, what if there is no valid image in any of those image fields in the profile? That's
-where `defaultMeta` comes into play. Let's say that we have a global with handle `globalSeo`, with 
+#### Profile map specificity   
+
+**In some cases there might be a need to create more specific field profile mappings.** For example, you might have
+a section with the handle `news` _and_ a category group with the handle `news`, and you need their elements to use
+different profiles. This can be achieved by using prefixes `section:` and/or `categoryGroup:`, e.g.   
+
+```php
+'profileMap' => [
+   'section:news' => 'newsprofile', // Will match entries in a section "news"
+   'categoryGroup:news' => 'newscategoryprofile', // Will match categories in a group "news"
+],
+```
+
+Another use case for specific field profiles is if you need a certain entry type to use a specific profile, in which
+case the `entryType:` prefix is the ticket:  
+
+```php
+'profileMap' => [
+   'section:news' => 'newsprofile', // Will match entries in a section "news"
+   'categoryGroup:news' => 'newscategoryprofile', // Will match categories in a group "news"
+   'pages' => 'pagesprofile',
+   'entryType:listPage' => 'listpageprofile', // Will match entries with an entry type "listPage"
+],
+```
+
+The _specific_ field profiles (i.e. the ones using the `{sourceType}:` prefix) will take precedence over _unspecific_
+ones. That means that – with the above config – entries in a section "page" will use the "pagesprofile" profile, 
+unless they're using an entry type with the handle `listPage`, in which case the "listpageprofile" profile will be
+used. And, the "listpageprofile" will also be used for entries in _other_ sections, if they're using that same entry type.  
+
+The following field profile specificity prefixes are supported:   
+
+* Entries: `section:{sectionHandle}` and `entryType:{entryTypeHandle}`  
+* Categories: `categoryGroup:{categoryGroupHandle}`  
+* Commerce products: `productType:{productTypeHandle}`  
+* Users: `user` 
+
+### Default meta data
+
+Field profiles are great for templates that have an element associated with them. But what about the ones
+that don't? Or – what if there is no valid image in any of those image fields defined in the matching field profile?  
+This is where `defaultMeta` comes into play. Let's say that we have a global set with handle `globalSeo`, with 
 fields that we want to fall back on if everything else fails:  
 
 ```php
@@ -196,7 +258,9 @@ return [
 The `defaultMeta` setting works almost exactly the same as `fieldProfiles`, except that it
 looks for objects and fields in you current Twig `context`, hence the use of globals.
 
-Lastly, we want to add some additional meta data like `og:type` and `twitter:card`, and for 
+### Additional meta data
+
+Lastly, we want to add some additional metadata like `og:type` and `twitter:card`, and for 
 that we have... `additionalMeta`:
    
 ```php
@@ -269,7 +333,7 @@ with your own template using the `metaTemplate` config setting.
 
 ### Overriding meta data and settings from your templates
 
-You can override the meta data and config settings directly from your templates by creating a
+You can override the metadata and config settings directly from your templates by creating a
 `seomate` object and overriding accordingly:   
 
 ```twig
@@ -289,9 +353,9 @@ You can override the meta data and config settings directly from your templates 
 } %}
 ```
 
-All relevant config settings can be overridden inside the `config` key, and all meta data
+All relevant config settings can be overridden inside the `config` key, and all metadata
 inside the `meta` key. You can also tell seomate to use a specific profile with the `profile` setting. 
-And to use some other element as the base element to get meta data from, or provide one if the current 
+And to use some other element as the base element to get metadata from, or provide one if the current 
 template doesn't have one, in the `element` key. And you can customize the canonicalUrl as needed. 
 And... more.
 
@@ -366,8 +430,8 @@ and overriding settings as needed.
 
 ### cacheEnabled [bool]
 *Default: `'true'`*  
-Enables/disables caching of generated meta data. **The cached data will be automatically
-cleared when an element is saved**. To clear the meta data cache manually, Craft's "Clear Caches" CP utility can be used, or the core `clear-caches` CLI command.  
+Enables/disables caching of generated metadata. **The cached data will be automatically
+cleared when an element is saved**. To clear the metadata cache manually, Craft's "Clear Caches" CP utility can be used, or the core `clear-caches` CLI command.  
 
 ### cacheDuration [int|string]
 *Default: `3600`*  
@@ -375,17 +439,16 @@ Duration of meta cache in seconds. Can be set to an integer (seconds), or a vali
 
 ### previewEnabled [bool|array]
 *Default: `true`*  
-Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections and category groups (array of section and/or category group handles; e.g. `['news', 'events', 'homepage']`).  
-_Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._     
-_Preview targets is a Craft Pro feature only. Nothing we can do about that._  
+Enable the "SEO Preview" preview target in the Control Panel everywhere (`true`), nowhere (`false`) or only for particular sections, category groups, entry types or Commerce product types (array of section and/or category group handles; e.g. `['news', 'events', 'homepage', 'section:blog', 'entryType:listPage']`, etc).  
+_Regardless of this config setting, the "SEO Preview" preview target is only ever added to sections and category groups with URLs._  
 
 ### previewLabel [string|null]
 *Default: "SEO Preview"*  
-Defines the text label for the SEO Preview button and Preview Target (Craft 3.2.x only) inside the Control Panel.  
+Defines the text label for the "SEO Preview" button and preview target inside the Control Panel.  
 
 ### siteName [string|array|null]
 *Default: `null`*  
-Defines the site name to be used in meta data. Can be a plain string, or an array
+Defines the site name to be used in metadata. Can be a plain string, or an array
 with site handles as keys. Example:
 
 ```php  
@@ -432,16 +495,40 @@ meta content.
 *Default: `'|'`*  
 The separator between the meta tag content and the site name.
 
-### outputAlternate [bool]
+### outputAlternate [bool|Closure]
 *Default: `true`*  
-Enables/disables output of alternate URLs. Alternate URLs are meant to provide
-search engines with alternate URLs _for localized versions of the current page's content_. 
+Enables/disables output of alternate URLs in meta tags and sitemaps.  
+
+Alternate URLs are meant to provide search engines with alternate URLs  
+_for localized versions of the current page's content_.  
 
 If you have a normal multi-locale website, you'll probably want to leave this setting
-enabled. If you're running a multi-site website, where the sites are distinct, you'll
-probably want to disable this.  
+enabled (i.e. set to `true`). However, if you're running a multi-site website where the  
+sites are distinct, you'll might want to set it to `false`, to prevent alternate URLs  
+from being output at all.    
 
-For more information about alternate URLs, (refer to this article)[https://support.google.com/webmasters/answer/189077].   
+For the Advanced Use Case (tm) – _e.g. multi-sites that have a mix of translated **and**  
+distinct content_, it's also possible to break free from the shackles of the binary boolean,  
+and configure the `outputAlternate` setting with a closure function (that returns either `true`  
+or `false`).  
+
+The `outputAlternate` closure will receive two parameters; `$element` (the current element) and  
+`$alternateElement` (the element from a different site, i.e. the *potential* alternate). This makes  
+it possible to compose custom logic, in order to determine if that alternate element's URL  
+should be output or not.  
+
+An example: the below closure would make SEOMate only output alternate URLs if the _language_ for  
+the alternate element is different from the element's language:  
+
+```php
+'outputAlternate' => static fn($element, $alternateElement) => $element->language !== $alternateElement->language,
+```  
+
+If this closure returns `true`, SEOMate will create an alternate URL for the `$alternateElement`.  
+If it returns `false` (or any other falsey value), SEOMate will quietly pretend the `$alternateElement`  
+does not exist.  
+
+_For more information about alternate URLs, [refer to this article](https://support.google.com/webmasters/answer/189077)._   
 
 ### alternateFallbackSiteHandle [string|null]
 *Default: `null`*  
@@ -464,7 +551,7 @@ Sets the default meta data profile to use (see the `fieldProfiles` config settin
 
 ### fieldProfiles [array]
 *Default: `[]`*  
-Field profiles defines waterfalls for which fields should be used to fill which
+Field profiles defines "waterfalls" for which fields should be used to fill which
 meta tags. You can have as many or as few profiles as you want. You can define a default 
 profile using the `defaultProfile` setting, and you can map your sections and category 
 groups using the `profileMap` setting. You can also override which profile to use, directly 
@@ -494,32 +581,102 @@ Example:
 ],
 ```  
 
-Field waterfalls are parsed from left to right. Empty or missing fields are ignored, 
-and SEOMate continues to look for a valid value in the next field.
+Field waterfalls are parsed from left to right. Empty or missing values are ignored, 
+and SEOMate continues to look for a valid value in the next field.  
+
+#### Closures and object templates
+
+In addition to field handle references, field profiles can also contain functions (i.e. _closures_) 
+and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html).   
+
+Field profile **closures** take a single argument `$element` (i.e. the element SEOMate is rendering meta data for).  
+Here's how a closure can look inside a field profile:  
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'title' => ['seoTitle', static function ($element) { return "$element->title - ($element->productCode)"; }],
+    ],
+]
+```
+
+Generally, closures should return a string value (or `null`). The exception is image meta tags  
+(e.g. `'image'`, `'og:image'`, etc.), where SEOMate will expect an asset (or `null`) returned:    
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'image' => [static function ($element) { return $element->seoImage->one() ?? null; }],
+    ],
+]
+```
+
+**Object templates** are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+Here's how they can be used in field profiles (the two examples are using short- and longhand syntaxes, respectively):     
+
+```php
+'fieldProfiles' => [
+    'default' => [
+        'title' => ['seoTitle', '{title} - ({productCode})', '{{ object.title }} - ({{ object.productCode }})'],
+    ],
+]
+```
+
+Object templates can only render strings, which make them less useful for image meta tags (that expect an asset returned).  
+But if you really want to, you can render an asset ID, which SEOMate will use to query for the actual asset:
+
+```php
+'defaultMeta' => [
+    'default' => [
+        'image' => ['{seoImage.one().id}'],
+    ],
+]
+```
 
 ### profileMap [array]
 *Default: `[]`*  
-The profile map provides a way to map sections and category groups to profiles
-defined in `fieldProfiles`. If a section or category group is not found in this
-map, the profile defined in `defaultProfile` will be used.
+The profile map provides a way to map elements to different field profiles defined in `fieldProfiles`, via their 
+sections, entry types, category groups and Commerce product types. **If no matching profile in this mapping is found, 
+the profile defined in `defaultProfile` will be used.**  
+
+The keys in the `profileMap` should be a string containing one or several (comma-separated) element source handles,
+such as a section handle, entry type handle, category group handle or Commerce product type handle. These keys can 
+be specific, such as `section:news` (to explicitly match entries belonging to a "news" section) or unspecific, such 
+as simply `news` (which would match elements belong to _either_ a section, entry type, category group or product type 
+with the handle `'news'`).  
+
+Keys in `profileMap` are matched to elements from _most_ to _least_ specific, e.g. for an element with an 
+entry type `listPage`, if the `profileMap` contained both a `listPage` and an `entryType:listPage` key, 
+the latter would be used for that element.  
+
+The following field profile specificity prefixes are supported:
+
+* Entries: `section:{sectionHandle}` and `entryType:{entryTypeHandle}`
+* Categories: `categoryGroup:{categoryGroupHandle}`
+* Commerce products: `productType:{productTypeHandle}`
+* Users: `user`
+
+Example:  
 
 ```php
 'profileMap' => [
-    'products' => 'products',
-    'frontpage' => 'landingPages',
-    'campaigns' => 'landingPages',
+    'news' => 'newsProfile',
+    'section:products' => 'productsProfile',
+    'section:frontpage,section:campaigns' => 'landingPagesProfile',
+    'entryType:listPage' => 'listPageProfile',
+    'categoryGroup:newsCategories' => 'newsCategoriesProfile',
 ],
 ```
 
 ### defaultMeta [array]
 *Default: `[]`*  
 This setting defines the default meta data that will be used if no valid meta data
-was found for the current element (ie, non of the fields provided in the field profile
-existed or had valid values). 
+was found for the current element (ie, none of the fields provided in the field profile
+existed, or they all had empty values). 
 
-The waterfall uses the current _context_ to search for meta data. In the example
-below, we're falling back to using fields in two globals with handle `globalSeo` 
-and `settings`:
+The waterfall looks for meta data in the global _Twig context_. In the example
+below, we're falling back to using fields in two global sets, with handles `globalSeo` 
+and `settings` respectively:
 
 ```php
 'defaultMeta' => [
@@ -528,6 +685,48 @@ and `settings`:
     'image' => ['globalSeo.seoImages']
 ],
 ```
+
+#### Closures and object templates
+
+In addition to field handle references, `defaultMeta` can also contain functions (i.e. _closures_)
+and/or Twig [object templates](https://craftcms.com/docs/5.x/system/object-templates.html).  
+
+Field profile **closures** take a single argument `$context` (i.e. an array; the global Twig context).    
+Here's how a closure can look inside `defaultMeta`:
+
+```php
+'defaultMeta' => [
+    'title' => [static function ($context) { return $context['siteName'] . ' is awesome!'; }],
+]
+```  
+
+Generally, closures should return a string value (or `null`). The exception is image meta tags  
+(e.g. `'image'`, `'og:image'`, etc.), where SEOMate will expect an asset (or `null`) returned:  
+
+```php
+'defaultMeta' => [
+    'image' => [static function ($context) { return $context['defaultSeoImage']->one() ?? null; }],
+]
+```
+
+**Object templates** are well documented in [the official Craft docs](https://craftcms.com/docs/5.x/system/object-templates.html).  
+Here's how they can be used in `defaultMeta` (note that for `defaultMeta`, the `object` variable refers to the global  
+Twig context):  
+
+```php
+'defaultMeta' => [
+    'title' => ['{siteName} is awesome!', '{{ object.siteName }} is awesome!'],
+]
+```
+
+Object templates can only render strings, which make them less useful for image meta tags (that expect an asset returned).  
+But if you really want to, you can render an asset ID, which SEOMate will use to query for the actual asset:  
+
+```php
+'defaultMeta' => [
+    'image' => ['{defaultSeoImage.one().id}'],
+]
+```  
 
 ### additionalMeta [array]
 *Default: `[]`*  

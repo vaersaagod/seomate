@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\services;
@@ -40,7 +40,7 @@ class UrlsService extends Component
     public function getCanonicalUrl($context): ?string
     {
         $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $overrideObject = $context['seomate'] ?? [];
 
@@ -94,7 +94,7 @@ class UrlsService extends Component
     public function getAlternateUrls($context): array
     {
         $craft = Craft::$app;
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $alternateUrls = [];
 
         $overrideObject = $context['seomate'] ?? null;
@@ -103,7 +103,7 @@ class UrlsService extends Component
             SEOMateHelper::updateSettings($settings, $overrideObject['config']);
         }
 
-        if (!$settings->outputAlternate || !Craft::$app->isMultiSite) {
+        if ($settings->outputAlternate === false || !Craft::$app->getIsMultiSite()) {
             return [];
         }
 
@@ -140,6 +140,9 @@ class UrlsService extends Component
 
         /** @var ElementInterface $siteElement */
         foreach ($siteElements->all() as $siteElement) {
+            if ($settings->outputAlternate instanceof \Closure && !($settings->outputAlternate)($element, $siteElement)) {
+                continue;
+            }
             $alternateUrls[] = [
                 'url' => $siteElement->getUrl(),
                 'language' => strtolower(str_replace('_', '-', $siteElement->getLanguage())),

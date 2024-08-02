@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\twigextensions;
@@ -43,6 +43,6 @@ class SEOMateTwigExtension extends AbstractExtension
 
     public function renderMetaTag(string $key, string|array $value): Markup
     {
-        return SEOMate::$plugin->render->renderMetaTag($key, $value);
+        return SEOMate::getInstance()->render->renderMetaTag($key, $value);
     }
 }

@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\controllers;
@@ -39,7 +39,7 @@ class SitemapController extends Controller
     public function actionIndex(): Response
     {
         return $this->returnXml(
-            SEOMate::$plugin->sitemap->index()
+            SEOMate::getInstance()->sitemap->index()
         );
     }
 
@@ -54,7 +54,7 @@ class SitemapController extends Controller
         $params = Craft::$app->getUrlManager()->getRouteParams();
 
         return $this->returnXml(
-            SEOMate::$plugin->sitemap->elements($params['handle'], $params['page'])
+            SEOMate::getInstance()->sitemap->elements($params['handle'], $params['page'])
         );
     }
 
@@ -66,7 +66,7 @@ class SitemapController extends Controller
     public function actionCustom(): Response
     {
         return $this->returnXml(
-            SEOMate::$plugin->sitemap->custom()
+            SEOMate::getInstance()->sitemap->custom()
         );
     }
 
@@ -79,7 +79,7 @@ class SitemapController extends Controller
      */
     public function actionSubmit(): void
     {
-        SEOMate::$plugin->sitemap->submit();
+        SEOMate::getInstance()->sitemap->submit();
         Craft::$app->end();
     }
 

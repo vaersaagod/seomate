@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\services;
@@ -32,7 +32,7 @@ class RenderService extends Component
      */
     public function renderMetaTag(string $key, string|array $value): Markup
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $tagTemplateMap = SEOMateHelper::expandMap($settings->tagTemplateMap);
         
         // Set default template

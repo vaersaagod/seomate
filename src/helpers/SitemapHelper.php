@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\helpers;
@@ -36,7 +36,7 @@ class SitemapHelper
      */
     public static function getIndexSitemapUrls(string $handle, array $definition): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
 
@@ -75,7 +75,7 @@ class SitemapHelper
      */
     public static function getCustomIndexSitemapUrl(): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         return self::getSitemapUrl($settings->sitemapName . '-custom.xml');
     }
 
@@ -102,7 +102,7 @@ class SitemapHelper
      */
     public static function getElementsSitemapUrls(string $handle, array $definition, int $page): array
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $limit = $settings->sitemapLimit;
         $urls = [];
 
@@ -131,7 +131,7 @@ class SitemapHelper
         $siteElements = null;
         $fallbackSite = null;
 
-        if ($settings->outputAlternate && Craft::$app->isMultiSite) {
+        if ($settings->outputAlternate !== false && Craft::$app->getIsMultiSite()) {
             $elementIds = $elements->pluck('id')->all();
             /** @var Collection $siteElements */
             $siteElements = (clone($query))
@@ -164,6 +164,9 @@ class SitemapHelper
                 }
                 /** @var ElementInterface $alternate */
                 foreach ($alternates->all() as $alternate) {
+                    if ($settings->outputAlternate instanceof \Closure && !($settings->outputAlternate)($element, $alternate)) {
+                        continue;
+                    }
                     $url['alternate'][] = [
                         'hreflang' => strtolower(str_replace('_', '-', $alternate->getLanguage())),
                         'href' => $alternate->getUrl(),

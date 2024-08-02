@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\services;
@@ -33,7 +33,7 @@ class SitemapService extends Component
      */
     public function index(): string
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $siteId = Craft::$app->getSites()->getCurrentSite()->id;
 
         if ($settings->cacheEnabled && CacheHelper::hasCacheForSitemapIndex($siteId)) {
@@ -120,7 +120,7 @@ class SitemapService extends Component
      */
     public function elements(string $handle, $page): string
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $siteId = Craft::$app->getSites()->getCurrentSite()->id;
 
         $document = $this->getSitemapDocument();
@@ -157,7 +157,7 @@ class SitemapService extends Component
      */
     public function custom(): string
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
 
         $document = $this->getSitemapDocument();
         $topNode = $this->getTopNode($document);
@@ -202,7 +202,7 @@ class SitemapService extends Component
      */
     public function submit(): void
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $pingUrls = $settings->sitemapSubmitUrlPatterns;
         $sitemapPath = $settings->sitemapName . '.xml';
 

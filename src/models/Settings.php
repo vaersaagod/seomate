@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\models;
@@ -45,7 +45,7 @@ class Settings extends Model
 
     public string|null $defaultProfile = null;
 
-    public bool $outputAlternate = true;
+    public bool|\Closure $outputAlternate = true;
 
     public string|null $alternateFallbackSiteHandle = null;
 

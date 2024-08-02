@@ -1,9 +1,9 @@
 <?php
 /**
- * SEOMate plugin for Craft CMS 3.x
+ * SEOMate plugin for Craft CMS 5.x
  *
  * @link      https://www.vaersaagod.no/
- * @copyright Copyright (c) 2019 Værsågod
+ * @copyright Copyright (c) 2024 Værsågod
  */
 
 namespace vaersaagod\seomate\helpers;
@@ -11,10 +11,13 @@ namespace vaersaagod\seomate\helpers;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\commerce\elements\Product;
 use craft\elements\Asset;
+use craft\elements\Category;
 use craft\elements\db\AssetQuery;
-use craft\elements\db\MatrixBlockQuery;
-use craft\elements\MatrixBlock;
+use craft\elements\db\EntryQuery;
+use craft\elements\Entry;
+use craft\elements\User;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\UrlHelper;
 
@@ -22,6 +25,8 @@ use Illuminate\Support\Collection;
 
 use vaersaagod\seomate\models\Settings;
 use vaersaagod\seomate\SEOMate;
+
+use yii\base\InvalidConfigException;
 
 /**
  * SEOMate Helper
@@ -33,7 +38,7 @@ use vaersaagod\seomate\SEOMate;
 class SEOMateHelper
 {
     /**
-     * Updates Settings model wit override values
+     * Updates Settings model with override values
      */
     public static function updateSettings(Settings $settings, array $overrides): void
     {
@@ -45,31 +50,51 @@ class SEOMateHelper
     /**
      * Gets the profile to use from element and settings
      */
-    public static function getElementProfile(Element $element, Settings $settings): mixed
+    public static function getElementProfile(Element $element, Settings $settings): ?string
     {
-        if (!isset($settings->profileMap) || !\is_array($settings->profileMap)) {
+        if (empty($settings->profileMap)) {
             return null;
         }
 
         $fieldMap = self::expandMap($settings->profileMap);
-        $mapIds = [];
 
-        if (method_exists($element, 'refHandle')) {
-            $refHandle = strtolower($element->refHandle());
-
-            if ($refHandle == 'entry') {
-                $mapIds[] = $element->section->handle;
-            } elseif ($refHandle == 'category') {
-                $mapIds[] = $element->group->handle;
-            }
+        if ($element instanceof Entry) {
+            $typeHandle = $element->getType()->handle;
+            $sectionHandle = $element->getSection()?->handle;
+            $mapIds = [
+                "entryType:$typeHandle",
+                $sectionHandle ? "section:$sectionHandle" : null,
+                $typeHandle,
+                $sectionHandle,
+            ];
+        } else if ($element instanceof Category) {
+            $groupHandle = $element->getGroup()->handle;
+            $mapIds = [
+                "categoryGroup:$groupHandle",
+                $groupHandle,
+            ];
+        } else if ($element instanceof User) {
+            $mapIds = [
+                "user",
+            ];
+        } else if ($element instanceof Product) {
+            $productTypeHandle = $element->getType()->handle;
+            $mapIds = [
+                "productType:$productTypeHandle",
+                $productTypeHandle,
+            ];
+        } else {
+            return null;
         }
 
-        if (\count($mapIds) === 0) {
+        $mapIds = array_values(array_unique(array_filter($mapIds)));
+
+        if (empty($mapIds)) {
             return null;
         }
 
         foreach ($mapIds as $mapId) {
-            if (isset($fieldMap[$mapId])) {
+            if (!empty($fieldMap[$mapId])) {
                 return $fieldMap[$mapId];
             }
         }
@@ -82,7 +107,7 @@ class SEOMateHelper
      */
     public static function getMetaTypeByKey(string $key): string
     {
-        $settings = SEOMate::$plugin->getSettings();
+        $settings = SEOMate::getInstance()->getSettings();
         $typeMap = self::expandMap($settings->metaPropertyTypes);
 
         if (isset($typeMap[$key])) {
@@ -119,6 +144,7 @@ class SEOMateHelper
 
             if ($first) {
                 $currentScope = $scope[$part] ?? null;
+                $first = false;
             } elseif ($currentScope !== null) {
                 $currentScope = $currentScope[$part] ?? null;
             }
@@ -129,57 +155,79 @@ class SEOMateHelper
 
     /**
      * @param ElementInterface|array $scope
-     * @param string $handle
-     * @param string $type
+     * @param string|\Closure        $handle
+     * @param string                 $type
+     *
      * @return Asset|string|null
-     * @throws \craft\errors\DeprecationException
      */
-    public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string $handle, string $type): Asset|string|null
+    public static function getPropertyDataByScopeAndHandle(ElementInterface|array $scope, string|\Closure $handle, string $type): Asset|string|null
     {
-
-        if ($scope[$handle] ?? null) {
-
-            // Simple field
-            if ($type === 'text') {
-
-                return static::getStringPropertyValue($scope[$handle]);
-
-            } elseif ($type === 'image') {
-
-                return static::getImagePropertyValue($scope[$handle]);
-
+        if ($handle instanceof \Closure) {
+            try {
+                $result = $handle($scope);
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occurred when calling closure: '. $throwable->getMessage(), __METHOD__);
+                return null;
             }
+            if ($type === 'text') {
+                return static::getStringPropertyValue($result);
+            }
+            if ($type === 'image') {
+                return static::getImagePropertyValue($result);
+            }
+            return null;
+        }
 
+        if (str_contains(trim($handle), '{')) {
+            try {
+                $result = Craft::$app->getView()->renderObjectTemplate($handle, $scope);
+            } catch (\Throwable $throwable) {
+                Craft::error('An error occurred when trying to render object template: '. $throwable->getMessage(), __METHOD__);
+                return null;
+            }
+            if ($type === 'text') {
+                return static::getStringPropertyValue($result);
+            }
+            // If this is an "image" meta tag type, assume that the object template has rendered an asset ID
+            if ($type === 'image' && $assetId = (int)$result) {
+                $asset = Asset::find()->id($assetId)->one();
+                return static::getImagePropertyValue($asset);
+            }
+            return null;
+        }
+
+        if (!empty($scope[$handle])) {
+            if ($type === 'text') {
+                return static::getStringPropertyValue($scope[$handle]);
+            }
+            if ($type === 'image') {
+                return static::getImagePropertyValue($scope[$handle]);
+            }
         } elseif (strpos($handle, ':')) {
 
-            // Assume Matrix sub field, in the format matrixFieldHandle.blockTypeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
+            // Assume subfield, in the format fieldHandle.typeHandle:subFieldHandle – check that the format looks correct, just based on the delimiters used
             $delimiters = preg_replace('/[^\\.:]+/', '', $handle);
             if ($delimiters !== '.:') {
-                if ($delimiters === ':.') {
-                    // Old syntax "matrixFieldHandle:blockTypeHandle.subFieldHandle" is used. We kind of messed up when we built SEOmate initially by not using the same syntax as Craft does when eager-loading Matrix sub fields.
-                    // We still allow the old format, but we might need to remove support for it later – so let's log a deprecation message
-                    Craft::$app->getDeprecator()->log(__METHOD__, 'Support for the `matrixFieldHandle:blockTypeHandle.subFieldHandle` Matrix sub field syntax in `config/seomate.php` has been deprecated. Use the syntax `matrixFieldHandle.blockTypeHandle:subFieldHandle` instead.');
-                } else {
-                    // This is not something we can work with :/
-                    Craft::warning("Invalid syntax encountered for Matrix sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"matrixFieldHandle.blockTypeHandle:subFieldHandle\"");
-                    return null;
-                }
-            }
+                // This is not something we can work with :/
+                Craft::warning("Invalid syntax encountered for sub fields in SEOMate field profile config: \"$handle\". The correct syntax is \"fieldHandle.typeHandle:subFieldHandle\"");
 
-            // Get field, block type and sub field handles
-            [$matrixFieldHandle, $blockTypeHandle, $subFieldHandle] = explode('.', str_replace(':', '.', $handle));
-            if (!$matrixFieldHandle || !$blockTypeHandle || !$subFieldHandle) {
                 return null;
             }
 
-            // Make sure that the Matrix field is in scope, in some form or another
-            $value = $scope[$matrixFieldHandle] ?? null;
+            // Get field, block type and subfield handles
+            [$fieldHandle, $blockTypeHandle, $subFieldHandle] = explode('.', str_replace(':', '.', $handle));
+            if (!$fieldHandle || !$blockTypeHandle || !$subFieldHandle) {
+                return null;
+            }
+
+            // Make sure that the field is in scope, in some form or another
+            $value = $scope[$fieldHandle] ?? null;
             if (empty($value)) {
                 return null;
             }
 
             // Fetch the blocks
-            if ($value instanceof MatrixBlockQuery) {
+            if ($value instanceof EntryQuery) {
                 $query = (clone $value)->type($blockTypeHandle);
                 if ($type === 'image') {
                     $query->with([sprintf('%s:%s', $blockTypeHandle, $subFieldHandle)]);
@@ -187,8 +235,8 @@ class SEOMateHelper
                 $blocks = $query->all();
             } else {
                 $blocks = Collection::make($value)
-                    ->filter(static function (mixed $block) use ($blockTypeHandle) {
-                        return $block instanceof MatrixBlock && $block->getType()->handle === $blockTypeHandle;
+                    ->filter(static function(mixed $block) use ($blockTypeHandle) {
+                        return $block instanceof Entry && $block->getType()->handle === $blockTypeHandle;
                     })
                     ->all();
             }
@@ -197,7 +245,7 @@ class SEOMateHelper
                 return null;
             }
 
-            /** @var MatrixBlock[] $blocks */
+            /** @var Entry[] $blocks */
             foreach ($blocks as $block) {
 
                 if ($type === 'text') {
@@ -205,16 +253,13 @@ class SEOMateHelper
                     if ($value = static::getStringPropertyValue($block->$subFieldHandle ?? null)) {
                         return $value;
                     }
-
                 } else if ($type === 'image') {
 
                     if ($asset = static::getImagePropertyValue($block->$subFieldHandle ?? null)) {
                         return $asset;
                     }
-
                 }
             }
-
         }
 
         return null;
@@ -224,6 +269,7 @@ class SEOMateHelper
      * Return a meta-safe string value from raw input
      *
      * @param mixed $input
+     *
      * @return string|null
      */
     public static function getStringPropertyValue(mixed $input): ?string
@@ -249,6 +295,7 @@ class SEOMateHelper
      * Return a meta-safe image asset from raw input
      *
      * @param mixed $input
+     *
      * @return Asset|null
      */
     public static function getImagePropertyValue(mixed $input): ?Asset
@@ -257,19 +304,25 @@ class SEOMateHelper
             return null;
         }
 
-        if ($input instanceof AssetQuery) {
-            $collection = (clone $input)->kind(Asset::KIND_IMAGE)->collect();
-        } else {
-            $collection = Collection::make($input);
+        if ($input instanceof Asset) {
+            $input = [$input];
         }
 
-        if ($collection->isEmpty()) {
+        if ($input instanceof AssetQuery) {
+            $collection = (clone $input)->kind(Asset::KIND_IMAGE)->collect();
+        } else if (is_array($input)) {
+            $collection = Collection::make($input);
+        } else if ($input instanceof Collection) {
+            $collection = $input;
+        }
+
+        if (!isset($collection) || $collection->isEmpty()) {
             return null;
         }
 
         $settings = SEOMate::getInstance()->getSettings();
 
-        return $collection->first(static function (mixed $asset) use ($settings) {
+        return $collection->first(static function(mixed $asset) use ($settings) {
             return $asset instanceof Asset && $asset->kind === Asset::KIND_IMAGE && in_array(strtolower($asset->getExtension()), $settings->validImageExtensions, true);
         });
     }
@@ -297,7 +350,7 @@ class SEOMateHelper
      */
     public static function isAssocArray(array $array): bool
     {
-        if (array() === $array) {
+        if ([] === $array) {
             return false;
         }
 
@@ -337,10 +390,87 @@ class SEOMateHelper
         }
 
         if (str_starts_with($url, '/')) {
-            return $scheme . '://' . $siteUrlParts['host'] . $url;
+            return $scheme.'://'.$siteUrlParts['host'].$url;
         }
 
         // huh, relative url? Seems unlikely, but... If we've come this far.
-        return $scheme . '://' . $siteUrlParts['host'] . '/' . $url;
+        return $scheme.'://'.$siteUrlParts['host'].'/'.$url;
+    }
+
+    /**
+     * Returns true if the element a) has a URL and b) is eligble to be SEO-previewed as per the `previewEnabled` setting
+     *
+     * @param ElementInterface $element
+     * @return bool
+     * @throws InvalidConfigException
+     */
+    public static function isElementPreviewable(ElementInterface $element): bool
+    {
+        if (!$element->getUrl() || empty($element->id)) {
+            // Anything that doesn't have a URL shouldn't have a SEO preview, and if it doesn't have an ID stuff won't work.
+            return false;
+        }
+
+        $settings = SEOMate::getInstance()->getSettings();
+        $previewEnabled = $settings->previewEnabled;
+
+        if (empty($previewEnabled)) {
+            return false;
+        }
+
+        if (is_bool($previewEnabled)) {
+            return $previewEnabled;
+        }
+
+        if (is_string($previewEnabled)) {
+            $previewEnabled = explode(',', preg_replace('/\s+/', '', $previewEnabled));
+        }
+
+        $previewEnabled = array_values(array_filter($previewEnabled));
+
+        if (empty($previewEnabled)) {
+            return false;
+        }
+
+        // ...if the `previewEnabled` setting is an array, it's essentially a whitelist of stuff we want to preview
+        if ($element instanceof Entry) {
+            $typeHandle = $element->getType()->handle;
+            $sectionHandle = $element->getSection()?->handle;
+            $sourceHandles = [
+                "entryType:$typeHandle",
+                $sectionHandle ? "section:$sectionHandle" : null,
+                $typeHandle,
+                $sectionHandle,
+            ];
+        } else if ($element instanceof Category) {
+            $categoryGroupHandle = $element->getGroup()->handle;
+            $sourceHandles = [
+                "categoryGroup:$categoryGroupHandle",
+                $categoryGroupHandle,
+            ];
+        } else if ($element instanceof Product) {
+            $productTypeHandle = $element->getType()->handle;
+            $sourceHandles = [
+                "productType:$productTypeHandle",
+                $productTypeHandle,
+            ];
+        } else if ($element instanceof User) {
+            $sourceHandles = [
+                'user',
+            ];
+        } else {
+            return false;
+        }
+
+        $sourceHandles = array_values(array_unique(array_filter($sourceHandles)));
+
+        foreach ($sourceHandles as $sourceHandle) {
+            if (in_array($sourceHandle, $previewEnabled, true)) {
+                return true;
+            }
+        }
+
+        return false;
+
     }
 }
