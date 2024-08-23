@@ -1,5 +1,5 @@
 {% set meta = seomate.meta %}
-<link rel="home" href="{{ siteUrl() }}">
+<link rel="home" href="{{ seomate.home }}">
 {% if craft.app.getResponse().getStatusCode() < 400 %}
 <link rel="canonical" href="{{ seomate.canonicalUrl }}">
 {% if meta['og:url'] is not defined %}<meta property="og:url" content="{{ seomate.canonicalUrl }}">{% endif %}

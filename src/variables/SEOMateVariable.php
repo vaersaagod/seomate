@@ -8,8 +8,12 @@
 
 namespace vaersaagod\seomate\variables;
 
+use Craft;
 use craft\helpers\Template;
+
 use Twig\Markup;
+
+use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\SEOMate;
 
 /**
@@ -30,6 +34,10 @@ class SEOMateVariable
 
     public function breadcrumbSchema(array $breadcrumbArray): Markup
     {
+        $breadcrumbArray = array_map(static function (array $crumb) {
+            $crumb['url'] = SEOMateHelper::stripTokenParams($crumb['url']);
+            return $crumb;
+        }, $breadcrumbArray);
         $breadcrumbList = SEOMate::getInstance()->schema->breadcrumb($breadcrumbArray);
         return Template::raw($breadcrumbList->toScript());
     }
@@ -39,16 +47,16 @@ class SEOMateVariable
      */
     public function getMeta(array $config = []): array
     {
-        $context = array_merge(['seomate' => $config], \Craft::$app->getView()->getTwig()->getGlobals());
-        
+        $context = array_merge(['seomate' => $config], Craft::$app->getView()->getTwig()->getGlobals());
         $meta = SEOMate::getInstance()->meta->getContextMeta($context);
         $canonicalUrl = SEOMate::getInstance()->urls->getCanonicalUrl($context);
         $alternateUrls = SEOMate::getInstance()->urls->getAlternateUrls($context);
-
+        $home = SEOMate::getInstance()->urls->getHomeUrl();
         return [
             'meta' => $meta,
             'canonicalUrl' => $canonicalUrl,
             'alternateUrls' => $alternateUrls,
+            'home' => $home,
         ];
     }
 }

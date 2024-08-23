@@ -473,4 +473,25 @@ class SEOMateHelper
         return false;
 
     }
+
+    /**
+     * @param mixed $url
+     * @return string
+     */
+    public static function stripTokenParams(mixed $url): string
+    {
+        if (empty($url) || !is_string($url)) {
+            return '';
+        }
+        $queryParamsToRemove = [
+            Craft::$app->getConfig()->getGeneral()->tokenParam,
+            Craft::$app->getConfig()->getGeneral()->siteToken,
+            'x-craft-live-preview',
+            'x-craft-preview',
+        ];
+        foreach ($queryParamsToRemove as $queryParamToRemove) {
+            $url = UrlHelper::removeParam($url, $queryParamToRemove);
+        }
+        return $url;
+    }
 }

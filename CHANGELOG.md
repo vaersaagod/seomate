@@ -1,5 +1,13 @@
 # SEOMate Changelog
 
+## Unreleased - 2024-08-23
+### Changed
+- SEOMate now strips preview and token params from canonical and alternate URLs
+- SEOMate now uses elements' canonical ID when querying for alternates
+- SEOMate no longer reads or writes to the meta or sitemap caches for preview and/or tokenized requests
+### Added
+- Added `seomate.home` (the current site's URL, stripped of preview and token params)
+
 ## 3.0.0 - 2024-08-02
 ### Added
 - Added support for [object templates](https://craftcms.com/docs/5.x/system/object-templates.html) and PHP closures in default meta and field profile definitions. 
