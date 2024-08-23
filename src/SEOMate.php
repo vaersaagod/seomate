@@ -237,10 +237,12 @@ class SEOMate extends Plugin
         $meta = $this->meta->getContextMeta($context);
         $canonicalUrl = $this->urls->getCanonicalUrl($context);
         $alternateUrls = $this->urls->getAlternateUrls($context);
+        $home = $this->urls->getHomeUrl();
 
         $context['seomate']['meta'] = $meta;
         $context['seomate']['canonicalUrl'] = $canonicalUrl;
         $context['seomate']['alternateUrls'] = $alternateUrls;
+        $context['seomate']['home'] = $home;
 
         if ($settings['metaTemplate'] !== '') {
             return $craft->view->renderTemplate($settings['metaTemplate'], $context);

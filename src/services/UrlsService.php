@@ -149,4 +149,13 @@ class UrlsService extends Component
         return $alternateUrls;
     }
 
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public function getHomeUrl(): string
+    {
+        return SEOMateHelper::stripTokenParams(UrlHelper::siteUrl());
+    }
+
 }

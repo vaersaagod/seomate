@@ -9,6 +9,7 @@
 namespace vaersaagod\seomate\variables;
 
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 use Twig\Markup;
 use vaersaagod\seomate\helpers\SEOMateHelper;
 use vaersaagod\seomate\SEOMate;
@@ -49,11 +50,13 @@ class SEOMateVariable
         $meta = SEOMate::$plugin->meta->getContextMeta($context);
         $canonicalUrl = SEOMate::$plugin->urls->getCanonicalUrl($context);
         $alternateUrls = SEOMate::$plugin->urls->getAlternateUrls($context);
+        $home = SEOMate::$plugin->urls->getHomeUrl();
 
         return [
             'meta' => $meta,
             'canonicalUrl' => $canonicalUrl,
             'alternateUrls' => $alternateUrls,
+            'home' => $home,
         ];
     }
 }
