@@ -83,7 +83,7 @@ class CacheHelper
         if (!isset(self::$_cacheEnabled)) {
             $request = Craft::$app->getRequest();
             self::$_cacheEnabled =
-                SEOMate::$plugin->getSettings()->cacheEnabled &&
+                SEOMate::getInstance()->getSettings()->cacheEnabled &&
                 !$request->getIsConsoleRequest() &&
                 !$request->getIsPreview() &&
                 !$request->getHadToken();
