@@ -36,7 +36,7 @@ class SitemapService extends Component
         $settings = SEOMate::$plugin->getSettings();
         $siteId = Craft::$app->getSites()->getCurrentSite()->id;
 
-        if ($settings->cacheEnabled && CacheHelper::hasCacheForSitemapIndex($siteId)) {
+        if (CacheHelper::hasCacheForSitemapIndex($siteId)) {
             return CacheHelper::getCacheForSitemapIndex($siteId);
         }
 
@@ -138,7 +138,7 @@ class SitemapService extends Component
                 return $document->saveXML();
             }
 
-            if ($settings->cacheEnabled && CacheHelper::hasCacheForElementSitemap($siteId, $handle, $page)) {
+            if (CacheHelper::hasCacheForElementSitemap($siteId, $handle, $page)) {
                 return CacheHelper::getCacheForElementSitemap($siteId, $handle, $page);
             }
 
