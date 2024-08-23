@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## Unreleased - 2024-08-23
+### Changed
+- SEOMate now strips preview and token params from canonical and alternate URLs
+
 ## 3.0.0 - 2024-08-02
 ### Added
 - Added support for [object templates](https://craftcms.com/docs/5.x/system/object-templates.html) and PHP closures in default meta and field profile definitions. 

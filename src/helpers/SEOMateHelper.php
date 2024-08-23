@@ -473,4 +473,36 @@ class SEOMateHelper
         return false;
 
     }
+
+    /**
+     * @param mixed $url
+     * @return string
+     */
+    public static function stripTokenParams(mixed $url): string
+    {
+        if (empty($url) || !is_string($url)) {
+            return '';
+        }
+        $parsedUrl = parse_url($url) ?: [];
+        $queryString = $parsedUrl['query'] ?? null;
+        if (empty($queryString)) {
+            return $url;
+        }
+        parse_str($queryString, $queryParams);
+        $queryParamsToRemove = [
+            Craft::$app->getConfig()->getGeneral()->tokenParam,
+            Craft::$app->getConfig()->getGeneral()->siteToken,
+            'x-craft-live-preview',
+            'x-craft-preview',
+        ];
+        foreach ($queryParamsToRemove as $queryParamToRemove) {
+            unset($queryParams[$queryParamToRemove]);
+        }
+        $newQueryString = http_build_query($queryParams);
+        $url = trim(str_replace($queryString, $newQueryString, $url));
+        if (empty($newQueryString)) {
+            $url = rtrim($url, '?');
+        }
+        return $url;
+    }
 }
