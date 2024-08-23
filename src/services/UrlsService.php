@@ -49,7 +49,7 @@ class UrlsService extends Component
         }
 
         if (isset($overrideObject['canonicalUrl']) && $overrideObject['canonicalUrl'] !== '') {
-            return $overrideObject['canonicalUrl'];
+            return SEOMateHelper::stripTokenParams($overrideObject['canonicalUrl']);
         }
 
         /** @var Element $element */
@@ -71,18 +71,18 @@ class UrlsService extends Component
 
         $page = Craft::$app->getRequest()->getPageNum();
         if ($page <= 1) {
-            return UrlHelper::siteUrl($path, null, null, $siteId);
+            return SEOMateHelper::stripTokenParams(UrlHelper::siteUrl($path, null, null, $siteId));
         }
 
         $pageTrigger = Craft::$app->getConfig()->getGeneral()->getPageTrigger();
         $useQueryParam = str_starts_with($pageTrigger, '?');
         if ($useQueryParam) {
             $param = trim($pageTrigger, '?=');
-            return UrlHelper::siteUrl($path, [$param => $page], null, $siteId);
+            return SEOMateHelper::stripTokenParams(UrlHelper::siteUrl($path, [$param => $page], null, $siteId));
         }
 
         $path .= '/' . $pageTrigger . $page;
-        return UrlHelper::siteUrl($path, null, null, $siteId);
+        return SEOMateHelper::stripTokenParams(UrlHelper::siteUrl($path, null, null, $siteId));
     }
 
     /**
@@ -113,12 +113,12 @@ class UrlsService extends Component
             $element = $craft->urlManager->getMatchedElement();
         }
 
-        if (!$element instanceof ElementInterface) {
+        if (!$element instanceof ElementInterface || empty($element->canonicalId)) {
             return [];
         }
 
         $siteElements = $element::find()
-            ->id($element->id)
+            ->id($element->canonicalId)
             ->siteId('*')
             ->collect()
             ->filter(static fn(ElementInterface $element) => !empty($element->getUrl()));
@@ -131,7 +131,7 @@ class UrlsService extends Component
             $fallbackSiteElement = $siteElements->firstWhere('siteId', $fallbackSite->id);
             if ($fallbackSiteElement) {
                 $alternateUrls[] = [
-                    'url' => $fallbackSiteElement->getUrl(),
+                    'url' => SEOMateHelper::stripTokenParams($fallbackSiteElement->getUrl()),
                     'language' => 'x-default',
                 ];
                 $siteElements = $siteElements->where('siteId', '!=', $fallbackSite->id);
@@ -141,12 +141,21 @@ class UrlsService extends Component
         /** @var ElementInterface $siteElement */
         foreach ($siteElements->all() as $siteElement) {
             $alternateUrls[] = [
-                'url' => $siteElement->getUrl(),
+                'url' => SEOMateHelper::stripTokenParams($siteElement->getUrl()),
                 'language' => strtolower(str_replace('_', '-', $siteElement->getLanguage())),
             ];
         }
 
         return $alternateUrls;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public function getHomeUrl(): string
+    {
+        return SEOMateHelper::stripTokenParams(UrlHelper::siteUrl());
     }
 
 }

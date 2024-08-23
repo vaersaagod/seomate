@@ -50,7 +50,7 @@ class MetaService extends Component
         }
 
         // Check if we have a cache
-        if ($element && $settings->cacheEnabled && CacheHelper::hasMetaCacheForElement($element)) {
+        if ($element && CacheHelper::hasMetaCacheForElement($element)) {
             return CacheHelper::getMetaCacheForElement($element);
         }
 
@@ -98,7 +98,7 @@ class MetaService extends Component
         }
         
         // Cache it
-        if ($element && $settings->cacheEnabled) {
+        if ($element) {
             CacheHelper::setMetaCacheForElement($element, $meta);
         }
 
