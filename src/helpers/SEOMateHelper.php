@@ -483,12 +483,6 @@ class SEOMateHelper
         if (empty($url) || !is_string($url)) {
             return '';
         }
-        $parsedUrl = parse_url($url) ?: [];
-        $queryString = $parsedUrl['query'] ?? null;
-        if (empty($queryString)) {
-            return $url;
-        }
-        parse_str($queryString, $queryParams);
         $queryParamsToRemove = [
             Craft::$app->getConfig()->getGeneral()->tokenParam,
             Craft::$app->getConfig()->getGeneral()->siteToken,
@@ -496,12 +490,7 @@ class SEOMateHelper
             'x-craft-preview',
         ];
         foreach ($queryParamsToRemove as $queryParamToRemove) {
-            unset($queryParams[$queryParamToRemove]);
-        }
-        $newQueryString = http_build_query($queryParams);
-        $url = trim(str_replace($queryString, $newQueryString, $url));
-        if (empty($newQueryString)) {
-            $url = rtrim($url, '?');
+            $url = UrlHelper::removeParam($url, $queryParamToRemove);
         }
         return $url;
     }
