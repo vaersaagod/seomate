@@ -113,12 +113,12 @@ class UrlsService extends Component
             $element = $craft->urlManager->getMatchedElement();
         }
 
-        if (!$element instanceof ElementInterface) {
+        if (!$element instanceof ElementInterface || empty($element->canonicalId)) {
             return [];
         }
 
         $siteElements = $element::find()
-            ->id($element->id)
+            ->id($element->canonicalId)
             ->siteId('*')
             ->collect()
             ->filter(static fn(ElementInterface $element) => !empty($element->getUrl()));

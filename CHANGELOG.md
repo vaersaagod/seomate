@@ -3,6 +3,7 @@
 ## Unreleased - 2024-08-23
 ### Changed
 - SEOMate now strips preview and token params from canonical and alternate URLs
+- SEOMate now uses elements' canonical ID when querying for alternates 
 
 ## 2.2.1 - 2024-04-04  
 ### Fixed  
