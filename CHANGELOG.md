@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## Unreleased - 2024-08-23
+### Changed
+- SEOMate now strips preview and token params from canonical and alternate URLs
+
 ## 2.2.1 - 2024-04-04  
 ### Fixed  
 - Fixed a bug where SEOMate could attempt to use string values as callables in `additionalMeta`  

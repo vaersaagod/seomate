@@ -219,7 +219,7 @@ class SitemapHelper
                 unset($url['alternate']);
 
                 foreach ($url as $key => $val) {
-                    $node = $document->createElement($key, $val);
+                    $node = $document->createElement($key, SEOMateHelper::stripTokenParams($val));
                     $topNode->appendChild($node);
                 }
 
@@ -227,7 +227,7 @@ class SitemapHelper
                     $node = $document->createElement('xhtml:link');
                     $node->setAttribute('rel', 'alternate');
                     $node->setAttribute('hreflang', $alternate['hreflang']);
-                    $node->setAttribute('href', $alternate['href']);
+                    $node->setAttribute('href', SEOMateHelper::stripTokenParams($alternate['href']));
                     $topNode->appendChild($node);
                 }
 
