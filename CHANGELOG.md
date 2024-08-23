@@ -3,7 +3,9 @@
 ## Unreleased - 2024-08-23
 ### Changed
 - SEOMate now strips preview and token params from canonical and alternate URLs
-- SEOMate now uses elements' canonical ID when querying for alternates 
+- SEOMate now uses elements' canonical ID when querying for alternates
+### Added
+- Added `seomate.home` (the current site's URL, stripped of preview and token params)
 
 ## 3.0.0 - 2024-08-02
 ### Added
