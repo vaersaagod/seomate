@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 2.3.1 - 2024-09-05
+### Fixed
+- Fixed a regression error introduced in 2.3.0, where SEOMate could fail to render sitemap priority values
+
 ## 2.3.0 - 2024-08-24
 ### Changed
 - SEOMate now strips preview and token params from canonical and alternate URLs
