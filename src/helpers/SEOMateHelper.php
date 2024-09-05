@@ -478,10 +478,10 @@ class SEOMateHelper
      * @param mixed $url
      * @return string
      */
-    public static function stripTokenParams(mixed $url): string
+    public static function stripTokenParams(mixed $url): mixed
     {
         if (empty($url) || !is_string($url)) {
-            return '';
+            return $url;
         }
         $queryParamsToRemove = [
             Craft::$app->getConfig()->getGeneral()->tokenParam,

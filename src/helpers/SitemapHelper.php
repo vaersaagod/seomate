@@ -222,7 +222,10 @@ class SitemapHelper
                 unset($url['alternate']);
 
                 foreach ($url as $key => $val) {
-                    $node = $document->createElement($key, SEOMateHelper::stripTokenParams($val));
+                    if ($key === 'loc') {
+                        $val = SEOMateHelper::stripTokenParams($val);
+                    }
+                    $node = $document->createElement($key, $val);
                     $topNode->appendChild($node);
                 }
 
