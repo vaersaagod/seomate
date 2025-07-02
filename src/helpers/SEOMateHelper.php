@@ -166,7 +166,8 @@ class SEOMateHelper
             try {
                 $result = $handle($scope);
             } catch (\Throwable $throwable) {
-                Craft::error('An error occurred when calling closure: '. $throwable->getMessage(), __METHOD__);
+                Craft::error('An error occurred when calling closure: '.$throwable->getMessage(), __METHOD__);
+
                 return null;
             }
             if ($type === 'text') {
@@ -175,6 +176,7 @@ class SEOMateHelper
             if ($type === 'image') {
                 return static::getImagePropertyValue($result);
             }
+
             return null;
         }
 
@@ -182,7 +184,8 @@ class SEOMateHelper
             try {
                 $result = Craft::$app->getView()->renderObjectTemplate($handle, $scope);
             } catch (\Throwable $throwable) {
-                Craft::error('An error occurred when trying to render object template: '. $throwable->getMessage(), __METHOD__);
+                Craft::error('An error occurred when trying to render object template: '.$throwable->getMessage(), __METHOD__);
+
                 return null;
             }
             if ($type === 'text') {
@@ -191,8 +194,10 @@ class SEOMateHelper
             // If this is an "image" meta tag type, assume that the object template has rendered an asset ID
             if ($type === 'image' && $assetId = (int)$result) {
                 $asset = Asset::find()->id($assetId)->one();
+
                 return static::getImagePropertyValue($asset);
             }
+
             return null;
         }
 
@@ -258,6 +263,28 @@ class SEOMateHelper
                     if ($asset = static::getImagePropertyValue($block->$subFieldHandle ?? null)) {
                         return $asset;
                     }
+                }
+            }
+        } elseif (strpos($handle, '.')) {
+            $segments = explode('.', $handle);
+            $fieldHandle = array_pop($segments);
+
+            $fieldScope = $scope;
+
+            foreach ($segments as $segment) {
+                if (!empty($fieldScope[$segment])) {
+                    $fieldScope = $fieldScope[$segment];
+                } else {
+                    return null;
+                }
+            }
+
+            if (!empty($fieldScope[$fieldHandle])) {
+                if ($type === 'text') {
+                    return static::getStringPropertyValue($fieldScope[$fieldHandle]);
+                }
+                if ($type === 'image') {
+                    return static::getImagePropertyValue($fieldScope[$fieldHandle]);
                 }
             }
         }
@@ -401,6 +428,7 @@ class SEOMateHelper
      * Returns true if the element a) has a URL and b) is eligble to be SEO-previewed as per the `previewEnabled` setting
      *
      * @param ElementInterface $element
+     *
      * @return bool
      * @throws InvalidConfigException
      */
@@ -471,11 +499,11 @@ class SEOMateHelper
         }
 
         return false;
-
     }
 
     /**
      * @param mixed $url
+     *
      * @return string
      */
     public static function stripTokenParams(mixed $url): mixed
@@ -492,6 +520,7 @@ class SEOMateHelper
         foreach ($queryParamsToRemove as $queryParamToRemove) {
             $url = UrlHelper::removeParam($url, $queryParamToRemove);
         }
+
         return $url;
     }
 }
