@@ -148,10 +148,10 @@ return [
         ],
         'newsprofile' => [
             'title' => ['seoTitle', 'heading', 'title'],
-            'og:title' => ['ogTitle', 'heading', 'title'],
+            'og:title' => ['ogSeo.title', 'ogTitle', 'heading', 'title'],
             'description' => ['seoDescription', 'newsExcerpt', 'introText'],
             'image' => ['seoImage', 'heroImage', 'newsBlocks.image:image']
-            'og:image' => ['ogImage', 'heroImage', 'newsBlocks.image:image']
+            'og:image' => ['ogSeo.image', 'ogImage', 'heroImage', 'newsBlocks.image:image']
             'twitter:image' => ['twitterImage', 'heroImage', 'newsBlocks.image:image']
         ]
     ],
@@ -174,8 +174,14 @@ defines that if no value are set for `og:title` and `twitter:title`, we want to 
 meta tags with the value  from `title`. So in the `standard` profile, those values will be
 autofilled, while in the `newsprofile` we choose to customize some of them.
 
-Secondly, we can specify to pull a value from a Matrix subfield by using the syntax
+Secondly, we're using a nested object syntax for `ogSeo.title` and `ogSeo.image` which could for
+instance be used if you have a Content Block field (new in Craft 5.8) with values. Or any other 
+field type that returns a nested object. It goes as deep as you want, `someField.withAnObject.that.has.a.deep.structure`.
+
+Thirdly, notice that we can specify to pull a value from a Matrix subfield by using the syntax
 `matrixFieldHandle.blockTypeHandle:subFieldHandle`.
+
+
 
 #### Profile map specificity   
 

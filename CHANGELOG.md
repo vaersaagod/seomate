@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 3.2.0 - 2025-07-02
+### Added
+- Added short syntax support for nested objects (`'someObject.someProperty'`), enabling support for Content Block fields (among other things).
+
 ## 3.1.1 - 2024-09-05
 ### Fixed 
 - Fixed a regression error introduced in 3.1.0, where SEOMate could fail to render sitemap priority values
