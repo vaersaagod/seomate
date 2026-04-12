@@ -116,18 +116,19 @@ class CacheHelper
     }
 
     /**
-     * Returns meta data cache for element
+     * Returns meta data cache for element, or null on cache miss
      *
      * @param $element
-     * @return mixed
+     * @return array|null
      * @throws \yii\web\BadRequestHttpException
      */
-    public static function getMetaCacheForElement($element): mixed
+    public static function getMetaCacheForElement($element): ?array
     {
         if (!self::getIsCacheEnabled()) {
-            return false;
+            return null;
         }
-        return Craft::$app->getCache()?->get(self::getElementKey($element));
+        $cached = Craft::$app->getCache()?->get(self::getElementKey($element));
+        return is_array($cached) ? $cached : null;
     }
 
     /**
