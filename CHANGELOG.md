@@ -1,5 +1,10 @@
 # SEOMate Changelog
 
+## 3.3.0 - 2026-04-14
+### Fixed
+- Fixed a TOCTOU race condition that could cause a TypeError exception with non-file cache backends (e.g. Redis). Thanks @daltonrooney!
+- Removed `CacheHelper::hasMetaCacheForElement()`
+
 ## 3.2.0 - 2025-07-02
 ### Added
 - Added short syntax support for nested objects (`'someObject.someProperty'`), enabling support for Content Block fields (among other things).
