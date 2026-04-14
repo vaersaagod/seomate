@@ -101,21 +101,6 @@ class CacheHelper
     }
 
     /**
-     * Checks if meta data cache for element exists
-     *
-     * @param $element
-     * @return bool
-     * @throws \yii\web\BadRequestHttpException
-     */
-    public static function hasMetaCacheForElement($element): bool
-    {
-        if (!self::getIsCacheEnabled()) {
-            return false;
-        }
-        return (bool)Craft::$app->getCache()?->get(self::getElementKey($element));
-    }
-
-    /**
      * Returns meta data cache for element, or null on cache miss
      *
      * @param $element
