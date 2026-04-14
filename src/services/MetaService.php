@@ -49,9 +49,12 @@ class MetaService extends Component
             $element = $craft->urlManager->getMatchedElement();
         }
 
-        // Check if we have a cache
-        if ($element && CacheHelper::hasMetaCacheForElement($element)) {
-            return CacheHelper::getMetaCacheForElement($element);
+        // Check if we have a cache (single call to avoid TOCTOU race condition)
+        if ($element) {
+            $cached = CacheHelper::getMetaCacheForElement($element);
+            if (is_array($cached)) {
+                return $cached;
+            }
         }
 
         $meta = [];
