@@ -385,6 +385,10 @@ class MetaService extends Component
     public function applyMetaFilters(array $meta): array
     {
         foreach ($meta as $key => $value) {
+            // URL-like values (e.g. og:image, twitter:image) are intentionally left un-encoded here:
+            // they are HTML-escaped exactly once by Twig when the tag template is rendered in
+            // RenderService::renderMetaTag(). Encoding them here as well would double-encode the
+            // ampersands in query strings ("&" => "&amp;amp;") and break the URLs.
             if (is_string($value) && !str_starts_with($value, 'http') && !str_starts_with($value, '//')) {
                 $meta[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
             }
