@@ -1,5 +1,11 @@
 # SEOMate Changelog
 
+## 3.3.1 - 2026-07-03
+### Fixed
+- Fixed a security issue where SEO previews could be accessed anonymously, exposing meta data for non-public elements.
+- Fixed a security issue where the sitemap submit action could be triggered anonymously.
+- Fixed an issue where sitemap URL values were not XML-escaped, producing invalid XML for URLs containing ampersands.
+
 ## 3.3.0 - 2026-04-14
 ### Fixed
 - Fixed a TOCTOU race condition that could cause a TypeError exception with non-file cache backends (e.g. Redis). Thanks @daltonrooney!
