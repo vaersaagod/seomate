@@ -225,7 +225,10 @@ class SitemapHelper
                     if ($key === 'loc') {
                         $val = SEOMateHelper::stripTokenParams($val);
                     }
-                    $node = $document->createElement($key, $val);
+                    // Set the value via textContent rather than createElement()'s second argument,
+                    // which does not escape XML entities (e.g. "&") and would produce invalid XML.
+                    $node = $document->createElement($key);
+                    $node->textContent = (string)$val;
                     $topNode->appendChild($node);
                 }
 
