@@ -28,7 +28,12 @@ use yii\base\ExitException;
  */
 class SitemapController extends Controller
 {
-    protected int|bool|array $allowAnonymous = true;
+    /**
+     * The public sitemap actions are anonymous. `submit` is deliberately excluded: it triggers
+     * server-side outbound HTTP requests (pinging search engines), so it requires an authenticated
+     * session and should be run from a logged-in context or the console.
+     */
+    protected int|bool|array $allowAnonymous = ['index', 'element', 'custom', 'xsl'];
 
     /**
      * Action for returning index sitemap
