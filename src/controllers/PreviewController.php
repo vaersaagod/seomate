@@ -26,6 +26,7 @@ use vaersaagod\seomate\SEOMate;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 use yii\web\ServerErrorHttpException;
 
@@ -48,6 +49,7 @@ class PreviewController extends Controller
     /**
      * @return Response
      * @throws Exception
+     * @throws ForbiddenHttpException
      * @throws InvalidConfigException
      * @throws ServerErrorHttpException
      */
@@ -60,6 +62,14 @@ class PreviewController extends Controller
         $element = Craft::$app->getElements()->getElementById((int)$elementId, null, $siteId);
         if (!$element || !$element->uri) {
             return $this->asRaw('');
+        }
+
+        // This action is anonymous, and `getElementById()` returns elements of any status
+        // (disabled, pending, expired, drafts). Make sure the current user is actually
+        // allowed to view this element before rendering any preview data for it.
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        if (!$currentUser || !$element->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not authorized to preview this element.');
         }
 
         $site = Craft::$app->getSites()->getSiteById($element->siteId);
