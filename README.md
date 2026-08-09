@@ -825,7 +825,7 @@ template caching).
 
 ### useImagerIfInstalled [bool]
 *Default: `true`*  
-If [Imager](https://github.com/aelvan/Imager-Craft) is installed, SEOMate will 
+If [Imager](https://github.com/spacecatninja/craft-imager-x) is installed, SEOMate will 
 automatically use it for transforms (they're mates!), but you can disable this 
 setting to use native Craft transforms instead. 
 
