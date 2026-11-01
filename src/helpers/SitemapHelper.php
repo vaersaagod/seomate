@@ -138,7 +138,8 @@ class SitemapHelper
                 ->id($elementIds)
                 ->siteId('*')
                 ->collect()
-                ->filter(static fn (ElementInterface $element) => !empty($element->getUrl()));
+                ->filter(static fn (ElementInterface $element) => !empty($element->getUrl()))
+                ->groupBy('id');
             if (!empty($settings->alternateFallbackSiteHandle)) {
                 $fallbackSite = Craft::$app->getSites()->getSiteByHandle($settings->alternateFallbackSiteHandle, false);
             }
@@ -152,9 +153,7 @@ class SitemapHelper
             ], $params);
 
             if ($siteElements) {
-                $alternates = $siteElements
-                    ->where('id', $element->getId())
-                    ->collect();
+                $alternates = $siteElements->get($element->getId()) ?? new Collection();
                 if ($fallbackSite && $fallbackAlternate = $alternates->firstWhere('siteId', $fallbackSite->id)) {
                     $url['alternate'][] = [
                         'hreflang' => 'x-default',
