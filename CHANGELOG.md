@@ -1,5 +1,9 @@
 # SEOMate Changelog
 
+## 3.3.2 - 2026-11-01
+### Fixed
+- Fixed an issue where element sitemaps could be slow to generate on multi-site installs with many alternates (fixes #106, thanks @zalito12).   
+
 ## 3.3.1 - 2026-07-03
 ### Fixed
 - Fixed a security issue where SEO previews could be accessed anonymously, exposing meta data for non-public elements.
