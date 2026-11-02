@@ -26,7 +26,7 @@ This plugin requires Craft CMS 5.0.0 or later.
 To install the plugin, either install it from the plugin store, or follow these instructions:
 
 1. Install with composer via `composer require vaersaagod/seomate` from your project directory.
-2. Install the plugin in the Craft Control Panel under Settings → Plugins, or from the command line via `./craft install/plugin seomate`.
+2. Install the plugin in the Craft Control Panel under Settings → Plugins, or from the command line via `php craft plugin install seomate`.
 3. For SEOMate to do anything, you need to [configure it](#configuring). But first, continue reading!
 
 ---
